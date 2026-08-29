@@ -1,0 +1,1178 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>tank asset generator</title></head>
+<body>
+<script type="module">
+// Offscreen studio for tools/genIcons.mjs. It renders the shipped model and
+// derives technical diagrams from the same armor/module data used in combat.
+import * as THREE from 'three';
+import { createTank } from '/src/vehicles/tankFactory.ts';
+import { ALL_TANK_IDS, DEVELOPMENT_TANK_IDS, getSpec } from '/src/vehicles/specs.js';
+import {
+  TANK_ASSET_SCHEMA_VERSION, geometryFingerprint, metadataFingerprint,
+  requiredTankAssetFiles, tankAssetFile, tankAssetMetadata,
+} from '/src/vehicles/tankAssets.ts';
+import { auditTankAppearance } from '/src/vehicles/appearanceAudit.ts';
+import { drawNationalInsignia, drawVehicleDesignation } from '/src/vehicles/vehicleMarkings.ts';
+import { MODULE_LABEL } from '/src/sim/moduleCatalog.ts';
+
+const BASE = 512;
+const SS = 2;
+const MARGIN = 1.07;
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true, alpha: true, preserveDrawingBuffer: true,
+});
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.18;
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x77818b, 1.55));
+const key = new THREE.DirectionalLight(0xfff6ea, 3.05);
+key.position.set(-4, 6, 5);
+const fill = new THREE.DirectionalLight(0xe8f0ff, 1.25);
+fill.position.set(5, 2.5, 1);
+const rim = new THREE.DirectionalLight(0xffffff, 1.55);
+rim.position.set(1.5, 4, -6);
+scene.add(key, fill, rim);
+
+function capture(cam, w, h) {
+  renderer.setSize(w * SS, h * SS, false);
+  renderer.render(scene, cam);
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const c = out.getContext('2d');
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = 'high';
+  c.drawImage(renderer.domElement, 0, 0, w, h);
+  return out;
+}
+
+function silhouette(srcCanvas, outW, outH) {
+  const full = document.createElement('canvas');
+  full.width = srcCanvas.width; full.height = srcCanvas.height;
+  const fc = full.getContext('2d');
+  fc.drawImage(srcCanvas, 0, 0);
+  const img = fc.getImageData(0, 0, full.width, full.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const a = d[i + 3];
+    d[i] = 255; d[i + 1] = 255; d[i + 2] = 255;
+    d[i + 3] = a < 8 ? 0 : Math.min(255, a * 1.8);
+  }
+  fc.putImageData(img, 0, 0);
+  const out = document.createElement('canvas');
+  out.width = outW; out.height = outH;
+  const c = out.getContext('2d');
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = 'high';
+  c.drawImage(full, 0, 0, outW, outH);
+  return out;
+}
+
+function autoCropSquare(src, outSize, marginFrac = 0.05, preserveCenter = false) {
+  const c = src.getContext('2d');
+  const img = c.getImageData(0, 0, src.width, src.height);
+  const d = img.data;
+  let x0 = src.width, y0 = src.height, x1 = 0, y1 = 0;
+  for (let y = 0; y < src.height; y++) {
+    for (let x = 0; x < src.width; x++) {
+      if (d[(y * src.width + x) * 4 + 3] > 8) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+  }
+  if (x1 <= x0) return src;
+  const w = x1 - x0 + 1, h = y1 - y0 + 1;
+  const cx = preserveCenter ? src.width / 2 : (x0 + x1) / 2;
+  const cy = preserveCenter ? src.height / 2 : (y0 + y1) / 2;
+  const centeredSide = preserveCenter
+    ? Math.max(Math.abs(x0 - cx), Math.abs(x1 - cx), Math.abs(y0 - cy), Math.abs(y1 - cy)) * 2
+    : Math.max(w, h);
+  const side = centeredSide * (1 + marginFrac * 2);
+  const out = document.createElement('canvas');
+  out.width = outSize; out.height = outSize;
+  const oc = out.getContext('2d');
+  oc.imageSmoothingEnabled = true;
+  oc.imageSmoothingQuality = 'high';
+  // A faint alpha-derived grounding shadow preserves the transparent icon
+  // contract while separating dark running gear from the garage card. The
+  // final pass adds only restrained tonal clarity; it does not recolor the
+  // authored camouflage.
+  oc.save();
+  oc.globalAlpha = 0.28;
+  oc.filter = 'brightness(0) blur(10px)';
+  oc.drawImage(src, cx - side / 2, cy - side / 2, side, side, 0, 7, outSize, outSize);
+  oc.restore();
+  oc.save();
+  oc.filter = 'brightness(1.06) contrast(1.07) saturate(1.03)';
+  oc.drawImage(src, cx - side / 2, cy - side / 2, side, side, 0, 0, outSize, outSize);
+  oc.restore();
+  return out;
+}
+
+/**
+ * Resolve the rendered body-mass center from a neutral top-down mask.
+ *
+ * A tank's rig origin, track-run midpoint and full bounding box are all useful
+ * engineering datums, but none of them certify the thing a player sees. This
+ * mask deliberately measures finished pixels. Rows narrower than 28% of the
+ * widest opaque row are rejected, which removes cannon tubes, antennas and
+ * tow cables without teaching the audit any vehicle-specific dimensions.
+ */
+function opaqueBodyCentroid(canvas) {
+  const pixels = canvas.getContext('2d', { willReadFrequently: true })
+    .getImageData(0, 0, canvas.width, canvas.height).data;
+  const rowWeights = new Float64Array(canvas.height);
+  let widestRow = 0;
+  for (let y = 0; y < canvas.height; y++) {
+    let weight = 0;
+    for (let x = 0; x < canvas.width; x++) {
+      const alpha = pixels[(y * canvas.width + x) * 4 + 3];
+      if (alpha > 8) weight += alpha / 255;
+    }
+    rowWeights[y] = weight;
+    widestRow = Math.max(widestRow, weight);
+  }
+
+  const minimumBodyRow = widestRow * 0.28;
+  let weightSum = 0;
+  let weightedX = 0;
+  let weightedY = 0;
+  let acceptedRows = 0;
+  for (let y = 0; y < canvas.height; y++) {
+    if (rowWeights[y] < minimumBodyRow) continue;
+    acceptedRows++;
+    for (let x = 0; x < canvas.width; x++) {
+      const alpha = pixels[(y * canvas.width + x) * 4 + 3];
+      if (alpha <= 8) continue;
+      const weight = alpha / 255;
+      weightSum += weight;
+      weightedX += (x + 0.5) * weight;
+      weightedY += (y + 0.5) * weight;
+    }
+  }
+  if (!(weightSum > 0) || !(acceptedRows > 0)) {
+    throw new Error('empty presentation mask');
+  }
+  return {
+    pixelX: weightedX / weightSum,
+    pixelY: weightedY / weightSum,
+    bodyPixels: Math.round(weightSum),
+    acceptedRows,
+    widestRowPx: Number(widestRow.toFixed(1)),
+  };
+}
+
+function renderedPresentationCenter(visual) {
+  const root = visual.root;
+  root.updateMatrixWorld(true);
+  // This is the exact fit box inspectOne uses for the shipped orthographic
+  // assets. Keep it before the centroid-only visibility exclusions below.
+  const iconBox = new THREE.Box3().setFromObject(root);
+  const hidden = [];
+  root.traverse((object) => {
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    const renderless = materials.length > 0 && materials.every((material) => material
+      && (material.colorWrite === false || material.visible === false || material.opacity <= 0));
+    if (!object.userData?.authoredShadowProxy && !renderless) return;
+    hidden.push([object, object.visible]);
+    object.visible = false;
+  });
+
+  let canvas;
+  let boundsCenter;
+  let half;
+  try {
+    root.updateMatrixWorld(true);
+    const box = new THREE.Box3().makeEmpty();
+    root.traverse((object) => {
+      if (!(object.isMesh || object.isInstancedMesh) || !object.geometry
+          || !visibleInTree(object, root)) return;
+      if (object.isInstancedMesh) {
+        object.computeBoundingBox();
+        if (object.boundingBox && !object.boundingBox.isEmpty()) {
+          box.union(object.boundingBox.clone().applyMatrix4(object.matrixWorld));
+        }
+        return;
+      }
+      if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+      box.union(object.geometry.boundingBox.clone().applyMatrix4(object.matrixWorld));
+    });
+    if (box.isEmpty()) throw new Error(`${visual.specId}: empty visible presentation bounds`);
+    boundsCenter = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    half = Math.max(size.x, size.z) * 0.5 * 1.025;
+    const cam = orthoCam(boundsCenter, size, [0, 1, 0], [0, 0, 1], half, half);
+    // Measure the same authored materials and transparency that ship in the
+    // top asset. A flat override hid small asymmetric alpha differences on a
+    // handful of vehicles (notably Marder 1A3 and Chieftain 5), allowing the
+    // synthetic mask to pass while the real icon still looked off-center.
+    canvas = capture(cam, BASE, BASE);
+  } finally {
+    for (const [object, visible] of hidden) object.visible = visible;
+  }
+
+  let body;
+  try {
+    body = opaqueBodyCentroid(canvas);
+  } catch (error) {
+    throw new Error(`${visual.specId}: ${error.message}`);
+  }
+  const { pixelX, pixelY } = body;
+  // With a downward camera and +Z as screen-up, screen-right maps to world
+  // -X. Preserve that handedness when converting the measured pixel centroid
+  // back into the vehicle's local presentation coordinates.
+  const xM = Number((boundsCenter.x - (pixelX / canvas.width - 0.5) * half * 2).toFixed(4));
+  const zM = Number((boundsCenter.z + (0.5 - pixelY / canvas.height) * half * 2).toFixed(4));
+  // The update writes this newly measured anchor. Compute the paired fit from
+  // that same rounded value, not from the previous generated anchor imported
+  // when the page started, or the projection lags every anchor change by one
+  // generation and the public manifest cannot match runtime exactly.
+  const iconProjection = assetProjection(iconBox, { xM, zM });
+  const anchorPixelX = canvas.width * (0.5
+    - (visual.presentationAnchor.xM - boundsCenter.x) / (half * 2));
+  const anchorPixelY = canvas.height * (0.5
+    - (visual.presentationAnchor.zM - boundsCenter.z) / (half * 2));
+  return {
+    xM,
+    zM,
+    currentAnchor: {
+      xM: Number(visual.presentationAnchor.xM.toFixed(4)),
+      zM: Number(visual.presentationAnchor.zM.toFixed(4)),
+    },
+    residualPx: Number(Math.hypot(pixelX - anchorPixelX, pixelY - anchorPixelY).toFixed(2)),
+    deltaM: Number(Math.hypot(
+      xM - visual.presentationAnchor.xM,
+      zM - visual.presentationAnchor.zM,
+    ).toFixed(4)),
+    bodyPixels: body.bodyPixels,
+    acceptedRows: body.acceptedRows,
+    widestRowPx: body.widestRowPx,
+    projection: {
+      centerYM: Number(iconProjection.center.y.toFixed(4)),
+      topHalfM: Number(iconProjection.topHalf.toFixed(4)),
+      sideHalfM: Number(iconProjection.sideHalf.toFixed(4)),
+    },
+  };
+}
+
+async function exportedTopPresentationCenter(id) {
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = `/icons/${id}_top.webp?presentation-audit=${Date.now()}`;
+  await image.decode();
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  canvas.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0);
+  const body = opaqueBodyCentroid(canvas);
+  const deltaX = body.pixelX - canvas.width * 0.5;
+  const deltaY = body.pixelY - canvas.height * 0.5;
+  return {
+    residualPx: Number(Math.hypot(deltaX, deltaY).toFixed(2)),
+    deltaXPx: Number(deltaX.toFixed(2)),
+    deltaYPx: Number(deltaY.toFixed(2)),
+    bodyPixels: body.bodyPixels,
+    acceptedRows: body.acceptedRows,
+    widestRowPx: body.widestRowPx,
+  };
+}
+
+function orthoCam(center, size, dir, up, halfW, halfH) {
+  const dist = Math.max(size.x, size.y, size.z) * 2 + 6;
+  const cam = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, 0.1, dist * 3);
+  cam.up.set(up[0], up[1], up[2]);
+  cam.position.set(center.x + dir[0] * dist, center.y + dir[1] * dist, center.z + dir[2] * dist);
+  cam.lookAt(center);
+  cam.updateMatrixWorld();
+  return cam;
+}
+
+function assetProjection(box, anchor) {
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  center.x = anchor.xM;
+  center.z = anchor.zM;
+  const extentX = Math.max(center.x - box.min.x, box.max.x - center.x);
+  const extentZ = Math.max(center.z - box.min.z, box.max.z - center.z);
+  return {
+    center,
+    size,
+    extentX,
+    extentZ,
+    topHalf: Math.max(extentX, extentZ) * MARGIN,
+    sideHalf: Math.max(size.y / 2, extentZ / 2) * MARGIN,
+  };
+}
+
+function sideProjection(center, size, extentZ = size.z / 2) {
+  const aspect = 2;
+  const halfH = Math.max(size.y / 2, extentZ / aspect) * MARGIN;
+  const halfW = halfH * aspect;
+  return {
+    halfW, halfH,
+    point(point, turretLocal, turretPivot = [0, 0, 0]) {
+      const z = point[2] + (turretLocal ? turretPivot[2] : 0);
+      const y = point[1] + (turretLocal ? turretPivot[1] : 0);
+      return [
+        BASE / 2 + ((z - center.z) / (halfW * 2)) * BASE,
+        BASE / 4 - ((y - center.y) / (halfH * 2)) * (BASE / 2),
+      ];
+    },
+  };
+}
+
+function technicalBase(sideCanvas, metadata, title, note) {
+  const out = document.createElement('canvas');
+  out.width = BASE; out.height = BASE / 2;
+  const c = out.getContext('2d');
+  c.fillStyle = '#081017';
+  c.fillRect(0, 0, out.width, out.height);
+  c.globalAlpha = 0.28;
+  c.drawImage(sideCanvas, 0, 0);
+  c.globalAlpha = 1;
+  const fade = c.createLinearGradient(0, 0, 0, out.height);
+  fade.addColorStop(0, 'rgba(5,10,14,.86)');
+  fade.addColorStop(0.26, 'rgba(5,10,14,.18)');
+  fade.addColorStop(0.82, 'rgba(5,10,14,.12)');
+  fade.addColorStop(1, 'rgba(5,10,14,.82)');
+  c.fillStyle = fade;
+  c.fillRect(0, 0, out.width, out.height);
+  c.font = '700 13px system-ui, sans-serif';
+  c.fillStyle = '#f4f7f9';
+  drawNationalInsignia(c, metadata.markings.insignia, 22, 18, 20);
+  c.fillText(`${metadata.tierNumeral}  ${metadata.label?.shortName || metadata.name}`.trim(), 37, 20);
+  c.font = '800 9px system-ui, sans-serif';
+  c.fillStyle = '#dca652';
+  c.fillText(title.toUpperCase(), 14, 36);
+  c.textAlign = 'right';
+  c.fillStyle = '#9dafbd';
+  c.fillText(`${metadata.markings.designation} · ${note}`.toUpperCase(), out.width - 14, 20);
+  c.textAlign = 'left';
+  return out;
+}
+
+function polygonPath(c, points) {
+  if (!points.length) return;
+  c.beginPath();
+  c.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) c.lineTo(points[i][0], points[i][1]);
+  c.closePath();
+}
+
+function polygonArea(points) {
+  let area = 0;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i], b = points[(i + 1) % points.length];
+    area += a[0] * b[1] - b[0] * a[1];
+  }
+  return Math.abs(area / 2);
+}
+
+function plateCenter(points) {
+  return points.reduce((acc, p) => [acc[0] + p[0] / points.length, acc[1] + p[1] / points.length], [0, 0]);
+}
+
+function convexHull2d(points) {
+  const unique = [...new Map(points.map((point) => [`${point[0]},${point[1]}`, point])).values()]
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (unique.length <= 2) return unique;
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [];
+  for (const point of unique) {
+    while (lower.length >= 2 && cross(lower.at(-2), lower.at(-1), point) <= 0) lower.pop();
+    lower.push(point);
+  }
+  const upper = [];
+  for (let i = unique.length - 1; i >= 0; i--) {
+    const point = unique[i];
+    while (upper.length >= 2 && cross(upper.at(-2), upper.at(-1), point) <= 0) upper.pop();
+    upper.push(point);
+  }
+  lower.pop(); upper.pop();
+  return lower.concat(upper);
+}
+
+function projectedPlateKey(points) {
+  return points.map((point) => `${Math.round(point[0])},${Math.round(point[1])}`).sort().join('|');
+}
+
+function compactPlateName(name) {
+  return name
+    .replace(/_[LR](?=_|$)/g, '')
+    .replace(/_[AB]$/g, '')
+    .replace(/^hull_side_/i, '')
+    .replace(/^turret_side_/i, 'side_')
+    .replace(/^(hull|turret)_/i, '')
+    .replace(/_screen$/i, '')
+    .replace(/_/g, ' ')
+    .toUpperCase()
+    .slice(0, 13);
+}
+
+function armorColor(mm) {
+  if (mm < 50) return 'rgba(61,188,156,.50)';
+  if (mm < 120) return 'rgba(127,196,79,.50)';
+  if (mm < 250) return 'rgba(232,177,65,.54)';
+  if (mm < 450) return 'rgba(230,103,58,.56)';
+  return 'rgba(198,52,63,.60)';
+}
+
+function zoneColor(plate) {
+  const name = plate.name.toLowerCase();
+  if (plate.kind === 'external' || /track|screen/.test(name)) return 'rgba(67,157,211,.50)';
+  if (plate.turretLocal || /turret|mantlet|cheek/.test(name)) return 'rgba(170,104,222,.50)';
+  if (/front|glacis|nose/.test(name)) return 'rgba(224,83,68,.52)';
+  if (/rear|engine/.test(name)) return 'rgba(64,182,166,.48)';
+  if (/roof|deck/.test(name)) return 'rgba(150,162,174,.42)';
+  return 'rgba(224,163,55,.48)';
+}
+
+function penetrationReference(metadata) {
+  const shells = (metadata.gun && metadata.gun.shells || [])
+    .filter((shell) => Number.isFinite(shell.pen100Mm) && shell.pen100Mm > 0)
+    .sort((a, b) => b.pen100Mm - a.pen100Mm);
+  const shell = shells[0];
+  if (!shell) return 'effective mm · no penetration row';
+  const has2k = Number.isFinite(shell.pen2000Mm);
+  const has1k = Number.isFinite(shell.pen1000Mm);
+  const far = has2k ? shell.pen2000Mm : has1k ? shell.pen1000Mm : shell.pen100Mm;
+  const farRange = has2k ? '2km' : has1k ? '1km' : '100m';
+  return `${shell.type || shell.name} ${Math.round(shell.pen100Mm)}→${Math.round(far)} mm · 100m→${farRange}`;
+}
+
+function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+
+function compactHitboxIds(ids) {
+  const unique = [...new Set(ids)].sort();
+  if (unique.length <= 2) return unique.join('/');
+  const parsed = unique.map((id) => /^([A-Z-]+)(\d+)$/.exec(id));
+  if (parsed.every(Boolean) && parsed.every((entry) => entry[1] === parsed[0][1])) {
+    return `${parsed[0][1]}${parsed[0][2]}–${parsed.at(-1)[2]}`;
+  }
+  return `${unique[0]}–${unique.at(-1)}`;
+}
+
+function coalescePlateLabels(items, armorMode) {
+  const groups = new Map();
+  for (const item of items) {
+    const key = `${item.name}|${item.value}|${item.color}`;
+    const previous = groups.get(key);
+    if (!previous) {
+      groups.set(key, { ...item, ids: [...item.ids], weight: item.area });
+      continue;
+    }
+    const weight = previous.weight + item.area;
+    previous.center = [
+      (previous.center[0] * previous.weight + item.center[0] * item.area) / weight,
+      (previous.center[1] * previous.weight + item.center[1] * item.area) / weight,
+    ];
+    previous.weight = weight;
+    previous.ids.push(...item.ids);
+  }
+  return [...groups.values()].map((item) => ({
+    center: item.center,
+    color: item.color,
+    label: armorMode
+      ? `${compactHitboxIds(item.ids)} ${item.value}MM`
+      : `${compactHitboxIds(item.ids)} ${item.name}`,
+  }));
+}
+
+function distributeCalloutYs(items, minY = 50, maxY = 224) {
+  if (!items.length) return;
+  items.sort((a, b) => a.center[1] - b.center[1]);
+  const gap = items.length > 1 ? Math.min(14, (maxY - minY) / (items.length - 1)) : 0;
+  for (let i = 0; i < items.length; i++) {
+    const min = i ? items[i - 1].labelY + gap : minY;
+    items[i].labelY = clamp(items[i].center[1], min, maxY);
+  }
+  if (items.at(-1).labelY > maxY) items.at(-1).labelY = maxY;
+  for (let i = items.length - 2; i >= 0; i--) {
+    items[i].labelY = Math.min(items[i].labelY, items[i + 1].labelY - gap);
+  }
+}
+
+function drawCalloutLabels(c, items) {
+  c.save();
+  c.font = '800 6.5px ui-monospace, monospace';
+  c.lineWidth = 0.75;
+  for (const side of ['left', 'right']) {
+    const list = items.filter((item) => item.center[0] < 256 ? side === 'left' : side === 'right');
+    distributeCalloutYs(list);
+    for (const item of list) {
+      const left = side === 'left';
+      const textX = left ? 7 : 505;
+      const edgeX = left ? 5 + c.measureText(item.label).width : 507 - c.measureText(item.label).width;
+      const elbowX = left ? 96 : 416;
+      c.strokeStyle = item.color || 'rgba(235,242,247,.74)';
+      c.beginPath(); c.moveTo(item.center[0], item.center[1]);
+      c.lineTo(elbowX, item.labelY); c.lineTo(edgeX, item.labelY); c.stroke();
+      const width = c.measureText(item.label).width + 5;
+      c.fillStyle = 'rgba(4,9,13,.84)';
+      c.fillRect(left ? 4 : 508 - width, item.labelY - 5, width, 9);
+      c.fillStyle = '#f6f8fa';
+      c.textAlign = left ? 'left' : 'right';
+      c.fillText(item.label, textX, item.labelY + 2.5);
+    }
+  }
+  c.restore();
+}
+
+function drawPlateDiagram(sideCanvas, metadata, projection, mode, trackShapes = []) {
+  const armorMode = mode === 'armor';
+  const out = technicalBase(
+    sideCanvas, metadata,
+    armorMode ? 'Armor / penetration reference' : 'Hit-area map',
+    armorMode ? penetrationReference(metadata) : 'actual collision plates',
+  );
+  const c = out.getContext('2d');
+  c.lineJoin = 'round';
+  c.lineWidth = 1.25;
+  c.font = '800 8px ui-monospace, monospace';
+  const projected = new Map();
+  for (const plate of metadata.armor.plates) {
+    // Live createTank builds replace these legacy rectangles with convex
+    // prisms derived from the actual linked-track course. Do not keep lying
+    // about them in the technical card once that richer shape is available.
+    if (trackShapes.length && /^track_[LR]$/.test(plate.name)) continue;
+    const points = plate.verts.map((point) => projection.point(point, plate.turretLocal, metadata.armor.turretPivot));
+    if (points.length < 3) continue;
+    const key = projectedPlateKey(points);
+    const previous = projected.get(key);
+    if (!previous) projected.set(key, { plate, points, plates: [plate] });
+    else {
+      previous.plates.push(plate);
+      if (plate.keMm > previous.plate.keMm) previous.plate = plate;
+    }
+  }
+  if (trackShapes.length) {
+    const legacyTrackIds = new Map(metadata.armor.plates
+      .filter((plate) => /^track_[LR]$/.test(plate.name))
+      .map((plate) => [plate.name, plate.hitboxId]));
+    for (const shape of trackShapes) {
+      if (!shape || !Array.isArray(shape.poly) || shape.poly.length < 3) continue;
+      const points = shape.poly.map(([z, y]) => projection.point([0, y, z], false));
+      const key = projectedPlateKey(points);
+      const name = shape.module === 'trackL' ? 'track_L' : 'track_R';
+      const plate = {
+        ...shape.plate,
+        name,
+        hitboxId: legacyTrackIds.get(name) || (shape.module === 'trackL' ? 'TRACK-L' : 'TRACK-R'),
+        turretLocal: false,
+      };
+      const previous = projected.get(key);
+      if (!previous) projected.set(key, { plate, points, plates: [plate] });
+      else previous.plates.push(plate);
+    }
+  }
+  const labels = [];
+  const outlines = new Map();
+  for (const { plate, points, plates } of projected.values()) {
+    polygonPath(c, points);
+    c.fillStyle = armorMode ? armorColor(plate.keMm) : zoneColor(plate);
+    c.fill();
+    // Mirrored sides and planar triangle pairs are separate live hit
+    // surfaces but one readable zone in side projection. Stroke their outer
+    // hull once so the diagram does not invent a giant X through the turret.
+    const outlineKey = plate.name.replace(/_[LR](?=_|$)/g, '').replace(/_[AB]$/g, '');
+    const outline = outlines.get(outlineKey) || [];
+    outline.push(...points);
+    outlines.set(outlineKey, outline);
+    const area = polygonArea(points);
+    // Roofs, front plates and rears collapse to lines in a pure side view.
+    // Keep their boundary strokes, but do not route unreadable callouts to a
+    // zero-area projection; top/front cards own those surfaces.
+    if (area >= 8) labels.push({
+      center: plateCenter(points),
+      ids: plates.map((entry) => entry.hitboxId),
+      name: compactPlateName(plate.name),
+      value: Math.round(plate.keMm),
+      area,
+      color: armorMode ? armorColor(plate.keMm) : zoneColor(plate),
+    });
+  }
+  c.strokeStyle = 'rgba(235,242,247,.72)';
+  for (const points of outlines.values()) {
+    const hull = convexHull2d(points);
+    if (hull.length < 2) continue;
+    polygonPath(c, hull);
+    c.stroke();
+  }
+  drawCalloutLabels(c, coalescePlateLabels(labels, armorMode));
+  c.textAlign = 'left';
+  c.font = '700 8px system-ui, sans-serif';
+  if (armorMode) {
+    const legend = [['<50', '#3dbc9c'], ['50–119', '#7fc44f'], ['120–249', '#e8b141'], ['250–449', '#e6673a'], ['450+', '#c6343f']];
+    let x = 14;
+    for (const [label, color] of legend) {
+      c.fillStyle = color; c.fillRect(x, 238, 12, 6);
+      c.fillStyle = '#c8d2da'; c.fillText(label, x + 16, 244);
+      x += 72;
+    }
+  } else {
+    const legend = [['HULL', '#e0a337'], ['FRONT', '#e05344'], ['TURRET', '#aa68de'], ['EXTERNAL', '#439dd3']];
+    let x = 14;
+    for (const [label, color] of legend) {
+      c.fillStyle = color; c.fillRect(x, 238, 12, 6);
+      c.fillStyle = '#c8d2da'; c.fillText(label, x + 16, 244);
+      x += 92;
+    }
+  }
+  return out;
+}
+
+const MODULE_COLOR = {
+  engine: '#e9753b', fuelTank: '#d5a23e', ammoRack: '#d94c54', turretRing: '#9f70db',
+  radio: '#54a8d8', optics: '#69c8b3', gun: '#d9dce0', trackL: '#84929e', trackR: '#84929e',
+  transmission: '#ef8c48', autoloader: '#e45b77', feedSystem: '#d06bd9', missileRack: '#c73f67',
+  gunMount: '#8f78c8',
+};
+const CREW_COLOR = '#e9c47c';
+const CREW_FIGURE_HEIGHT_PX = 30;
+const CREW_FIGURE_WIDTH_PX = 20;
+
+function moduleLabel(name) {
+  const fixed = {
+    ammoRack: 'AMMO', fuelTank: 'FUEL', turretRing: 'TURRET',
+    trackL: 'TRACK', trackR: 'TRACK', commander: 'COMMANDER',
+  };
+  return fixed[name] || MODULE_LABEL[name]?.toUpperCase()
+    || name.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').toUpperCase();
+}
+
+function drawBox(c, box, projection, turretPivot, color) {
+  if (!box.min || !box.max) return null;
+  const shapes = Array.isArray(box.parts) && box.parts.length ? box.parts : [box];
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  let labelRect = null;
+  for (const shape of shapes) {
+    const a = projection.point(shape.min, box.turretLocal, turretPivot);
+    const b = projection.point(shape.max, box.turretLocal, turretPivot);
+    const x = Math.min(a[0], b[0]), y = Math.min(a[1], b[1]);
+    const w = Math.max(3, Math.abs(b[0] - a[0])), h = Math.max(3, Math.abs(b[1] - a[1]));
+    c.fillStyle = `${color}99`;
+    c.fillRect(x, y, w, h);
+    c.strokeStyle = color;
+    c.lineWidth = 1.2;
+    c.strokeRect(x, y, w, h);
+    x0 = Math.min(x0, x); y0 = Math.min(y0, y);
+    x1 = Math.max(x1, x + w); y1 = Math.max(y1, y + h);
+    if (!labelRect || w * h > labelRect.w * labelRect.h) labelRect = { x, y, w, h };
+  }
+  if (labelRect && labelRect.w > 18 && labelRect.h > 9) {
+    c.fillStyle = '#fff';
+    c.textAlign = 'center';
+    c.fillText(box.volumeId,
+      labelRect.x + labelRect.w / 2, labelRect.y + labelRect.h / 2 + 3);
+  }
+  return {
+    center: [(x0 + x1) / 2, (y0 + y1) / 2],
+    label: `${box.volumeId} ${moduleLabel(box.name)}`,
+    color,
+  };
+}
+
+function crewScreenRect(box, projection, turretPivot) {
+  const a = projection.point(box.min, box.turretLocal, turretPivot);
+  const b = projection.point(box.max, box.turretLocal, turretPivot);
+  const x = Math.min(a[0], b[0]), y = Math.min(a[1], b[1]);
+  const w = Math.max(5, Math.abs(b[0] - a[0])), h = Math.max(8, Math.abs(b[1] - a[1]));
+  return { x, y, w, h, centerX: x + w / 2, floorY: y + h - 1 };
+}
+
+function crewPlacements(boxes, projection, turretPivot) {
+  const placements = boxes.map((box) => crewScreenRect(box, projection, turretPivot));
+  const claimed = new Set();
+  for (let start = 0; start < placements.length; start++) {
+    if (claimed.has(start)) continue;
+    const group = [start];
+    claimed.add(start);
+    for (let cursor = 0; cursor < group.length; cursor++) {
+      const base = placements[group[cursor]];
+      for (let candidate = 0; candidate < placements.length; candidate++) {
+        if (claimed.has(candidate)) continue;
+        const other = placements[candidate];
+        if (Math.abs(base.centerX - other.centerX) < CREW_FIGURE_WIDTH_PX * 0.9
+            && Math.abs(base.floorY - other.floorY) < 8) {
+          claimed.add(candidate);
+          group.push(candidate);
+        }
+      }
+    }
+    if (group.length < 2) continue;
+    group.sort((a, b) => placements[a].centerX - placements[b].centerX
+      || boxes[a].name.localeCompare(boxes[b].name));
+    const centerX = group.reduce((sum, index) => sum + placements[index].centerX, 0) / group.length;
+    const floorY = group.reduce((sum, index) => sum + placements[index].floorY, 0) / group.length;
+    const spacing = CREW_FIGURE_WIDTH_PX * 0.9;
+    group.forEach((index, rank) => {
+      placements[index].figureCenterX = centerX + (rank - (group.length - 1) / 2) * spacing;
+      placements[index].figureFloorY = floorY;
+    });
+  }
+  return placements;
+}
+
+function drawCrew(c, box, projection, turretPivot, placement = null) {
+  if (!box.min || !box.max) return null;
+  const rect = placement || crewScreenRect(box, projection, turretPivot);
+  const { x, y, w, h } = rect;
+  const color = CREW_COLOR;
+  c.save();
+  c.fillStyle = `${color}0d`; c.fillRect(x, y, w, h);
+
+  // Crew volumes legitimately vary by vehicle, but the human pictogram must
+  // not. Every role uses this exact 20 × 30 px seated profile, centered on the
+  // station and planted on its lower datum. The volume remains visible behind
+  // it as the gameplay truth; the person is a consistent presentation layer.
+  const figureH = CREW_FIGURE_HEIGHT_PX;
+  const figureW = CREW_FIGURE_WIDTH_PX;
+  const ox = (rect.figureCenterX ?? rect.centerX) - figureW / 2;
+  const oy = (rect.figureFloorY ?? rect.floorY) - figureH;
+  const px = (u) => ox + u * figureW;
+  const py = (v) => oy + v * figureH;
+  const limbW = 2.35;
+
+  // Quiet seat datum: one back, one cushion, one support.
+  c.strokeStyle = `${color}50`; c.lineWidth = 1;
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  c.beginPath();
+  c.moveTo(px(0.16), py(0.34)); c.lineTo(px(0.16), py(0.66));
+  c.lineTo(px(0.52), py(0.66));
+  c.moveTo(px(0.20), py(0.66)); c.lineTo(px(0.18), py(0.94));
+  c.stroke();
+
+  // Compact upright torso—no lean, no secondary limbs, no role-specific pose.
+  c.fillStyle = color;
+  c.beginPath();
+  c.moveTo(px(0.27), py(0.29));
+  c.quadraticCurveTo(px(0.39), py(0.25), px(0.48), py(0.31));
+  c.lineTo(px(0.49), py(0.55));
+  c.quadraticCurveTo(px(0.42), py(0.60), px(0.32), py(0.57));
+  c.lineTo(px(0.26), py(0.43));
+  c.closePath(); c.fill();
+
+  c.beginPath(); c.arc(px(0.37), py(0.14), 3.1, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = color; c.lineWidth = limbW;
+  c.beginPath();
+  c.moveTo(px(0.37), py(0.24)); c.lineTo(px(0.37), py(0.29));
+  c.moveTo(px(0.43), py(0.35)); c.lineTo(px(0.61), py(0.47));
+  c.lineTo(px(0.74), py(0.47));
+  c.moveTo(px(0.42), py(0.58)); c.lineTo(px(0.71), py(0.62));
+  c.lineTo(px(0.71), py(0.87)); c.lineTo(px(0.89), py(0.87));
+  c.stroke();
+  c.restore();
+  c.strokeStyle = `${color}52`; c.lineWidth = 0.8;
+  c.strokeRect(x, y, w, h);
+  return {
+    center: [x + w / 2, y + h / 2],
+    label: `${box.volumeId} ${moduleLabel(box.name)}`,
+    color,
+  };
+}
+
+function drawModuleDiagram(sideCanvas, metadata, projection) {
+  const out = technicalBase(sideCanvas, metadata, 'Systems and crew layout', 'gameplay volumes • seated crew');
+  const c = out.getContext('2d');
+  c.font = '800 6.5px ui-monospace, monospace';
+  const labels = [];
+  for (const box of metadata.armor.modules) {
+    const label = drawBox(c, box, projection, metadata.armor.turretPivot, MODULE_COLOR[box.name] || '#8aa1b2');
+    if (label) labels.push(label);
+  }
+  const placements = crewPlacements(metadata.armor.crew, projection, metadata.armor.turretPivot);
+  metadata.armor.crew.forEach((box, index) => {
+    const label = drawCrew(c, box, projection, metadata.armor.turretPivot, placements[index]);
+    if (label) labels.push(label);
+  });
+  drawCalloutLabels(c, labels);
+  c.textAlign = 'left';
+  c.font = '700 8px system-ui, sans-serif';
+  const legend = [['AMMO', MODULE_COLOR.ammoRack], ['POWER', MODULE_COLOR.engine], ['FEED', MODULE_COLOR.feedSystem], ['GUN', MODULE_COLOR.gun], ['CREW', CREW_COLOR]];
+  let x = 14;
+  for (const [label, color] of legend) {
+    c.fillStyle = color; c.fillRect(x, 238, 12, 6);
+    c.fillStyle = '#c8d2da'; c.fillText(label, x + 16, 244);
+    x += 82;
+  }
+  return out;
+}
+
+function drawMarkingsDiagram(metadata) {
+  const out = document.createElement('canvas');
+  out.width = 256; out.height = 128;
+  const c = out.getContext('2d');
+  const g = c.createLinearGradient(0, 0, 256, 128);
+  g.addColorStop(0, '#111b23'); g.addColorStop(1, '#070c11');
+  c.fillStyle = g; c.fillRect(0, 0, 256, 128);
+  c.strokeStyle = 'rgba(182,198,210,.28)'; c.strokeRect(0.5, 0.5, 255, 127);
+  drawVehicleDesignation(c, metadata.markings, { x: 8, y: 24, width: 240, height: 88 });
+  c.fillStyle = '#dca652'; c.font = '800 9px system-ui, sans-serif';
+  c.fillText(metadata.markings.countryLabel.toUpperCase(), 12, 16);
+  c.textAlign = 'right'; c.fillStyle = '#9dafbd';
+  c.fillText(metadata.markings.designation, 244, 16);
+  c.textAlign = 'left';
+  return out;
+}
+
+function muzzleBoreCensus(root) {
+  const result = { tagged: 0, rims: 0, discs: 0, authored: 0, fallback: 0 };
+  root.traverse((object) => {
+    for (let current = object; current; current = current.parent) {
+      if (!current.visible) return;
+      if (current === root) break;
+    }
+    if (object.userData && object.userData.cannonBore) result.tagged++;
+    if (/muzzleBoreShadow(?:Fallback)?Rim/i.test(object.name || '')) result.rims++;
+    if (/muzzleBoreShadow(?:Fallback)?Disc/i.test(object.name || '')) result.discs++;
+    if (object.name === 'muzzleBoreShadowDisc') result.authored++;
+    if (object.name === 'muzzleBoreShadowFallback') result.fallback++;
+  });
+  return result;
+}
+
+function visibleInTree(object, root) {
+  if (!object) return false;
+  for (let current = object; current; current = current.parent) {
+    if (!current.visible) return false;
+    if (current === root) return true;
+  }
+  return false;
+}
+
+function visibleBorePart(root, pattern) {
+  let found = null;
+  root.traverse((object) => {
+    if (!found && pattern.test(object.name || '') && visibleInTree(object, root)) found = object;
+  });
+  return found;
+}
+
+function vehicleMarkingCensus(root) {
+  const result = {
+    total: 0,
+    insignia: 0,
+    designation: 0,
+    verifiedInsignia: 0,
+    verifiedDesignation: 0,
+    minimumVisibilityRatio: 1,
+    codes: [],
+  };
+  const codes = new Set();
+  root.traverse((object) => {
+    if (!object.userData?.vehicleMarking || !visibleInTree(object, root)) return;
+    result.total++;
+    const kind = object.userData.markingKind;
+    if (kind === 'insignia') result.insignia++;
+    if (kind === 'designation') result.designation++;
+    if (kind === 'insignia' && object.userData.visibilityVerified) result.verifiedInsignia++;
+    if (kind === 'designation' && object.userData.visibilityVerified) result.verifiedDesignation++;
+    if (Number.isFinite(object.userData.visibilityRatio)) {
+      result.minimumVisibilityRatio = Math.min(
+        result.minimumVisibilityRatio, object.userData.visibilityRatio);
+    }
+    if (object.userData.markingCode) codes.add(object.userData.markingCode);
+  });
+  result.codes = [...codes].sort();
+  return result;
+}
+
+function inspectOne(id, renderFiles, requestedViews = null) {
+  const visual = createTank(id, null, { camoSeed: 4100, quality: 'high' });
+  const root = visual.root;
+  scene.add(root);
+  try {
+    root.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(root);
+    // The full box is a fit envelope, not a body center. Long cannons and
+    // antennae influence zoom without dragging the hull away from the shared
+    // garage/gallery presentation anchor. The returned half-extents are also
+    // the ballistic-card projection receipt.
+    const projection = assetProjection(box, visual.presentationAnchor);
+    const { center, size, extentX, extentZ } = projection;
+    const metadata = tankAssetMetadata(getSpec(id));
+    const geometryHash = geometryFingerprint(root);
+    const presentationAnchor = {
+      xM: Number(visual.presentationAnchor.xM.toFixed(4)),
+      zM: Number(visual.presentationAnchor.zM.toFixed(4)),
+    };
+    const meta = {
+      ...metadata,
+      geometryHash,
+      metadataHash: metadataFingerprint(metadata),
+      presentationAnchor,
+      presentationHash: metadataFingerprint(presentationAnchor),
+      presentationProjection: {
+        centerYM: Number(projection.center.y.toFixed(4)),
+        topHalfM: Number(projection.topHalf.toFixed(4)),
+        sideHalfM: Number(projection.sideHalf.toFixed(4)),
+      },
+      appearance: auditTankAppearance(root),
+      muzzleBore: muzzleBoreCensus(root),
+      vehicleMarkings: vehicleMarkingCensus(root),
+      requiredFiles: requiredTankAssetFiles(id),
+    };
+    if (!renderFiles) return { files: {}, meta };
+
+    const files = {};
+    const wants = (view) => !requestedViews || requestedViews.includes(view);
+    if (wants('top') || wants('topSilhouette')) {
+      const topCam = orthoCam(center, size, [0, 1, 0], [0, 0, 1],
+        projection.topHalf, projection.topHalf);
+      const topCanvas = capture(topCam, BASE, BASE);
+      if (wants('top')) files[tankAssetFile(id, 'top')] = topCanvas.toDataURL('image/webp', 0.9);
+      if (wants('topSilhouette')) files[tankAssetFile(id, 'topSilhouette')] = silhouette(topCanvas, 128, 128).toDataURL('image/png');
+    }
+
+    if (wants('side') || wants('sideSilhouette') || wants('hitZonesSide')
+        || wants('armorSide') || wants('modulesSide')) {
+      const projection = sideProjection(center, size, extentZ);
+      const sideCam = orthoCam(center, size, [-1, 0, 0], [0, 1, 0], projection.halfW, projection.halfH);
+      const sideCanvas = capture(sideCam, BASE, BASE / 2);
+      if (wants('side')) files[tankAssetFile(id, 'side')] = sideCanvas.toDataURL('image/webp', 0.9);
+      if (wants('sideSilhouette')) files[tankAssetFile(id, 'sideSilhouette')] = silhouette(sideCanvas, 256, 128).toDataURL('image/png');
+      const trackShapes = getSpec(id).armor.trackShapes || [];
+      if (wants('hitZonesSide')) files[tankAssetFile(id, 'hitZonesSide')] = drawPlateDiagram(sideCanvas, metadata, projection, 'zones', trackShapes).toDataURL('image/png');
+      if (wants('armorSide')) files[tankAssetFile(id, 'armorSide')] = drawPlateDiagram(sideCanvas, metadata, projection, 'armor', trackShapes).toDataURL('image/png');
+      if (wants('modulesSide')) files[tankAssetFile(id, 'modulesSide')] = drawModuleDiagram(sideCanvas, metadata, projection).toDataURL('image/png');
+    }
+    if (wants('markings')) files[tankAssetFile(id, 'markings')] = drawMarkingsDiagram(metadata).toDataURL('image/png');
+
+    if (wants('angle')) {
+      const fov = 28;
+      const radius = Math.hypot(extentX,
+        Math.max(center.y - box.min.y, box.max.y - center.y), extentZ);
+      const dist = (radius * MARGIN) / Math.sin((fov / 2) * Math.PI / 180);
+      const dir = new THREE.Vector3(-0.56, 0.34, 1.0).normalize();
+      const angleCam = new THREE.PerspectiveCamera(fov, 1, 0.1, dist * 4);
+      angleCam.position.copy(center).addScaledVector(dir, dist);
+      angleCam.lookAt(center);
+      angleCam.updateMatrixWorld();
+      const angleCanvas = autoCropSquare(
+        capture(angleCam, BASE * 2, BASE * 2), BASE, 0.035, true);
+      files[tankAssetFile(id, 'angle')] = angleCanvas.toDataURL('image/webp', 0.9);
+    }
+    return { files, meta };
+  } finally {
+    scene.remove(root);
+    visual.dispose();
+  }
+}
+
+function boreShotOne(id) {
+  const visual = createTank(id, null, { camoSeed: 4100, quality: 'high' });
+  const root = visual.root;
+  scene.add(root);
+  try {
+    root.updateMatrixWorld(true);
+    const muzzle = root.getObjectByName('rig_muzzle');
+    if (!muzzle) throw new Error('rig_muzzle missing');
+    const spec = getSpec(id);
+    const fallback = muzzle.getObjectByName('muzzleBoreShadowFallback');
+    const primaryRim = visibleBorePart(root, /muzzleBoreShadow(?:Fallback)?Rim$/i);
+    const primaryDisc = visibleBorePart(root, /muzzleBoreShadow(?:Fallback)?Disc$/i);
+    const facePart = primaryRim || primaryDisc || (visibleInTree(fallback, root) ? fallback : muzzle);
+    const face = facePart.getWorldPosition(new THREE.Vector3());
+    const direction = muzzle.getWorldDirection(new THREE.Vector3()).normalize();
+    let radius = Math.max(0.014, (spec.armor.gunBarrel.radiusM || 0.04) * 0.92);
+    if (primaryRim?.geometry) {
+      primaryRim.geometry.computeBoundingSphere();
+      const scale = primaryRim.getWorldScale(new THREE.Vector3());
+      const measured = primaryRim.geometry.boundingSphere?.radius
+        // The mouth lives in the local XY plane. Several family builders
+        // stretch only the cannon's longitudinal Z axis; folding that into
+        // the radial scale overestimates the aperture and samples empty air.
+        * Math.max(Math.abs(scale.x), Math.abs(scale.y));
+      if (Number.isFinite(measured) && measured > 0.004) radius = measured;
+    }
+    const distance = Math.max(0.18, radius * 8);
+    const fov = 22;
+    const cam = new THREE.PerspectiveCamera(fov, 1, 0.002, distance * 8);
+    cam.position.copy(face).addScaledVector(direction, distance);
+    cam.up.set(0, 1, 0);
+    cam.lookAt(face);
+    cam.updateMatrixWorld(true);
+    const ray = new THREE.Raycaster(cam.position, direction.clone().negate(), 0, distance * 4);
+    const centerHits = ray.intersectObject(root, true).filter((hit) => {
+      for (let node = hit.object; node; node = node.parent) {
+        if (!node.visible) return false;
+        if (node === root) break;
+      }
+      const materials = Array.isArray(hit.object.material) ? hit.object.material : [hit.object.material];
+      return !materials.length || materials.some((material) => !material || material.colorWrite !== false);
+    }).slice(0, 6).map((hit) => {
+      let bore = /muzzleBoreShadow/i.test(hit.object.name || '');
+      for (let node = hit.object; node && !bore; node = node.parent) {
+        bore = !!(node.userData && node.userData.cannonBore);
+      }
+      return {
+        distance: Number(hit.distance.toFixed(4)),
+        name: hit.object.name || hit.object.type,
+        fallback: !!(hit.object.userData && hit.object.userData.cannonBoreFallbackPart),
+        bore,
+      };
+    });
+    const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0).normalize();
+    const up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1).normalize();
+    const sampleBoreRing = (normalizedRadius, count, pattern) => {
+      const samples = [];
+      for (let i = 0; i < count; i++) {
+        const angle = i * Math.PI * 2 / count;
+        const origin = cam.position.clone()
+          .addScaledVector(right, Math.cos(angle) * radius * normalizedRadius)
+          .addScaledVector(up, Math.sin(angle) * radius * normalizedRadius);
+        const sampleRay = new THREE.Raycaster(origin, direction.clone().negate(), 0, distance * 4);
+        const hit = sampleRay.intersectObject(root, true).find((candidate) => {
+          if (!visibleInTree(candidate.object, root)) return false;
+          const materials = Array.isArray(candidate.object.material)
+            ? candidate.object.material : [candidate.object.material];
+          return !materials.length || materials.some((material) => !material || material.colorWrite !== false);
+        });
+        samples.push({
+          pass: !!hit && pattern.test(hit.object.name || ''),
+          name: hit?.object.name || null,
+          distance: hit ? Number(hit.distance.toFixed(4)) : null,
+        });
+      }
+      return samples;
+    };
+    const innerSamples = sampleBoreRing(0.30, 8, /muzzleBoreShadow(?:Fallback)?Disc$/i);
+    const rimSamples = sampleBoreRing(0.83, 16,
+      /muzzleBoreShadow(?:Fallback)?(?:Rim|Annulus)$/i);
+    const rimWorld = primaryRim?.getWorldPosition(new THREE.Vector3()) || null;
+    const discWorld = primaryDisc?.getWorldPosition(new THREE.Vector3()) || null;
+    let concentricOffsetM = null;
+    if (rimWorld && discWorld) {
+      const delta = discWorld.clone().sub(rimWorld);
+      delta.addScaledVector(direction, -delta.dot(direction));
+      concentricOffsetM = delta.length();
+    }
+    const oldColor = renderer.getClearColor(new THREE.Color()).clone();
+    const oldAlpha = renderer.getClearAlpha();
+    renderer.setClearColor(0xaebac2, 1);
+    const canvas = capture(cam, 256, 256);
+    renderer.setClearColor(oldColor, oldAlpha);
+
+    const pixelsPerM = 256 / (2 * distance * Math.tan((fov / 2) * Math.PI / 180));
+    const radiusPx = Math.max(4, radius * pixelsPerM);
+    const data = canvas.getContext('2d').getImageData(0, 0, 256, 256).data;
+    let inner = 0, innerN = 0, surround = 0, surroundN = 0;
+    for (let y = 0; y < 256; y++) {
+      for (let x = 0; x < 256; x++) {
+        const d = Math.hypot(x - 127.5, y - 127.5) / radiusPx;
+        if (d > 1.65) continue;
+        const i = (y * 256 + x) * 4;
+        const luma = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+        if (d <= 0.38) { inner += luma; innerN++; }
+        else if (d >= 1.15) { surround += luma; surroundN++; }
+      }
+    }
+    return {
+      image: canvas.toDataURL('image/png'),
+      innerLuma: innerN ? inner / innerN : 255,
+      surroundLuma: surroundN ? surround / surroundN : 0,
+      radiusPx,
+      muzzleBore: muzzleBoreCensus(root),
+      boreDebug: {
+        fallbackZ: fallback?.position.z ?? null,
+        fallbackPosition: fallback?.position.toArray() ?? null,
+        fallbackWorld: fallback?.getWorldPosition(new THREE.Vector3()).toArray() ?? null,
+        authoredWorld: root.getObjectByName('muzzleBoreShadowDisc')?.getWorldPosition(new THREE.Vector3()).toArray() ?? null,
+        capOffsetM: fallback?.userData.capOffsetM ?? null,
+        primaryRimWorld: rimWorld?.toArray() ?? null,
+        primaryDiscWorld: discWorld?.toArray() ?? null,
+        concentricOffsetM,
+        innerSamples,
+        rimSamples,
+        centerHits,
+      },
+    };
+  } finally {
+    scene.remove(root);
+    visual.dispose();
+  }
+}
+
+function idsOrFleet(ids) {
+  return ids && ids.length ? ids : DEVELOPMENT_TANK_IDS;
+}
+
+window.__WARM = (ids) => {
+  for (const id of idsOrFleet(ids)) {
+    const visual = createTank(id, null, {
+      camoSeed: 4100, quality: 'high', staticPreview: true,
+    });
+    visual.dispose();
+  }
+  return true;
+};
+
+window.__GEN = (ids, views) => {
+  const result = { schemaVersion: TANK_ASSET_SCHEMA_VERSION, files: {}, tanks: {} };
+  for (const id of idsOrFleet(ids)) {
+    try {
+      const one = inspectOne(id, true, views && views.length ? views : null);
+      Object.assign(result.files, one.files);
+      result.tanks[id] = one.meta;
+    } catch (error) {
+      result.files[`${id}.error`] = String(error && error.stack || error);
+    }
+  }
+  return result;
+};
+
+window.__AUDIT = (ids) => {
+  const auditIds = ids && ids.length ? ids : ALL_TANK_IDS;
+  const result = { schemaVersion: TANK_ASSET_SCHEMA_VERSION, ids: [...ALL_TANK_IDS], tanks: {} };
+  for (const id of auditIds) {
+    try { result.tanks[id] = inspectOne(id, false).meta; }
+    catch (error) { result.tanks[id] = { error: String(error && error.stack || error) }; }
+  }
+  return result;
+};
+
+window.__CENTER_AUDIT = (ids) => {
+  const result = {};
+  for (const id of idsOrFleet(ids)) {
+    const visual = createTank(id, null, { camoSeed: 4100, quality: 'high' });
+    scene.add(visual.root);
+    try { result[id] = renderedPresentationCenter(visual); }
+    catch (error) { result[id] = { error: String(error && error.stack || error) }; }
+    finally {
+      scene.remove(visual.root);
+      visual.dispose();
+    }
+  }
+  return result;
+};
+
+window.__TOP_ASSET_CENTER_AUDIT = async (ids) => {
+  const result = {};
+  await Promise.all(idsOrFleet(ids).map(async (id) => {
+    try { result[id] = await exportedTopPresentationCenter(id); }
+    catch (error) { result[id] = { error: String(error && error.stack || error) }; }
+  }));
+  return result;
+};
+
+window.__FLEET_IDS = [...DEVELOPMENT_TANK_IDS];
+window.__BORE_SHOTS = (ids) => {
+  const result = {};
+  for (const id of idsOrFleet(ids)) {
+    try { result[id] = boreShotOne(id); }
+    catch (error) { result[id] = { error: String(error && error.stack || error) }; }
+  }
+  return result;
+};
+
+window.__ICONS_READY = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 210" role="img" aria-label="Claude of Tanks">
+  <!-- v4.1 (owner-directed): speed lines removed — the tank is the primary feature; tank scaled +6% and re-centered in the bowl; ground bar trimmed to the bowl curve; metal variant promoted to favicon. v4.3: ground bar removed entirely; cannon back at -10 degrees but translated down 4 units on the turret face. -->
+  <!-- Claude of Tanks v4 full lockup: colored crest badge (master:
+       public/brand/logo-mark.svg — keep in sync; v3 archived in
+       public/brand/v3-shield/) + Inter wordmark, white, for dark contexts. Wordmark fonts: subset of Inter wght 800/700 opsz 32
+       embedded as woff2 data URIs so the file is self-contained; Inter is
+       OFL — see docs/ATTRIBUTION.md. Mascot: Anthropic (via thesvg.org). -->
+  <style>
+    @font-face { font-family: 'CotInter800'; src: url(data:font/woff2;base64,d09GMgABAAAAAAXIAA4AAAAACpAAAAVwAAQAQgAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbglQcKgZgP1NUQVRaAFwKh1yGFgE2AiQDOAseAAQgBYQiByAbswhRVHLaQPxMsG0ZbFMzCIUQvs/HYnnXhi1mQvNiHtEqLPZ8CDf9d5cEUkioWlaVTESRCqGqdOZ0KgLbV6P9xszsaG43tJmmT0ssQaO552Pc9OeH9gQPT6e+f3dJNIAdWitorbUCrsk4hWu4qOl/ALOL/3OpmrEwZ3nR5GcA2N1lztmJxZKOsbAUgS7AvlJ1LMAFgFU3RNrBYKC3f1qjdQr/JkEAAgAAKIIQEASg0U6OzGS6PkNn8Y0lqJuYXFCPyD6oWAC+fEEgbitADxT7UKjCNQABMn1VBIviETxqNxZwlAtaalbzZXv44tAlhnSbtHIyMmwKgMuhFdTcCylOXtTzmtlKPUz6VSKq34umd13sg+nWaADFL3EyQ0PNDUCocFiChhki/dJRxbeVEyMOVRW2kt7SsePZKjlLOODG5W/AaihEX+7QsQ/EZQAUCyBk38z55gR/SMzNj38vKNZ4TOtge5ULIB3xT8NjAD4YQBJ6CZOfkgCjNhYrBGTHKJVklIqXMAQAMiIBCAKkzRKAQdFIgaOWTa4iEGH1cunwEx4l6WxqbefSgZDgyMrW6TG/PPKjH3zja8cijE3oPG0IwBNIC+QKAAD2uPDGJBiZO3kCuhLzjR8raDRqVhXi4dGU99PaxDFC0enzivbk2eyCPMaTDph9/TyZdOGGds4pY5mFzafzNLNPnsTEikblZxSJFE8G3AVGVJSLEXDv6GvnMPHs1bFjBJvW5k111P1H5p6XrWZOnDmTVS0O1wy3iZSCdbfmj9GqkufVibX7Tp3qnH3a8gknjhGs+7FdsZwSG9j1SHJo8tJKF4VRwqeJeGp1eWSS67SifFCoPDPGe8oscOX/uwbzKdsSE09etTHeVOAFt9Eetah6NdzDCP8TJ3Gu81Jz1+K/5qdtKdan/1za9OcSvbzl3/mxYYHhgbDGbo6vLc9efJ3Tzd44847p4NKB/3pMrNvTrFDfqbJJu2EbBmQ3zJ+X5dw4YFi7CknfuVmB0+oxYeC/h5beNmLW3KSxsw6Wm39fvET57XD57PqkxTcMDrv+5s2j+n6OoBEucK4acC6UgHMp8uNwe7w95rEcuUIzubH9hrgNbXH1V2GV4yrqU/qt2DHkXviqO+MOGbx4d0y7pePP6KKXzEdJM29c2i4zfPvW4d1t+nnh8SVMb+57eqjZ9CwTGjGl7jvzogp7s9KuoSor9xtZmTgAH+fs4vjG8uzFNzld7E5nZztkvXj+jWW9v1rXrbWanQsXmRvgOnXWdValYdFCxQnvMQ76/+47etHtrRbSo3tlfXOzfnBsh17pCYbBKbleK8POJV06uWXO4n/Vww8cIcPnn2NX6lUFU2vrutbEtumRGh9Um5jtMTnQFnC4z9DqFjOV5YtOeg4B3bpRPiU7NtZsxP/7PnDmmtdbfy/eZeg+xtYjK8vWvdsY467i37d2XIeAmSgBABN+AsDq8mwyoVtcbPfmGR4AcKNwqQwAtxeva/Zu5Kepz3K3DIBBAQCBPwm974zAeDtciGcX0VWdlF7ZO7jKpVm1TUl5+RC+N1TbIWM6xXlRvOt+thwYVfESqi2KYhWAAHSmEgyWR5g4dJJoMwYpbgBMwAUihAkonf7AKPCbzdKA08JprkpQCBWEQIgYAQ9eIUOCgOgGSXRRAMmEsP7MKTQxEkYCoa+YzWRhgixNuhYk2SxE6M3HSEwwiQUcRMeEzp6YJRBLyC4FTn00upPIETE9ya5UX4q0ZF+lrWo2pmlNJktXhpCHnrYynWycDKYffs+niepKXA0JW8An0o2bwndDW5SY+OCCoOGfSnrYCTGbDklCFtsPGbMlQhL6WmBIsumOAh7kSwMAfJnTHRgAAA==) format('woff2'); font-weight: 800; }
+    @font-face { font-family: 'CotInter700'; src: url(data:font/woff2;base64,d09GMgABAAAAAAWoAA4AAAAACnwAAAVPAAQAQgAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbglQcKgZgP1NUQVRaAFwKh1SGGQE2AiQDOAseAAQgBYQYByAbrAhRlE3SEmRfJJh4+qagEE6Po1rCUQ0LiYTC94Xw3nj4b7//7TN35ot4wsUb0UOCRiQSWZQqnvHQrL0f2OW/JribzMZ2XZjAD6pPOf/bAQZOt/+pR1cDCug+7dv2KV2RlkWy07tUEQD+//vNimjjVypcJBIzpbz3EPMoYhMNcamKSCVN7HQPbWfJEm0hbmbgeZ9iUMasIP5IgRZAEkKLEGiywhECGwLC4kDtfBWFg9FlCisBoxvZDBeMZKj9L4TVTrqOUVyQuskrIGAmkujHJQ1Cg+QFAbxyibh67Kitf9s2WYtUrS3j5GEKLAsIbeIklg9OnNhTu2tZxoS9j3lGDdOxq8XvttB3AUNiIerGH19pUq8RoU6RI6hKGnjaEshwiiaZIpmkhpCrYsNH5yKb9hKkzM9nATwTufQazqbqdyoVkGQE7Llvf3gssHQcrGf/yYFrBHkH0e15olwCMGFq2zSo0ENDzJBu8+hqxIy7lwsZBIG4ymTjCKrZwi5jRiNmmEAIoo1vL1BJUnCYYl2hphAq2xJq01DQYRPWChAmUnxNnLK+QkWI/UhjHbDHbjtCsDC0+dwRdBIdxEsA8jSRtyBUOuvigxyHZDWEoSgcwRKCUCI02mMdZny8tuno3BzCoAg4/vcKrm8/ehMz1WKOBZQfRcAbcutPRHXYKMEzMEsoFo4g5uGfC/D8dh3Goz0Z4iD+rbPOikzg8HRqTFid0j0WggD8vOPQZCRiNLCzXRyXm0cuBFHWYeb7v79diREDrGqizt3Ur26gMTgqcATZeBba195uv5EgCzecqDo90GrFvCkwenuwDDEEQ6aL4CzWJWLiiCSZOQTb95qtf1S0i/4Ujh0b78Ce3ppF/8crG781f4M5c1TOeO3envTm3fZkr11nWu6Hrx0oPSlb6yjh7ZqfGMAz8G3YXJV5b2oy4+6WqgZfQj8x0BWT8nKQrSk9uW7gXhjUPeAnxw/zMm/MzWVeP0SM1vD3fw3cuin86dNNEUHb1L9eIvjBDg4gtE1QkZ/JLMIW/mywDyEhcoO7HJafgLBFdShWlV+FEutI5qpq7u8UB8xWDZsX712886UR3QfEw31q2eNB/O79jPEtC22X0tvF5yu4MZbMemgL5YP/pk2ro7vzNtrnxAiWCrLI8LQt8Ef5hPvuHUlv3r2RNJw46bZ7Z9K7N0BY64Q0vYnOvTu/IPee2GmKEOwL5p0IrxoW9x+QrBx4utgUiQ6hu9wzE+o5AfEuVg4BjH2G/KzuXcvrZxd29p36R65a85PuviYwNiFcNFJVGcpwfGIcObY+pHWKfL9Wueq6ECLfvi1uoP+CCAF8n06J7Gk4fMruFFzo3y3XOfFl0Wl0c1JYR294RmZPeHhH0mb09KKAxyDfCYB7/wWydU/ZpqWZ0m5/RPhFAH6cHLUB/H4y5/Rz5m+0wojIb6CSQLBD2Hs3RvB/1M8HfJ624oUECW4jWs6DZ5lF5Ltv2gpHqRUeA4azMPwOHpmTTUXRzLIYHjuAQJvHJNwhLLDaeVyr5/hFFgX2AAvCiD2QtLkBlROqZ+doKBb5Iq4zFBJVCAItYQSQgoawATMD4QIW2iIGUC2R9T9zNAUOvgg8VShFChRi6JhnjrkWmXBAIYyOrbgYGIqOPSiEYphcDB1rlWEUIlDoRKFDsos8PFsOHCYGpkAZPChtZ5Y5lfyW5S4rwkAtNc88c52DweSxtdw+scLFci12fH0+FKaEBCuBVoTApVPNZIuOJcKG5rp8EHB5IvEwiuTKhtOxX5FqGD9FaLxGKFYJxsiGH5IrBqFUNi5+rKxGOgsAAAA=) format('woff2'); font-weight: 700; }
+    .wm1 { font: 800 58px 'CotInter800', 'Inter', 'Segoe UI', sans-serif; letter-spacing: 2.3px; fill: #f2f7fb; }
+    .wm2 { font: 700 27px 'CotInter700', 'Inter', 'Segoe UI', sans-serif; letter-spacing: 11.3px; fill: #f2f7fb; }
+  </style>
+  <g transform="translate(5 5) scale(0.78125)">
+  <defs>
+    <clipPath id="cotHatchClipF"><rect x="70" y="29" width="68" height="44"/></clipPath>
+  </defs>
+
+  <!-- ===== crest: ink band, amber pinstripe groove, dark steel field ===== -->
+  <path d="M34 26 H222 L236 40 V112 C236 174 196 214 128 238 C60 214 20 174 20 112 V40 Z"
+        fill="#151f29" stroke="#0b0f12" stroke-width="16" stroke-linejoin="miter"/>
+  <path d="M34 26 H222 L236 40 V112 C236 174 196 214 128 238 C60 214 20 174 20 112 V40 Z"
+        fill="none" stroke="#f5b64b" stroke-width="3"/>
+
+  <g transform="translate(-0.8 24) scale(1.06)">
+
+    <!-- whip antenna: deck mount box + raked whip curving off the rear
+         quarter, bead tip (logo v4.5 — the bare diagonal read as a stray
+         line) -->
+    <rect x="49.5" y="90" width="6" height="5" rx="1" fill="#1c2833"/>
+    <path d="M52.5 90 Q46.5 76 40.5 57" stroke="#55697e" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <circle cx="40.5" cy="57" r="1.1" fill="#7d90a3"/>
+    <!-- flag: vertical pole from the bustle rack + amber pennant streaming back -->
+    <path d="M68 84V34" stroke="#55697e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M68 34 46 39.5 68 45Z" fill="#f5b64b"/>
+
+    <!-- running gear: near-black track band, steel wheel two-tone
+         (six identical road wheels on an exact 24.4 pitch) -->
+    <path d="M52 107h122a15 15 0 0 1 0 30H52a15 15 0 0 1 0-30Z" fill="#0c1218"/>
+    <g fill="#33424f">
+      <circle cx="52" cy="122" r="10"/><circle cx="76.4" cy="122" r="10"/><circle cx="100.8" cy="122" r="10"/>
+      <circle cx="125.2" cy="122" r="10"/><circle cx="149.6" cy="122" r="10"/><circle cx="174" cy="122" r="10"/>
+    </g>
+    <g fill="#0c1218">
+      <circle cx="52" cy="122" r="3.2"/><circle cx="76.4" cy="122" r="3.2"/><circle cx="100.8" cy="122" r="3.2"/>
+      <circle cx="125.2" cy="122" r="3.2"/><circle cx="149.6" cy="122" r="3.2"/><circle cx="174" cy="122" r="3.2"/>
+    </g>
+    <!-- gear detail (v4.6): dished rims, rear drive sprocket teeth, front
+         idler ring, track-shoe ticks along the bottom run -->
+    <g fill="none" stroke="#0c1218" stroke-width="1.8">
+      <circle cx="52" cy="122" r="6.4"/><circle cx="76.4" cy="122" r="6.4"/><circle cx="100.8" cy="122" r="6.4"/>
+      <circle cx="125.2" cy="122" r="6.4"/><circle cx="149.6" cy="122" r="6.4"/><circle cx="174" cy="122" r="6.4"/>
+    </g>
+    <g fill="#33424f"><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(0 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(45 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(90 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(135 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(180 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(225 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(270 52 122)"/><rect x="50.4" y="109.8" width="3.2" height="3.4" transform="rotate(315 52 122)"/></g>
+    <circle cx="174" cy="122" r="8.4" fill="none" stroke="#0c1218" stroke-width="1.6"/>
+    <g fill="#33424f"><rect x="60.0" y="130.6" width="2.6" height="4.6"/><rect x="72.2" y="130.6" width="2.6" height="4.6"/><rect x="84.4" y="130.6" width="2.6" height="4.6"/><rect x="96.6" y="130.6" width="2.6" height="4.6"/><rect x="108.8" y="130.6" width="2.6" height="4.6"/><rect x="121.0" y="130.6" width="2.6" height="4.6"/><rect x="133.2" y="130.6" width="2.6" height="4.6"/><rect x="145.4" y="130.6" width="2.6" height="4.6"/><rect x="157.6" y="130.6" width="2.6" height="4.6"/></g>
+
+    <!-- hull: low profile, long wedge glacis (steel mass, lighter edge seams) -->
+    <path d="M34 116 40 94h108l52 18-3 6Z" fill="#2a3947"/>
+    <path d="M148 94l52 18-1.9 3.8-51.6-17.6Z" fill="#4d637a"/>
+    <rect x="40" y="94" width="108" height="2.4" fill="#4d637a"/>
+    <!-- hull kit (v4.6): rear exhaust louvre, bow headlight, tow hook -->
+    <rect x="45" y="97.5" width="11" height="6.5" rx="1" fill="#1c2833"/>
+    <path d="M47 99.7h7M47 101.9h7" stroke="#0c1218" stroke-width="1.3"/>
+    <rect x="185.5" y="107" width="4.6" height="3.4" rx="0.8" fill="#7d90a3"/>
+    <rect x="194.5" y="112.6" width="4.6" height="3.4" rx="1" fill="#1c2833"/>
+
+    <!-- side skirt: lighter steel panel; seams sit exactly midway between
+         wheel centers so panels and wheels share one rhythm -->
+    <path d="M46 106h136v8l-9 12H46Z" fill="#3d5062" stroke="#0c1218" stroke-width="2.5" stroke-linejoin="round"/>
+    <rect x="41" y="106" width="5" height="20" fill="#1c2833"/>
+    <g stroke="#1a232d" stroke-width="1.8">
+      <path d="M64.2 107.5V124M88.6 107.5V124M113 107.5V124M137.4 107.5V124M161.8 107.5V124"/>
+    </g>
+
+    <!-- turret: long low wedge + bustle rack + facet flash -->
+    <rect x="60" y="79" width="16" height="14" rx="1.5" fill="#1c2833"/>
+    <path d="M61 83.7h14M61 88.3h14" stroke="#0c1218" stroke-width="1.8"/>
+    <path d="M72 96 82 74l58 3.5L154 96Z" fill="#3a4c5f"/>
+    <path d="M82 74 140 77.5 138.8 80.8 81 77.2Z" fill="#4d637a"/>
+    <!-- turret kit (v4.6): ring shadow, CITV periscope, side seam strip -->
+    <rect x="76" y="93.8" width="72" height="2.6" fill="#1c2833"/>
+    <rect x="128" y="69.5" width="7.5" height="7.4" rx="1" fill="#1c2833"/>
+    <rect x="129.4" y="71.2" width="4.7" height="1.8" fill="#7d90a3"/>
+    <rect x="84" y="87.6" width="36" height="4" rx="0.8" fill="#2b3947"/>
+    <path d="M92 87.6v4M100 87.6v4M108 87.6v4" stroke="#1c2833" stroke-width="1.2"/>
+    <path d="M124 80l7 .5 6 15.5h-7Z" fill="#f5b64b"/>
+
+    <!-- the commander: Claude Code mascot, faithful source path (brand orange;
+         legs clipped by the hatch), centered on x=106 with the hatch ring -->
+    <rect x="91" y="60" width="30" height="12" fill="#0c1218"/>
+    <g clip-path="url(#cotHatchClipF)">
+      <path clip-rule="evenodd" fill-rule="evenodd" fill="#D97757" stroke="#0b0f12"
+        stroke-width="1.5" paint-order="stroke" transform="translate(82.6 45.75) scale(1.95)"
+        d="M20.998 10.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949zM6 10.949h1.488V8.102H6v2.847zm10.51 0H18V8.102h-1.49v2.847z"/>
+    </g>
+    <!-- hatch coaming (arms rest on the ring) -->
+    <rect x="81" y="71" width="50" height="6.5" rx="1.5" fill="#3a4c5f" stroke="#0c1218" stroke-width="2.5"/>
+
+    <!-- tanker helmet: light steel dome + rim + goggles, all symmetric on x=106 -->
+    <path d="M87.5 55.5a18.5 12 0 0 1 37 0Z" fill="#7d90a3" stroke="#0c1218" stroke-width="2.5" stroke-linejoin="round"/>
+    <rect x="85.5" y="55.3" width="41" height="4.2" rx="2" fill="#0e151d"/>
+    <rect x="93.75" y="48.2" width="24.5" height="5.2" rx="1.5" fill="#0e151d"/>
+    <circle cx="101.75" cy="50.8" r="3.8" fill="#0e151d" stroke="#9fb2c4" stroke-width="1.8"/>
+    <circle cx="110.25" cy="50.8" r="3.8" fill="#0e151d" stroke="#9fb2c4" stroke-width="1.8"/>
+
+    <!-- main gun, elevated 10 degrees: steel barrel, light keylines + muzzle
+         step — trimmed so the muzzle stays inside the shield's inner border -->
+    <g transform="translate(0 4) rotate(-10 140 82)">
+      <rect x="136" y="75.5" width="16" height="13" rx="1.5" fill="#24313f"/>
+      <rect x="152" y="77.9" width="22" height="8.2" rx="1.2" fill="#2b3947"/>
+      <rect x="152" y="77.9" width="22" height="1.8" fill="#4d637a"/>
+      <rect x="157.5" y="77.4" width="2.6" height="9.2" fill="#1a232d"/>
+      <rect x="166.5" y="77.4" width="2.6" height="9.2" fill="#1a232d"/>
+      <rect x="174" y="76.6" width="15" height="10.8" rx="4.2" fill="#24313f"/>
+      <rect x="177" y="77.9" width="9" height="1.6" rx="0.8" fill="#4d637a"/>
+      <rect x="189" y="79.3" width="15.5" height="5.4" fill="#2b3947"/>
+      <rect x="189" y="79.3" width="15.5" height="1.3" fill="#4d637a"/>
+      <rect x="189" y="83.7" width="15.5" height="1" fill="#1a232d"/>
+      <rect x="204.5" y="78.2" width="6" height="7.6" rx="1" fill="#7d90a3" stroke="#0b0f12" stroke-width="2"/>
+    </g>
+  </g>
+  </g>
+  <text class="wm1" x="227" y="102">CLAUDE</text>
+  <text class="wm2" x="229" y="138">OF TANKS</text>
+</svg>

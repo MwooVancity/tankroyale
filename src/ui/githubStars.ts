@@ -1,0 +1,120 @@
+const REPOSITORY_STATS_ENDPOINT = '/api/github-stars';
+const STAR_CACHE_KEY = 'tr:github-stars';
+const STAR_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+export const FALLBACK_GITHUB_STAR_COUNT = 195;
+
+const COMPACT_NUMBER = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+const FULL_NUMBER = new Intl.NumberFormat('en');
+const starNodes = new Set<Element>();
+const intentBoundControls = new WeakSet<HTMLAnchorElement>();
+let activeRequest: Promise<number | null> | null = null;
+let memoryCache: { count: number; savedAt: number } | null = null;
+
+export function formatGitHubStarCount(count: number): string {
+  return COMPACT_NUMBER.format(count);
+}
+
+function renderGitHubStarCount(count: number): void {
+  const compactCount = formatGitHubStarCount(count);
+  const fullCount = FULL_NUMBER.format(count);
+
+  for (const node of starNodes) {
+    node.textContent = compactCount;
+    const control = node.closest<HTMLAnchorElement>('a[href*="github.com/mwoo778/"]');
+    if (!control) continue;
+    if (!control.dataset.githubLabel) {
+      control.dataset.githubLabel = control.getAttribute('aria-label') ||
+        'Tank Royale on GitHub';
+    }
+    control.setAttribute('aria-label', `${control.dataset.githubLabel}, ${fullCount} stars`);
+  }
+}
+
+function readCachedStars(): { count: number; savedAt: number } | null {
+  if (memoryCache) return memoryCache;
+  try {
+    const cached: unknown = JSON.parse(localStorage.getItem(STAR_CACHE_KEY) || 'null');
+    if (!cached || typeof cached !== 'object') return null;
+    const { count, savedAt } = cached as { count?: unknown; savedAt?: unknown };
+    if (typeof count !== 'number' || !Number.isInteger(count) ||
+        typeof savedAt !== 'number' || !Number.isFinite(savedAt)) return null;
+    memoryCache = { count, savedAt };
+    return memoryCache;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeCachedStars(count: number): void {
+  memoryCache = { count, savedAt: Date.now() };
+  try {
+    localStorage.setItem(STAR_CACHE_KEY, JSON.stringify(memoryCache));
+  } catch (_) {
+    // Storage can be blocked without affecting the GitHub controls.
+  }
+}
+
+async function fetchGitHubStars(): Promise<number | null> {
+  try {
+    const response = await fetch(REPOSITORY_STATS_ENDPOINT, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) return null;
+    const repository: unknown = await response.json();
+    if (!repository || typeof repository !== 'object') return null;
+    const count = (repository as { stargazers_count?: unknown }).stargazers_count;
+    if (typeof count !== 'number' || !Number.isInteger(count)) return null;
+    const verifiedCount = count;
+    renderGitHubStarCount(verifiedCount);
+    writeCachedStars(verifiedCount);
+    return verifiedCount;
+  } catch (_) {
+    // Keep the last verified numeric fallback when the endpoint is unavailable.
+    return null;
+  }
+}
+
+/** Refresh through the same-origin cached endpoint without blocking UI startup. */
+export function refreshGitHubStars(): Promise<number | null> {
+  const cached = readCachedStars();
+  if (cached && Date.now() - cached.savedAt < STAR_CACHE_TTL_MS) {
+    renderGitHubStarCount(cached.count);
+    return Promise.resolve(cached.count);
+  }
+
+  if (!activeRequest) {
+    activeRequest = fetchGitHubStars().finally(() => { activeRequest = null; });
+  }
+  return activeRequest;
+}
+
+function bindIntentRetry(nodes: Element[]): void {
+  for (const node of nodes) {
+    const control = node.closest<HTMLAnchorElement>('a[href*="github.com/mwoo778/"]');
+    if (!control || intentBoundControls.has(control)) continue;
+    intentBoundControls.add(control);
+    const refresh = (): void => { void refreshGitHubStars(); };
+    control.addEventListener('pointerenter', refresh, { once: true, passive: true });
+    control.addEventListener('focus', refresh, { once: true });
+  }
+}
+
+/**
+ * Register repository star nodes, render a packaged value synchronously, then
+ * refresh the live count in the background. Repeated mounts share one request.
+ */
+export function mountGitHubStars(root: Document | Element = document): Promise<number | null> {
+  const mountedNodes: Element[] = [];
+  if ('matches' in root && root.matches('[data-github-stars]')) mountedNodes.push(root);
+  for (const node of root.querySelectorAll<Element>('[data-github-stars]')) mountedNodes.push(node);
+  for (const node of mountedNodes) starNodes.add(node);
+  if (!starNodes.size) return Promise.resolve(null);
+
+  const cached = readCachedStars();
+  renderGitHubStarCount(cached?.count ?? FALLBACK_GITHUB_STAR_COUNT);
+  bindIntentRetry(mountedNodes);
+  return refreshGitHubStars();
+}
