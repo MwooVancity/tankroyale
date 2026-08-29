@@ -5,7 +5,7 @@
 // roster. This keeps registration history intact while ensuring garage,
 // battles, asset generation and release gates all consume the same policy.
 
-export const DEV_FLEET_ENV_KEY = 'VITE_COT_DEV_FLEET_KEY';
+export const DEV_FLEET_ENV_KEY = 'VITE_TR_DEV_FLEET_KEY';
 export const DEV_FLEET_KEY = 'tank-royale-local-dev';
 export const DEV_FLEET_LABEL = 'DEV';
 

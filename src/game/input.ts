@@ -24,11 +24,11 @@
 // The mobile HUD feeds the same layer through the virtual-control methods at
 // the bottom of the public API; it never writes directly into simulation state.
 
-const BINDINGS_KEY = 'cot.bindings.v1'; // primary keyboard/mouse map (v1 compatible)
-const BINDINGS2_KEY = 'cot.bindings2.v1'; // secondary keyboard/mouse map
-const BINDINGS_LAYOUT_KEY = 'cot.bindings.layout.v3'; // Shift aim + Caps free-look migration receipt
-const PAD_KEY = 'cot.padBindings.v1'; // gamepad button map (standard-mapping indices)
-const SETTINGS_KEY = 'cot.settings.v1';
+const BINDINGS_KEY = 'tr.bindings.v1'; // primary keyboard/mouse map (v1 compatible)
+const BINDINGS2_KEY = 'tr.bindings2.v1'; // secondary keyboard/mouse map
+const BINDINGS_LAYOUT_KEY = 'tr.bindings.layout.v3'; // Shift aim + Caps free-look migration receipt
+const PAD_KEY = 'tr.padBindings.v1'; // gamepad button map (standard-mapping indices)
+const SETTINGS_KEY = 'tr.settings.v1';
 
 // Aim smoothing: the EMA time constant is player-tunable (0 = raw 1:1 deltas).
 // settings.aimSmoothing 0..1 maps linearly to 0..MAX_SMOOTH_TAU_S; the default

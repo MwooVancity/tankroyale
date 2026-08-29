@@ -76,8 +76,8 @@ type AutoTier = 'low' | 'medium' | 'high';
 type PresetListener = (preset: QualityPreset) => void;
 type DeviceNavigator = Navigator & { deviceMemory?: number };
 
-const LS_KEY = 'cot.gfxPreset';
-const LS_MOBILE_KEY = 'cot.gfxMobilePreset';
+const LS_KEY = 'tr.gfxPreset';
+const LS_MOBILE_KEY = 'tr.gfxMobilePreset';
 let _mobileResetHandled = false;
 
 // ---------------------------------------------------------------------------
@@ -345,8 +345,8 @@ const listeners = new Set<PresetListener>();
 //    windows with no resolution lever left — the auto tier steps down one
 //    notch and persists, so the next session starts where this one settled.
 // ---------------------------------------------------------------------------
-const LS_AUTO_TIER = 'cot.gfxAutoTier';
-const LS_AUTO_POLICY = 'cot.gfxAutoTierPolicy';
+const LS_AUTO_TIER = 'tr.gfxAutoTier';
+const LS_AUTO_POLICY = 'tr.gfxAutoTierPolicy';
 const AUTO_POLICY_VERSION = 'clarity-r2';
 const AUTO_ORDER: readonly AutoTier[] = ['low', 'medium', 'high']; // ultra stays explicit opt-in
 let _gpuRendererString = '';

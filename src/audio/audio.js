@@ -328,7 +328,7 @@ export function createAudio({ context: initialContext = null } = {}) {
   let alarmHeartbeatOn = true; // critical-HP heartbeat option (settings toggle)
   const clamp01 = (v, d) => (typeof v === 'number' ? Math.max(0, Math.min(1, v)) : d);
   try {
-    const s = JSON.parse(localStorage.getItem('cot.settings.v1') || 'null');
+    const s = JSON.parse(localStorage.getItem('tr.settings.v1') || 'null');
     if (s && typeof s === 'object') {
       masterVolume = clamp01(s.volMaster, masterVolume);
       chanVol.engine = clamp01(s.volEngine, 1);

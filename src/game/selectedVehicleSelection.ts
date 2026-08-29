@@ -20,7 +20,7 @@ export interface SelectedVehicleSelectionOptions {
 export function createSelectedVehicleSelection({
   visibleIds,
   defaultId,
-  storageKey = 'cot.lastTank.v1',
+  storageKey = 'tr.lastTank.v1',
   getStorage = () => globalThis.localStorage,
 }: SelectedVehicleSelectionOptions): SelectedVehicleSelection {
   const visible = new Set(visibleIds);

@@ -36,10 +36,10 @@ import type {
 } from '../net/rankedServiceClient.ts';
 
 const STYLE_ID = 'cot-play-menu-style';
-const PLAYER_ID_KEY = 'cot.player.id.v1';
-const PLAYER_NAME_KEY = 'cot.player.name.v1';
-const ROOM_SIZE_KEY = 'cot.room.size.v1';
-const GAME_MODE_KEY = 'cot.game.mode.v1';
+const PLAYER_ID_KEY = 'tr.player.id.v1';
+const PLAYER_NAME_KEY = 'tr.player.name.v1';
+const ROOM_SIZE_KEY = 'tr.room.size.v1';
+const GAME_MODE_KEY = 'tr.game.mode.v1';
 type RankedServiceModule = typeof import('../net/rankedServiceClient.ts');
 export type PlayMode = 'solo' | RoomInviteMode | 'ranked';
 type RoomSession = PrivateRoomConnection['session'];

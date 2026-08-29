@@ -84,7 +84,7 @@ export function createNetworkStatus(): NetworkStatusController {
   let diagnosticsVisible = (() => {
     try {
       const query = new URLSearchParams(location.search);
-      return query.get('netdiag') === '1' || localStorage.getItem('cot.netdiag.v1') === '1';
+      return query.get('netdiag') === '1' || localStorage.getItem('tr.netdiag.v1') === '1';
     } catch { return false; }
   })();
   diagnostics.classList.toggle('show', diagnosticsVisible);
@@ -92,7 +92,7 @@ export function createNetworkStatus(): NetworkStatusController {
   function toggleDiagnostics(): void {
     diagnosticsVisible = !diagnosticsVisible;
     diagnostics.classList.toggle('show', diagnosticsVisible);
-    try { localStorage.setItem('cot.netdiag.v1', diagnosticsVisible ? '1' : '0'); } catch { /* fine */ }
+    try { localStorage.setItem('tr.netdiag.v1', diagnosticsVisible ? '1' : '0'); } catch { /* fine */ }
   }
 
   const onKeyDown = (event: KeyboardEvent): void => {

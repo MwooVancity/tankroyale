@@ -3461,7 +3461,7 @@ function* burntBakeSteps(entry, aniso) {
 // ===========================================================================
 // CAMO PATTERN SECTION — per-tank paintable camo schemes (garage picker).
 //
-// Selection is persisted per tank id in localStorage ('cot.camo.<specId>'):
+// Selection is persisted per tank id in localStorage ('tr.camo.<specId>'):
 //   'factory' — the authored historical spec.visual (default)
 //   'summer'  — 3-color NATO/olive summer
 //   'desert'  — desert tan wash
@@ -3483,8 +3483,8 @@ function* burntBakeSteps(entry, aniso) {
 // camo r2 (expansion round): 16 -> 29. Same append-only contract — the r8
 // block keeps its exact order, the r2 block appends after 'dazzle' grouped
 // the same way (green field / desert / winter / urban / autumn / style-only).
-const CAMO_LS_PREFIX = 'cot.camo.';
-const CUSTOM_CAMO_LS_PREFIX = 'cot.camoCustom.v1.';
+const CAMO_LS_PREFIX = 'tr.camo.';
+const CUSTOM_CAMO_LS_PREFIX = 'tr.camoCustom.v1.';
 // 'urban' is an INTERNAL pattern id (gray digital) reachable only through
 // AUTO biome resolution — a green flecktarn in a gray rubble city defeated
 // the point of biome matching (r1). Direct picker selection keeps the

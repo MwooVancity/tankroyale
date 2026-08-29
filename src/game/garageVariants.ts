@@ -2,7 +2,7 @@
 // This registry is deliberately renderer-free so UI, probes and persistence can
 // consume the same immutable contract without importing a world or tank builder.
 
-export const GARAGE_VARIANT_STORAGE_KEY = 'cot.garage.variant';
+export const GARAGE_VARIANT_STORAGE_KEY = 'tr.garage.variant';
 
 export interface GarageVariant {
   readonly id: string;

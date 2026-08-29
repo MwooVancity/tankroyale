@@ -1759,7 +1759,7 @@ export function createGarage(opts) {
     if (!meta) return;
     battleMode = 'solo';
     battleGameMode = id;
-    try { localStorage.setItem('cot.game.mode.v1', id); } catch (_) { /* session-only */ }
+    try { localStorage.setItem('tr.game.mode.v1', id); } catch (_) { /* session-only */ }
     battleModeBtn.querySelector('span').textContent = meta.short;
     battleBtn.querySelector('.battle-active-icon').innerHTML = uiIconSVG(meta.icon, 20);
     battleModeBtn.setAttribute('aria-label', `Battle rules: ${meta.label}. Change battle type`);

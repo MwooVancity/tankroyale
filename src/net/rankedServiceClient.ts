@@ -1,4 +1,4 @@
-const IDENTITY_KEY = 'cot.ranked.identity.v1';
+const IDENTITY_KEY = 'tr.ranked.identity.v1';
 
 type JsonObject = Record<string, unknown>;
 type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
