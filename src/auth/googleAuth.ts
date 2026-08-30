@@ -49,7 +49,7 @@ export async function signInWithGoogle(): Promise<GoogleUser | null> {
     // Use indirect import so Vite/rolldown doesn't try to bundle the native plugin
     const pkg = '@codetrix-studio/capacitor-google-auth';
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const { GoogleAuth } = await (new Function('p', 'return import(p)'))(pkg) as typeof import('@codetrix-studio/capacitor-google-auth');
+    const { GoogleAuth } = await (new Function('p', 'return import(p)'))(pkg) as { GoogleAuth: { initialize(): Promise<void>; signIn(): Promise<{ id: string; displayName: string; name: string; email: string; imageUrl: string }>; signOut(): Promise<void> } };
     await GoogleAuth.initialize();
     const result = await GoogleAuth.signIn();
     const user: GoogleUser = {

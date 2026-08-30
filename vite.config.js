@@ -128,6 +128,7 @@ export default {
   },
   build: {
     rollupOptions: {
+      external: ['@codetrix-studio/capacitor-google-auth'],
       // Multi-page build: the game and independently bootable public/tools
       // surfaces. Presentation routes never inherit the playable boot graph.
       input: {
