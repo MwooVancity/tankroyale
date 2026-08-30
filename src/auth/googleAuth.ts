@@ -46,8 +46,10 @@ export async function signInWithGoogle(): Promise<GoogleUser | null> {
   if (cached) return cached;
 
   try {
-    // Dynamic import so the plugin is tree-shaken in web-only builds
-    const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+    // Use indirect import so Vite/rolldown doesn't try to bundle the native plugin
+    const pkg = '@codetrix-studio/capacitor-google-auth';
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const { GoogleAuth } = await (new Function('p', 'return import(p)'))(pkg) as typeof import('@codetrix-studio/capacitor-google-auth');
     await GoogleAuth.initialize();
     const result = await GoogleAuth.signIn();
     const user: GoogleUser = {
