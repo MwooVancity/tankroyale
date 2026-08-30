@@ -22,6 +22,9 @@ jobs:
         run: npm ci
 
       - name: Build web assets
+        env:
+          VITE_SIGNAL_URL: ${{ secrets.VITE_SIGNAL_URL }}
+          VITE_ICE_CONFIG_URL: ${{ secrets.VITE_ICE_CONFIG_URL }}
         run: npx cross-env VITE_PUBLIC_BUILD=1 npx vite build
 
       - name: Sync Capacitor
