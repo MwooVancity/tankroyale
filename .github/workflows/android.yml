@@ -74,7 +74,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > app/tank-royale.keystore
-          ./gradlew bundleRelease --stacktrace \
+          ./gradlew bundleRelease \
             -Pandroid.injected.signing.store.file=$(pwd)/app/tank-royale.keystore \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
