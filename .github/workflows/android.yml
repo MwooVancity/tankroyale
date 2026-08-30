@@ -28,8 +28,10 @@ jobs:
         run: npx cross-env VITE_PUBLIC_BUILD=1 npx vite build
 
       - name: Inject google-services.json
-        if: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+        env:
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        if: ${{ env.GSJ != '' }}
+        run: echo "$GSJ" > android/app/google-services.json
 
       - name: Sync Capacitor
         run: npx cap sync android
