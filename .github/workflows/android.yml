@@ -27,6 +27,10 @@ jobs:
           VITE_ICE_CONFIG_URL: ${{ secrets.VITE_ICE_CONFIG_URL }}
         run: npx cross-env VITE_PUBLIC_BUILD=1 npx vite build
 
+      - name: Inject google-services.json
+        if: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+
       - name: Sync Capacitor
         run: npx cap sync android
 

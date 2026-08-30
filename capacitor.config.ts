@@ -14,6 +14,11 @@ const config: CapacitorConfig = {
     },
   },
   plugins: {
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      // serverClientId is set via google-services.json — do not hardcode here
+      forceCodeForRefreshToken: false,
+    },
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: '#05080b',

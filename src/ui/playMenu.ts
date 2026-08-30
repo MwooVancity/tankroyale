@@ -11,6 +11,7 @@ import {
 } from '../net/privateRoomConnectionRuntime.ts';
 import { resolveSignalUrl } from '../net/signalEndpoint.ts';
 import { automaticPlayerName, normalizePlayerName } from '../net/playerNames.ts';
+import { signInWithGoogle, getCachedGoogleUser } from '../auth/googleAuth.ts';
 import { normalizeRoomCode } from '../net/protocol.ts';
 import {
   createRoomInviteUrl,
@@ -1277,6 +1278,16 @@ export function createPlayMenu({
     }
   }
 
+  function applyGoogleName(): void {
+    const user = getCachedGoogleUser();
+    if (!user?.displayName) return;
+    const current = nameInput.value.trim();
+    // Only overwrite the auto-generated "Commander XXXX" default, not a name the user typed
+    if (!current || /^Commander [A-Z0-9]{4}$/.test(current)) {
+      nameInput.value = normalizePlayerName(user.displayName) || current;
+    }
+  }
+
   function selectMode(nextMode: PlayMode): void {
     const button = root.querySelector<HTMLButtonElement>(`.mode[data-mode="${nextMode}"]`);
     if (!button) return;
@@ -1286,6 +1297,11 @@ export function createPlayMenu({
       if (onSolo) onSolo({ gameMode: selectedGameMode });
       return;
     }
+    // Sign in with Google (non-blocking — fills name when it resolves)
+    signInWithGoogle().then((user) => {
+      if (user?.displayName) applyGoogleName();
+    }).catch(() => { /* ok */ });
+    applyGoogleName(); // apply cached immediately if already signed in
     closeCurrentSession('mode_changed');
     mode = nextMode;
     for (const item of root.querySelectorAll('.mode')) item.classList.toggle('on', item === button);
