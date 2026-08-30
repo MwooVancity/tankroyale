@@ -461,7 +461,11 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
   // arm the legacy-overlay suppressor the moment the battle is decided —
     // endOverlayRuntime.show() runs later in the same tick and must never flash the
   // old button/earnings line before the end screen takes the frame
-  bus.on('battle:ended', () => document.body.classList.add('cot-es-armed'));
+  bus.on('battle:ended', () => {
+    document.body.classList.add('cot-es-armed');
+    // Show 10-second interstitial ad on Android; no-op in browser.
+    import('../auth/admob.ts').then(({ showMatchEndAd }) => showMatchEndAd()).catch(() => {});
+  });
   // any path into a fresh battle retires the screen — including the debug
   // __DEBUG.startBattle flow, which skips the garage's ui:battleStart (the
   // garage path also lands here via hud.setMode -> shotInfo.hideStats)
