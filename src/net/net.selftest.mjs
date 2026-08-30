@@ -323,23 +323,23 @@ expectCode(() => normalizeRoomChatText('x'.repeat(MAX_ROOM_CHAT_LENGTH + 1)),
 // Lobby policy: player identity is independent from vehicle identity.
 const lobby = createLobby({
   roomCode: 'ABC234',
-  hostId: 'kevin',
-  hostName: 'Kevin',
+  hostId: 'alice',
+  hostName: 'Alice',
   hostSpecId: 'm1a2',
   hostCamo: 'summer',
 });
 addLobbyPlayer(lobby, { id: 'guest', name: 'Guest', specId: 'm1a2', camo: 'winter' });
 assert.equal(lobby.players.get('guest').team, LOBBY_TEAMS.BRAVO);
-assert.equal(lobby.players.get('kevin').specId, lobby.players.get('guest').specId,
+assert.equal(lobby.players.get('alice').specId, lobby.players.get('guest').specId,
   'two players may select the same tank');
 assert.deepEqual([...lobby.players.values()].map((player) => player.camo), ['summer', 'winter'],
   'duplicate tank picks retain each player\'s own built-in camouflage');
 expectCode(() => applyLobbyCommand(lobby, 'guest', { type: 'set_map', mapId: 'winter' }),
   LobbyError, 'host_only');
-applyLobbyCommand(lobby, 'kevin', { type: 'set_map', mapId: 'winter' }, {
+applyLobbyCommand(lobby, 'alice', { type: 'set_map', mapId: 'winter' }, {
   isMapAllowed: (mapId) => mapId === 'winter',
 });
-expectCode(() => applyLobbyCommand(lobby, 'kevin', { type: 'set_map', mapId: 'forged-map' }, {
+expectCode(() => applyLobbyCommand(lobby, 'alice', { type: 'set_map', mapId: 'forged-map' }, {
   isMapAllowed: (mapId) => mapId === 'winter',
 }), LobbyError, 'map_not_allowed');
 applyLobbyCommand(lobby, 'guest', { type: 'select_camo', camo: 'digital' }, {
@@ -349,13 +349,13 @@ assert.equal(lobby.players.get('guest').camo, 'digital');
 expectCode(() => applyLobbyCommand(lobby, 'guest', { type: 'select_camo', camo: 'custom' }, {
   isCamoAllowed: (camo) => ['factory', 'digital'].includes(camo),
 }), LobbyError, 'camo_not_allowed');
-applyLobbyCommand(lobby, 'kevin', { type: 'set_ready', ready: true });
+applyLobbyCommand(lobby, 'alice', { type: 'set_ready', ready: true });
 applyLobbyCommand(lobby, 'guest', {
   type: 'select_equipment', equipment: ['rammer', 'vstab', 'optics', 'toolbox'],
 });
 assert.deepEqual(lobby.players.get('guest').equipment, ['rammer', 'vstab', 'optics']);
 applyLobbyCommand(lobby, 'guest', { type: 'set_ready', ready: true });
-applyLobbyCommand(lobby, 'kevin', { type: 'start', matchSeed: 42 });
+applyLobbyCommand(lobby, 'alice', { type: 'start', matchSeed: 42 });
 assert.equal(lobby.phase, LOBBY_PHASES.STARTING);
 assert.equal(lobby.locked, true);
 const lobbyWire = serializeLobby(lobby);

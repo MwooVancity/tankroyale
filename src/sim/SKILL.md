@@ -3,7 +3,7 @@ name: src-sim-skill
 description: Work on deterministic movement, armor, ballistics, damage, and spotting simulation.
 ---
 
-# claude-of-tanks / src/sim
+# tank-royale / src/sim
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

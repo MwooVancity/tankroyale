@@ -3,7 +3,7 @@ name: src-ui-skill
 description: Work on garage, HUD, settings, mobile controls, transitions, and battle presentation UI.
 ---
 
-# claude-of-tanks / src/ui
+# tank-royale / src/ui
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

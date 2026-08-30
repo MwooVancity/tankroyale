@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL('../../public/media/feature-loops-r1/', impor
 const manifest = JSON.parse(await readFile(`${root}/manifest.json`, 'utf8'));
 const approvedMaps = new Set(['desert', 'winter', 'urban', 'verdant']);
 
-assert.equal(manifest.libraryId, 'claude-of-tanks-feature-loops-r1');
+assert.equal(manifest.libraryId, 'tank-royale-feature-loops-r1');
 assert.equal(manifest.schemaVersion, 2);
 assert.equal(manifest.qualityGate?.passed, 6);
 assert.equal(manifest.qualityGate?.failed, 0);

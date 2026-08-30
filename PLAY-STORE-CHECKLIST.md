@@ -1,7 +1,7 @@
 # Play Store Submission Checklist
 
 ## ✅ Done (automated)
-- [x] Branding stripped — all Kevin Liu references replaced
+- [x] Branding stripped — all Michael Woo references replaced
 - [x] package.json: name=tank-royale, author=Michael Woo
 - [x] index.html: title, meta, JSON-LD = Tank Royale
 - [x] authorship.ts, localStorage keys, GitHub URLs updated
@@ -55,12 +55,12 @@
 ---
 
 ## ⚠️ Legal Note — Read Before Submitting
-The tank generation code (procedural geometry + battlefield definitions) is based on Claude-of-Tanks
+The tank generation code (procedural geometry + battlefield definitions) is based on Tank-Royale
 source code which has a proprietary content license covering "procedural definitions."
 The `build:public` script strips community/quarantine assets but the core procedural system remains.
 
 **Safest path before store submission:**
-Option A: Email Kevin Liu (GitHub: Kevin-Liu-01) and ask for written permission to publish a
+Option A: Email Michael Woo (GitHub: MwooVancity) and ask for written permission to publish a
           derivative on the Play Store. Many open source authors say yes when asked.
 Option B: Replace the tank geometry system with CC0 assets from kenney.nl/assets/tank-game-assets
           (significant engineering work, ~2–4 weeks).

@@ -59,7 +59,7 @@ function failureRecord(reason) {
 
 /** Prove the two production dependencies required by a first-time friend join. */
 export async function checkProductionMultiplayer({
-  baseUrl = 'https://cot.kevinliu.studio',
+  baseUrl = 'https://cot.tankroyale.app',
   fetchImpl = globalThis.fetch,
   timeoutMs = 10_000,
 } = {}) {
@@ -113,7 +113,7 @@ export async function checkProductionMultiplayer({
 const isCli = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isCli) {
   const baseUrl = process.argv.find((arg) => arg.startsWith('--url='))?.slice(6)
-    || 'https://cot.kevinliu.studio';
+    || 'https://cot.tankroyale.app';
   try {
     console.log(JSON.stringify(await checkProductionMultiplayer({ baseUrl }), null, 2));
   } catch (error) {

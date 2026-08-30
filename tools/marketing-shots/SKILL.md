@@ -3,7 +3,7 @@ name: tools-marketing-shots-skill
 description: Generate deterministic branded marketing screenshots from staged game states.
 ---
 
-# claude-of-tanks / tools/marketing-shots
+# tank-royale / tools/marketing-shots
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

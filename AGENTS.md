@@ -1,4 +1,4 @@
-# claude-of-tanks - Agent Index
+# tank-royale - Agent Index
 
 > Pointer index for agents working in this repo. Keep this file lean: load linked
 > files on demand, prune no-op instructions, and keep generated facts inside
@@ -26,7 +26,7 @@ worktree and never stage generated tank work wholesale.
 
 ## Stack
 <!-- agent-docs:auto:stack start -->
-- **Name:** claude-of-tanks
+- **Name:** tank-royale
 - **Package manager:** npm
 - **Languages:** typescript
 - **Framework:** vite
@@ -46,7 +46,7 @@ worktree and never stage generated tank work wholesale.
 <!-- agent-docs:auto:dirmap start -->
 | Directory | Skill | Purpose |
 |---|---|---|
-| `server/` | [`server/SKILL.md`](server/SKILL.md) | Implement and operate Claude of Tanks signaling and dedicated authoritative multiplayer servers. |
+| `server/` | [`server/SKILL.md`](server/SKILL.md) | Implement and operate Tank Royale signaling and dedicated authoritative multiplayer servers. |
 | `src/audio/` | [`src/audio/SKILL.md`](src/audio/SKILL.md) | Work on event-driven spatial audio, radio voices, engines, weapons, ambience, and mix state. |
 | `src/engine/` | [`src/engine/SKILL.md`](src/engine/SKILL.md) | Work on renderer, lighting, camera, postprocessing, device quality, and frame diagnostics. |
 | `src/fx/` | [`src/fx/SKILL.md`](src/fx/SKILL.md) | Work on pooled particles, impacts, destruction effects, decals, and shared FX time. |
@@ -67,9 +67,9 @@ worktree and never stage generated tank work wholesale.
 - Use `rg` for exact strings; use Kevin-Wiki `qmd` for people, tools, decisions, and compiled wiki knowledge.
 - Use `agent-browser` for browser/UI work; use Playwright only for committed regression tests.
 - Runtime memories (Hermes/Hindsight/Honcho) are not project truth until written back to AGENTS.md, SKILL.md, or the wiki.
-- Status: `cd ~/Documents/GitHub/kevin-wiki && npm run graphify:sidecar -- status --run outputs/graphify/claude-of-tanks`
-- Build from this repo: `PROJECT_ROOT="$(pwd)" && cd ~/Documents/GitHub/kevin-wiki && npm run graphify:sidecar -- build "$PROJECT_ROOT" --run outputs/graphify/claude-of-tanks --no-viz`
-- Query after build: `cd ~/Documents/GitHub/kevin-wiki && npm run graphify:sidecar -- query "what should I inspect first?" --run outputs/graphify/claude-of-tanks`
+- Status: `cd ~/Documents/GitHub/kevin-wiki && npm run graphify:sidecar -- status --run outputs/graphify/tank-royale`
+- Build from this repo: `PROJECT_ROOT="$(pwd)" && cd ~/Documents/GitHub/kevin-wiki && npm run graphify:sidecar -- build "$PROJECT_ROOT" --run outputs/graphify/tank-royale --no-viz`
+- Query after build: `cd ~/Documents/GitHub/kevin-wiki && npm run graphify:sidecar -- query "what should I inspect first?" --run outputs/graphify/tank-royale`
 - Never run Graphify installers/hooks or commit generated `graphify-out/` artifacts.
 <!-- agent-docs:auto:repo-graph end -->
 
@@ -88,7 +88,7 @@ worktree and never stage generated tank work wholesale.
 - No per-frame allocation in established hot loops; reuse scratch state.
 - All playable tanks are first-party procedural runtime models. Source GLBs
   are comparison/authoring inputs, never a playable loading path.
-- Every first-party file and asset is attributed to Kevin B. Liu by
+- Every first-party file and asset is attributed to Michael Woo by
   `NOTICE.md`; every playable spec inherits the named authorship record from
   `src/authorship.ts`. Record third-party exceptions in `docs/ATTRIBUTION.md`
   and run `npm run attribution:check`.

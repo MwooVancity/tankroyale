@@ -1,8 +1,8 @@
 {
-  "libraryId": "claude-of-tanks-showcase-r1",
+  "libraryId": "tank-royale-showcase-r1",
   "schemaVersion": 1,
   "generatedAt": "2026-08-19",
-  "renderer": "Claude of Tanks Scene Studio and deterministic game harness",
+  "renderer": "Tank Royale Scene Studio and deterministic game harness",
   "firstPartyRuntimeOnly": true,
   "review": "Owner-approved feature shortlist plus every quality-gated action and foreground campaign frame",
   "sourceDimensions": {
@@ -186,7 +186,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Rooftop Dive on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Rooftop Dive on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "t90a_burlak",
         "mbt70"
@@ -211,7 +211,7 @@
       "feature": "Gunnery",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Muzzle Worm on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Muzzle Worm on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "strv103"
       ],
@@ -234,7 +234,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "spz_puma",
         "leclerc_xlr",
@@ -259,7 +259,7 @@
       "feature": "Armor impacts",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Winter Village Hell on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Village Hell on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "merkava4b",
@@ -287,7 +287,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Urban Overpass Dive on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Overpass Dive on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t90a_burlak",
         "mbt70"
@@ -312,7 +312,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Urban Crossfire X on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Crossfire X on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "udes03",
         "pl01_105",
@@ -339,7 +339,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "type99a",
         "t90a_vladimir",
@@ -367,7 +367,7 @@
       "feature": "Armor impacts",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "merkava4b"
@@ -392,7 +392,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Autumn Gold Inferno on Amberford, captured from the live Claude of Tanks renderer",
+      "alt": "Autumn Gold Inferno on Amberford, captured from the live Tank Royale renderer",
       "actors": [
         "type99a",
         "t90a_vladimir"
@@ -417,7 +417,7 @@
       "feature": "Armor impacts",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Autumn Orchard Stand on Amberford, captured from the live Claude of Tanks renderer",
+      "alt": "Autumn Orchard Stand on Amberford, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3"
       ],
@@ -442,7 +442,7 @@
       "feature": "Gunnery",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Claude of Tanks renderer",
+      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "strv103a",
@@ -467,7 +467,7 @@
       "feature": "Track physics",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Ram Abramsx T90m on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Ram Abramsx T90m on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "merkava4b"
@@ -493,7 +493,7 @@
       "feature": "Gunnery",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "strv103a",
@@ -518,7 +518,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Desert Duel Leclerc Kill on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Duel Leclerc Kill on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "leo2_revolution",
@@ -564,7 +564,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Desert Ram AbramsX T-90M on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Ram AbramsX T-90M on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "kf51",
@@ -611,7 +611,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "strv122",
         "type99a",
@@ -656,7 +656,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Desert Village Brawl on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Village Brawl on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "k2",
         "t14",
@@ -701,7 +701,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Coastal Dune Ambush on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Dune Ambush on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "t90m",
         "ariete",
@@ -748,7 +748,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Coastal Seafront Duel on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Seafront Duel on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "ua_t84_oplot_m",
         "m1a2_sepv3",
@@ -793,7 +793,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Winter Lake Duel on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Lake Duel on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "t80u",
         "challenger_3",
@@ -838,7 +838,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Winter Ram Leo2a6 on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Ram Leo2a6 on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "abramsx",
         "strv122",
@@ -885,7 +885,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Winter Village Brawl on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Village Brawl on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "leo2a7v",
         "k2",
@@ -932,7 +932,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Winter Overwatch Birch on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Overwatch Birch on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "leclerc_xlr",
         "t90m",
@@ -977,7 +977,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Urban Street Duel on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Street Duel on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "type10",
         "ua_t84_oplot_m",
@@ -1022,7 +1022,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Urban Ram Plaza on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Ram Plaza on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t90sm",
         "t80u",
@@ -1069,7 +1069,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Urban Overwatch Church on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Overwatch Church on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "pt91m",
         "abramsx",
@@ -1115,7 +1115,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Urban Ruin Brawl on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Ruin Brawl on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t72b3m",
         "leo2a7v",
@@ -1160,7 +1160,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Urban Hero AbramsX on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Hero AbramsX on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_tusk",
         "ariete",
@@ -1206,7 +1206,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Field Duel on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Field Duel on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "leo2_revolution",
         "type10",
@@ -1251,7 +1251,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Ram Hedgerow on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Ram Hedgerow on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "kf51",
         "t90sm",
@@ -1299,7 +1299,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Village Brawl on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Village Brawl on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "type99a",
         "pt91m",
@@ -1345,7 +1345,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Hero Challenger1 on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Hero Challenger1 on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "t14",
         "t90sm",
@@ -1391,7 +1391,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Desert Wadi Gauntlet on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Wadi Gauntlet on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "ariete",
         "m1a2_tusk",
@@ -1436,7 +1436,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Steppe Windbreak Snipe on Tarkhan Steppe, captured from the live Claude of Tanks renderer",
+      "alt": "Steppe Windbreak Snipe on Tarkhan Steppe, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "leo2_revolution",
@@ -1482,7 +1482,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Desert Last Stand on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Last Stand on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "kf51",
@@ -1527,7 +1527,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "strv122",
         "type99a",
@@ -1572,7 +1572,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Claude of Tanks renderer",
+      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Tank Royale renderer",
       "actors": [
         "k2",
         "t14",
@@ -1617,7 +1617,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Urban Alley Flash on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Alley Flash on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t90m",
         "ariete",
@@ -1663,7 +1663,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Coastal Harbor Kill on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Harbor Kill on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "ua_t84_oplot_m",
         "m1a2_sepv3",
@@ -1708,7 +1708,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "t80u",
         "challenger_3",
@@ -1755,7 +1755,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "abramsx",
         "strv122",
@@ -1800,7 +1800,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Coastal Beach Storm on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Beach Storm on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "leo2a7v",
         "k2",
@@ -1846,7 +1846,7 @@
       "kind": "action",
       "collection": "marketing-battles-r3",
       "shotStyle": "action",
-      "alt": "Verdant Overwatch Ridge on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Overwatch Ridge on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "leclerc_xlr",
         "t90m",
@@ -1891,7 +1891,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Desert Duel Leclerc Kill on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Duel Leclerc Kill on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "leo2_revolution",
@@ -1938,7 +1938,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Desert Ram AbramsX T-90M on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Ram AbramsX T-90M on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "kf51",
@@ -1986,7 +1986,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "strv122",
         "type99a",
@@ -2032,7 +2032,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Desert Village Brawl on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Village Brawl on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "k2",
         "t14",
@@ -2078,7 +2078,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Coastal Dune Ambush on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Dune Ambush on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "t90m",
         "ariete",
@@ -2126,7 +2126,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Coastal Seafront Duel on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Seafront Duel on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "ua_t84_oplot_m",
         "m1a2_sepv3",
@@ -2172,7 +2172,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Winter Lake Duel on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Lake Duel on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "t80u",
         "challenger_3",
@@ -2218,7 +2218,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Winter Ram Leo2a6 on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Ram Leo2a6 on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "abramsx",
         "strv122",
@@ -2266,7 +2266,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Winter Village Brawl on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Village Brawl on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "leo2a7v",
         "k2",
@@ -2314,7 +2314,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Winter Overwatch Birch on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Overwatch Birch on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "leclerc_xlr",
         "t90m",
@@ -2360,7 +2360,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Urban Street Duel on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Street Duel on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "type10",
         "ua_t84_oplot_m",
@@ -2406,7 +2406,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Urban Ram Plaza on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Ram Plaza on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t90sm",
         "t80u",
@@ -2454,7 +2454,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Urban Overwatch Church on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Overwatch Church on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "pt91m",
         "abramsx",
@@ -2501,7 +2501,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Urban Ruin Brawl on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Ruin Brawl on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t72b3m",
         "leo2a7v",
@@ -2547,7 +2547,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Urban Hero AbramsX on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Hero AbramsX on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_tusk",
         "ariete",
@@ -2593,7 +2593,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Field Duel on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Field Duel on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "leo2_revolution",
         "type10",
@@ -2639,7 +2639,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Ram Hedgerow on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Ram Hedgerow on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "kf51",
         "t90sm",
@@ -2688,7 +2688,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Village Brawl on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Village Brawl on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "type99a",
         "pt91m",
@@ -2735,7 +2735,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Hero Challenger1 on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Hero Challenger1 on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "t14",
         "t90sm",
@@ -2781,7 +2781,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Desert Wadi Gauntlet on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Wadi Gauntlet on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "ariete",
         "m1a2_tusk",
@@ -2827,7 +2827,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Steppe Windbreak Snipe on Tarkhan Steppe, captured from the live Claude of Tanks renderer",
+      "alt": "Steppe Windbreak Snipe on Tarkhan Steppe, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "leo2_revolution",
@@ -2874,7 +2874,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Desert Last Stand on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Last Stand on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "kf51",
@@ -2920,7 +2920,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "strv122",
         "type99a",
@@ -2966,7 +2966,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Claude of Tanks renderer",
+      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Tank Royale renderer",
       "actors": [
         "k2",
         "t14",
@@ -3012,7 +3012,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Urban Alley Flash on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Alley Flash on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t90m",
         "ariete",
@@ -3059,7 +3059,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Coastal Harbor Kill on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Harbor Kill on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "ua_t84_oplot_m",
         "m1a2_sepv3",
@@ -3105,7 +3105,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "t80u",
         "challenger_3",
@@ -3153,7 +3153,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "abramsx",
         "strv122",
@@ -3199,7 +3199,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Coastal Beach Storm on Breakwater Coast, captured from the live Claude of Tanks renderer",
+      "alt": "Coastal Beach Storm on Breakwater Coast, captured from the live Tank Royale renderer",
       "actors": [
         "leo2a7v",
         "k2",
@@ -3246,7 +3246,7 @@
       "kind": "foreground",
       "collection": "marketing-battles-r3",
       "shotStyle": "foreground",
-      "alt": "Verdant Overwatch Ridge on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Overwatch Ridge on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "leclerc_xlr",
         "t90m",
@@ -3441,7 +3441,7 @@
       "feature": "World system",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Ironworks overview captured from the live Claude of Tanks game",
+      "alt": "Ironworks overview captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3457,7 +3457,7 @@
       "feature": "Gunnery",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Live firing cycle captured from the live Claude of Tanks game",
+      "alt": "Live firing cycle captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3473,7 +3473,7 @@
       "feature": "Destruction",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Destruction event captured from the live Claude of Tanks game",
+      "alt": "Destruction event captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3489,7 +3489,7 @@
       "feature": "Tank design",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Tank Gallery live dossier captured from the live Claude of Tanks game",
+      "alt": "Tank Gallery live dossier captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3505,7 +3505,7 @@
       "feature": "Interface",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Garage command deck captured from the live Claude of Tanks game",
+      "alt": "Garage command deck captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3521,7 +3521,7 @@
       "feature": "Killcam",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Resolved-shot X-ray captured from the live Claude of Tanks game",
+      "alt": "Resolved-shot X-ray captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3537,7 +3537,7 @@
       "feature": "Interface",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Responsive mobile command deck captured from the live Claude of Tanks game",
+      "alt": "Responsive mobile command deck captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3553,7 +3553,7 @@
       "feature": "Interface",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Production battle HUD captured from the live Claude of Tanks game",
+      "alt": "Production battle HUD captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3569,7 +3569,7 @@
       "feature": "Gunnery",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Precision sight captured from the live Claude of Tanks game",
+      "alt": "Precision sight captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -3585,7 +3585,7 @@
       "feature": "Tank design",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "First-party vehicle rig captured from the live Claude of Tanks game",
+      "alt": "First-party vehicle rig captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {

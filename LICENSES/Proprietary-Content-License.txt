@@ -1,7 +1,7 @@
-CLAUDE OF TANKS PROPRIETARY CONTENT LICENSE
+TANK ROYALE PROPRIETARY CONTENT LICENSE
 Version 1.0 — 24 August 2026
 
-Copyright (c) 2026 Kevin B. Liu. All rights reserved.
+Copyright (c) 2026 Michael Woo. All rights reserved.
 
 This license applies to the Reserved Content identified by the repository's
 root LICENSE-POLICY.md file. It is a proprietary, source-available content
@@ -44,7 +44,7 @@ Except with the copyright owner's prior written permission, you may not:
 
 3. No trademark license
 
-This license grants no right to use CLAUDE OF TANKS, project logos, trade
+This license grants no right to use TANK ROYALE, project logos, trade
 dress, or other brand identifiers as trademarks or branding. Factual
 identification of the project remains permitted where required by law.
 

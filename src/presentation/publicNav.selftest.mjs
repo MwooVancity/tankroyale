@@ -127,7 +127,7 @@ assert.match(gameHtml,
   'boot utility controls must keep balanced content-driven horizontal padding');
 assert.doesNotMatch(gameHtml, /\.cot-boot-links > \.cot-boot-link\s*\{[^}]*width: 132px;/,
   'boot utility controls must not return to the fixed width that cramped GitHub');
-const gameRepositoryLinks = [...gameHtml.matchAll(/<a[^>]+href="https:\/\/github\.com\/mwoo778\/Claude-of-Tanks"[^>]*>([\s\S]*?)<\/a>/g)];
+const gameRepositoryLinks = [...gameHtml.matchAll(/<a[^>]+href="https:\/\/github\.com\/mwoo778\/Tank-Royale"[^>]*>([\s\S]*?)<\/a>/g)];
 assert.equal(gameRepositoryLinks.length, 2, 'loading and credits screens must retain both repository controls');
 for (const [, contents] of gameRepositoryLinks) {
   assert.ok(contents.includes('data-github-stars'), 'every repository control in the loading flow shows stars');
@@ -165,7 +165,7 @@ assert.match(garageSource, new RegExp(`class="github-stars" data-github-stars>${
 
 for (const file of ['home.html', 'docs.html']) {
   const html = readFileSync(join(ROOT, file), 'utf8');
-  const repositoryLinks = [...html.matchAll(/<a[^>]+href="https:\/\/github\.com\/mwoo778\/(?:Claude-of-Tanks|tank-royale)"[^>]*>([\s\S]*?)<\/a>/g)];
+  const repositoryLinks = [...html.matchAll(/<a[^>]+href="https:\/\/github\.com\/mwoo778\/(?:Tank-Royale|tank-royale)"[^>]*>([\s\S]*?)<\/a>/g)];
   assert.ok(repositoryLinks.length >= 2, `${file} must retain navbar and footer repository controls`);
   for (const [, contents] of repositoryLinks) {
     assert.ok(contents.includes('data-github-stars'), `${file} repository control is missing its star count`);

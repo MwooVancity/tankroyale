@@ -3,7 +3,7 @@ name: src-engine-skill
 description: Work on renderer, lighting, camera, postprocessing, device quality, and frame diagnostics.
 ---
 
-# claude-of-tanks / src/engine
+# tank-royale / src/engine
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

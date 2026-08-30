@@ -3,7 +3,7 @@ name: src-vehicles-skill
 description: Work on first-party procedural tank specs, builders, materials, profiles, ordering, and asset provenance.
 ---
 
-# claude-of-tanks / src/vehicles
+# tank-royale / src/vehicles
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->
@@ -33,7 +33,7 @@ demand-loaded family boundaries and complete donor geometry.
 ## Patterns to follow / invariants
 <!-- agent-docs:fill:patterns -->
 All playables use first-party runtime geometry; source GLBs are comparison-only.
-Every first-party procedural vehicle is created by Kevin B. Liu and must keep
+Every first-party procedural vehicle is created by Michael Woo and must keep
 the canonical named authorship record from `src/authorship.ts`; AI systems are
 development tools, not model authors. Preserve third-party reference credits
 in `docs/ATTRIBUTION.md`.

@@ -161,7 +161,7 @@ function send(socket, message) {
   socket.send(JSON.stringify(message));
 }
 
-const productionOrigin = 'https://cot.kevinliu.studio';
+const productionOrigin = 'https://cot.tankroyale.app';
 const signaling = createSignalingServer({
   host: '127.0.0.1',
   port: 0,

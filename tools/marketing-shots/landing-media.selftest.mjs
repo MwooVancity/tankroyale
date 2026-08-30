@@ -39,7 +39,7 @@ assert.match(presentation, /\.v5-maker-mark\{[^}]*width:29px;[^}]*height:29px;/,
 assert.match(threeMark, /viewBox="0 0 226\.77 226\.77"/,
   'the local Three.js asset retains the official icon geometry');
 
-assert.equal(manifest.libraryId, 'claude-of-tanks-landing-r1');
+assert.equal(manifest.libraryId, 'tank-royale-landing-r1');
 assert.equal(manifest.schemaVersion, 1);
 assert.equal(manifest.hero.length, 6, 'hero has six reviewed in-engine stills');
 assert.deepEqual(manifest.hero.slice(0, 4).map((slide) => slide.src), [
@@ -66,7 +66,7 @@ for (const slide of manifest.hero) {
   assert.ok((await stat(file)).size > 50_000, `${slide.id} is a substantial image`);
 }
 
-assert.equal(manifest.featureReel.video, '/media/promo-v13/claude-of-tanks-promo-clean.mp4');
+assert.equal(manifest.featureReel.video, '/media/promo-v13/tank-royale-promo-clean.mp4');
 assert.equal(manifest.featureReel.width, 1920);
 assert.equal(manifest.featureReel.height, 1080);
 assert.equal(home.split(manifest.featureReel.video).length - 1, 1,

@@ -3,13 +3,13 @@ name: tools-skill
 description: Maintain deterministic performance, screenshot, fleet, geometry, asset, and release verification tools.
 ---
 
-# claude-of-tanks / tools
+# tank-royale / tools
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->
 Provide reproducible evidence for game performance, rendering, tank fidelity,
 asset provenance, and public builds.
-`attribution-audit.mjs` enforces the repository-wide Kevin B. Liu notice,
+`attribution-audit.mjs` enforces the repository-wide Michael Woo notice,
 named authorship for every playable model, and exact records for tracked
 external model files.
 

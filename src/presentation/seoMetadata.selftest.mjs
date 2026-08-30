@@ -61,7 +61,7 @@ for (const [file, canonical] of indexedPages) {
   assert.match(attribute(html, 'meta', 'name', 'robots'), /max-image-preview:large/);
   assert.equal(attribute(html, 'link', 'rel', 'describedby', 'href'), '/llms.txt');
   assert.equal(attribute(html, 'link', 'rel', 'manifest', 'href'), '/site.webmanifest');
-  assert.match(html, /<meta name="author" content="Kevin B\. Liu"/);
+  assert.match(html, /<meta name="author" content="alice B\. Liu"/);
 
   const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
   assert.ok(blocks.length > 0, `${file} needs JSON-LD`);

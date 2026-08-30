@@ -377,7 +377,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const signaling = createSignalingServer(cliOptions(process.argv.slice(2)));
   signaling.listen().then((address) => {
     const shownHost = address.address === '::' ? '0.0.0.0' : address.address;
-    console.log(`Claude of Tanks signaling ready at ws://${shownHost}:${address.port}/signal`);
+    console.log(`Tank Royale signaling ready at ws://${shownHost}:${address.port}/signal`);
   }).catch((error) => {
     console.error(error);
     process.exitCode = 1;

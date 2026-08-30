@@ -2,7 +2,7 @@
   "version": 3,
   "collection": "studio-modern-all-maps",
   "count": 20,
-  "source": "claude-of-tanks-studio-cinematics/shots/studio-modern-all-maps-v3",
+  "source": "tank-royale-studio-cinematics/shots/studio-modern-all-maps-v3",
   "posterAtSeconds": 2.6,
   "delivery": {
     "container": "mp4",

@@ -41,7 +41,7 @@ const shots = sceneFiles.map((file, index) => {
     map: meta.map || scene.map,
     feature: meta.feature || 'Live renderer',
     kind: meta.kind || 'action',
-    alt: `${meta.title || id} on ${meta.map || scene.map}, captured from the live Claude of Tanks renderer`,
+    alt: `${meta.title || id} on ${meta.map || scene.map}, captured from the live Tank Royale renderer`,
     actors: actorNames,
     effects,
     seed: scene.seed,
@@ -75,7 +75,7 @@ try {
       map: 'Live game',
       feature,
       kind: 'interface',
-      alt: `${title} captured from the live Claude of Tanks game`,
+      alt: `${title} captured from the live Tank Royale game`,
       actors: [],
       effects: [],
     });
@@ -87,7 +87,7 @@ try {
 const manifest = {
   schemaVersion: 1,
   generatedAt: '2026-08-19',
-  renderer: 'Claude of Tanks Scene Studio and deterministic game harness',
+  renderer: 'Tank Royale Scene Studio and deterministic game harness',
   firstPartyRuntimeOnly: true,
   studioShotCount: shots.length,
   interfaceShotCount: uiShots.length,

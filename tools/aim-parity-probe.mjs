@@ -1,7 +1,7 @@
 // tools/aim-parity-probe.mjs — camera/aim COUPLING parity trace.
 //
 // Owner ground truth (2026-07-31): the deployed build at
-// https://claude-of-tanks.vercel.app carries the camera/aim behavior he wants
+// https://tank-royale.vercel.app carries the camera/aim behavior he wants
 // ("camera in relation to where we're aiming"). This probe drives an IDENTICAL
 // scripted input sequence against any build of the game and records per-frame
 // camera/turret/reticle traces, so local behavior can be diffed against the
@@ -15,7 +15,7 @@
 //   E wheel ladder in x6 / out x6   -> zoom steps, sniper boundary, pitch map
 //
 // Usage:
-//   node tools/aim-parity-probe.mjs --url https://claude-of-tanks.vercel.app \
+//   node tools/aim-parity-probe.mjs --url https://tank-royale.vercel.app \
 //        --json /tmp/dep.json --label deployed
 //   node tools/aim-parity-probe.mjs --local --json /tmp/local.json --label local
 //

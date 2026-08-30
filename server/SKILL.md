@@ -1,9 +1,9 @@
 ---
 name: server-skill
-description: Implement and operate Claude of Tanks signaling and dedicated authoritative multiplayer servers.
+description: Implement and operate Tank Royale signaling and dedicated authoritative multiplayer servers.
 ---
 
-# claude-of-tanks / server
+# tank-royale / server
 
 ## Purpose
 

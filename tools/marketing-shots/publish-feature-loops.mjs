@@ -61,7 +61,7 @@ for (const [index, video] of sourceManifest.videos.entries()) {
 }
 
 const manifest = {
-  libraryId: 'claude-of-tanks-feature-loops-r1',
+  libraryId: 'tank-royale-feature-loops-r1',
   schemaVersion: 2,
   renderer: sourceManifest.renderer,
   source: 'Scene Studio using approved action-campaign sightlines',

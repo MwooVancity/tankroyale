@@ -40,11 +40,11 @@ function releaseLock() { if (lockHeld) { lockHeld = false; try { rmdirSync(LOCK_
 await acquireLock(20 * 60 * 1000);
 process.on('exit', releaseLock);
 
-const outDir = '/Users/kevinliu/claude-of-tanks/shots/critic_r6_content';
+const outDir = 'C:/Users/mwoo7/Desktop/tank-royale/shots/critic_r6_content';
 mkdirSync(outDir, { recursive: true });
 
 const server = await createServer({
-  root: '/Users/kevinliu/claude-of-tanks',
+  root: 'C:/Users/mwoo7/Desktop/tank-royale',
   logLevel: 'error',
   server: { port: 5200 + Math.floor(Math.random() * 700), strictPort: false, hmr: false, watch: { ignored: ['**/*'] } },
   optimizeDeps: { entries: ['index.html'], include: ['three', 'three/examples/jsm/loaders/GLTFLoader.js', 'three/examples/jsm/utils/SkeletonUtils.js', 'three/examples/jsm/utils/BufferGeometryUtils.js', 'three/examples/jsm/geometries/RoundedBoxGeometry.js'] },

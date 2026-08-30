@@ -3,7 +3,7 @@ name: src-gallery-skill
 description: Build and verify the public Tank Gallery, its technical dossiers, diagnostic overlays, and exact-surface markup review packets.
 ---
 
-# claude-of-tanks / src/gallery
+# tank-royale / src/gallery
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

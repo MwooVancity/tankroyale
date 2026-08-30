@@ -42,7 +42,7 @@ assert.match(buildText, /origin\/main/);
 assert.match(buildText, /AGENTS\.md/);
 
 const modelText = [topics.models.lede, ...topics.models.sections.flat()].join(' ');
-assert.match(modelText, /Kevin B\. Liu authored every playable tank|first-party procedural runtime geometry/);
+assert.match(modelText, /alice B\. Liu authored every playable tank|first-party procedural runtime geometry/);
 assert.match(modelText, /Generate icons and technical cards/);
 assert.match(modelText, /tank:anatomy:update/);
 assert.match(modelText, /tank:release:check/);

@@ -9,7 +9,7 @@
     "audio": false
   },
   "files": [
-    { "path": "feature-reel-mobile.mp4", "bytes": 3984639, "source": "/media/promo-v13/claude-of-tanks-promo-clean.mp4" },
+    { "path": "feature-reel-mobile.mp4", "bytes": 3984639, "source": "/media/promo-v13/tank-royale-promo-clean.mp4" },
     { "path": "desert-ground-rush-mobile.mp4", "bytes": 932397, "source": "/media/hero-rails-r2/01_desert-ground-rush.webm" },
     { "path": "winter-ice-orbit-mobile.mp4", "bytes": 681513, "source": "/media/hero-rails-r2/02_winter-ice-orbit.webm" },
     { "path": "steppe-charge-mobile.mp4", "bytes": 904282, "source": "/media/hero-rails-r2/03_steppe-charge-thread.webm" },

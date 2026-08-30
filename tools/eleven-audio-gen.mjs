@@ -200,7 +200,7 @@ if (mode === 'save-voice') {
   if (!generated || !name) { console.error(USAGE); process.exit(1); }
   const res = await api('POST', '/v1/text-to-voice', {
     voice_name: name,
-    voice_description: opt('description', `${name} (designed for Claude of Tanks crew radio)`),
+    voice_description: opt('description', `${name} (designed for Tank Royale crew radio)`),
     generated_voice_id: generated,
   });
   console.log(`[eleven] saved voice "${name}" -> voice_id ${res.voice_id}`);

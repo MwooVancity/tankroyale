@@ -3,7 +3,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const manifest = JSON.parse(readFileSync('public/media/feature-evidence-r2/manifest.json', 'utf8'));
-assert.equal(manifest.libraryId, 'claude-of-tanks-feature-evidence-r2');
+assert.equal(manifest.libraryId, 'tank-royale-feature-evidence-r2');
 assert.equal(manifest.images.length, 6);
 assert.equal(manifest.qualityGate.failed, 0);
 for (const image of manifest.images) {

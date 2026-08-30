@@ -4,31 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#080a0c">
-  <meta name="author" content="Kevin B. Liu">
-  <meta name="copyright" content="Copyright © 2026 Kevin B. Liu">
-  <meta name="application-name" content="Claude of Tanks">
-  <meta name="description" content="Technical documentation for Claude of Tanks: how it was built, procedural model and icon workflows, 60 Hz combat, bots, audio, performance, {{COT_PRODUCTION_VEHICLES}} vehicles, {{COT_BATTLEFIELDS}} battlefields, and Three.js rendering.">
-  <link rel="canonical" href="https://cot.kevinliu.studio/docs">
+  <meta name="author" content="Michael Woo">
+  <meta name="copyright" content="Copyright © 2026 Michael Woo">
+  <meta name="application-name" content="Tank Royale">
+  <meta name="description" content="Technical documentation for Tank Royale: how it was built, procedural model and icon workflows, 60 Hz combat, bots, audio, performance, {{COT_PRODUCTION_VEHICLES}} vehicles, {{COT_BATTLEFIELDS}} battlefields, and Three.js rendering.">
+  <link rel="canonical" href="https://cot.tankroyale.app/docs">
   <link rel="describedby" href="/llms.txt" type="text/plain">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  <meta property="og:site_name" content="Claude of Tanks"><meta property="og:title" content="Claude of Tanks Technical Field Manual"><meta property="og:description" content="How the game was built, how procedural tanks and icons are made, and how combat, AI, audio, rendering, multiplayer, performance, and browser tools work."><meta property="og:type" content="article"><meta property="og:url" content="https://cot.kevinliu.studio/docs"><meta property="og:locale" content="en_US"><meta property="og:image" content="https://cot.kevinliu.studio/brand/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><meta property="og:image:alt" content="Claude of Tanks in-engine armored battle and crest wordmark">
-  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude of Tanks Technical Field Manual"><meta name="twitter:description" content="Build workflow, procedural models and icons, combat, bots, audio, rendering, multiplayer, performance, mobile, and production tools."><meta name="twitter:image" content="https://cot.kevinliu.studio/brand/og-image.png"><meta name="twitter:image:alt" content="Claude of Tanks in-engine armored battle and crest wordmark">
+  <meta property="og:site_name" content="Tank Royale"><meta property="og:title" content="Tank Royale Technical Field Manual"><meta property="og:description" content="How the game was built, how procedural tanks and icons are made, and how combat, AI, audio, rendering, multiplayer, performance, and browser tools work."><meta property="og:type" content="article"><meta property="og:url" content="https://cot.tankroyale.app/docs"><meta property="og:locale" content="en_US"><meta property="og:image" content="https://cot.tankroyale.app/brand/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><meta property="og:image:alt" content="Tank Royale in-engine armored battle and crest wordmark">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Tank Royale Technical Field Manual"><meta name="twitter:description" content="Build workflow, procedural models and icons, combat, bots, audio, rendering, multiplayer, performance, mobile, and production tools."><meta name="twitter:image" content="https://cot.tankroyale.app/brand/og-image.png"><meta name="twitter:image:alt" content="Tank Royale in-engine armored battle and crest wordmark">
   <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg">
   <link rel="preload" href="/media/presentation-r1/12_urban_crossfire_x.webp" as="image">
   <link rel="stylesheet" href="/src/presentation/mediaArchive.css">
   <link rel="stylesheet" href="/src/docs/docs.css">
   <link rel="stylesheet" href="/src/presentation/publicNav.css">
-  <title>Technical Field Manual — Claude of Tanks</title>
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://cot.kevinliu.studio/docs#manual","url":"https://cot.kevinliu.studio/docs","headline":"Claude of Tanks Technical Field Manual","description":"Public engineering documentation for how Claude of Tanks was built, its procedural model and icon workflow, simulation, AI, audio, renderer, worlds, multiplayer, performance, interface, Tank Gallery, and Scene Studio.","image":"https://cot.kevinliu.studio/brand/og-image.png","author":{"@type":"Person","@id":"https://cot.kevinliu.studio/#creator","name":"Kevin B. Liu","url":"https://github.com/Kevin-Liu-01"},"copyrightHolder":{"@id":"https://cot.kevinliu.studio/#creator"},"dateModified":"2026-08-28","mainEntityOfPage":{"@id":"https://cot.kevinliu.studio/docs#page"},"about":{"@id":"https://cot.kevinliu.studio/#game"},"inLanguage":"en-US"},{"@type":"WebPage","@id":"https://cot.kevinliu.studio/docs#page","url":"https://cot.kevinliu.studio/docs","name":"Technical Field Manual — Claude of Tanks","isPartOf":{"@id":"https://cot.kevinliu.studio/#website"},"about":{"@id":"https://cot.kevinliu.studio/#game"}},{"@type":"VideoGame","@id":"https://cot.kevinliu.studio/#game","name":"Claude of Tanks","url":"https://cot.kevinliu.studio/"}]}</script>
+  <title>Technical Field Manual — Tank Royale</title>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","@id":"https://cot.tankroyale.app/docs#manual","url":"https://cot.tankroyale.app/docs","headline":"Tank Royale Technical Field Manual","description":"Public engineering documentation for how Tank Royale was built, its procedural model and icon workflow, simulation, AI, audio, renderer, worlds, multiplayer, performance, interface, Tank Gallery, and Scene Studio.","image":"https://cot.tankroyale.app/brand/og-image.png","author":{"@type":"Person","@id":"https://cot.tankroyale.app/#creator","name":"Michael Woo","url":"https://github.com/MwooVancity"},"copyrightHolder":{"@id":"https://cot.tankroyale.app/#creator"},"dateModified":"2026-08-28","mainEntityOfPage":{"@id":"https://cot.tankroyale.app/docs#page"},"about":{"@id":"https://cot.tankroyale.app/#game"},"inLanguage":"en-US"},{"@type":"WebPage","@id":"https://cot.tankroyale.app/docs#page","url":"https://cot.tankroyale.app/docs","name":"Technical Field Manual — Tank Royale","isPartOf":{"@id":"https://cot.tankroyale.app/#website"},"about":{"@id":"https://cot.tankroyale.app/#game"}},{"@type":"VideoGame","@id":"https://cot.tankroyale.app/#game","name":"Tank Royale","url":"https://cot.tankroyale.app/"}]}</script>
 </head>
 <body>
   <nav class="public-nav" aria-label="Primary navigation">
     <div class="public-nav__inner">
-      <a class="public-nav__brand" href="/home" aria-label="Claude of Tanks home"><img src="/brand/logo-mark.svg" alt=""><span>Claude <b>of Tanks</b></span></a>
+      <a class="public-nav__brand" href="/home" aria-label="Tank Royale home"><img src="/brand/logo-mark.svg" alt=""><span>Claude <b>of Tanks</b></span></a>
       <div class="public-nav__links">
         <a href="/home"><img class="public-nav__icon public-nav__icon--home" src="/brand/nav/home.svg" alt="">Home</a><a href="/studio"><img class="public-nav__icon public-nav__icon--studio" src="/brand/nav/studio.svg" alt="">Studio</a><a href="/gallery"><img class="public-nav__icon public-nav__icon--tank" src="/brand/nav/tank-gallery.svg" alt="">Tank Gallery</a><a href="/docs" aria-current="page"><img class="public-nav__icon public-nav__icon--docs" src="/brand/nav/docs.svg" alt="">Docs</a>
-        <a class="public-nav__github" href="https://github.com/Kevin-Liu-01/claude-of-tanks" target="_blank" rel="noreferrer" aria-label="Claude of Tanks on GitHub"><span class="public-nav__github-label">GitHub</span><span class="public-nav__stars"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m8 1.2 2.1 4.2 4.7.7-3.4 3.3.8 4.7L8 11.9l-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L8 1.2Z"/></svg><span data-github-stars>195</span></span></a>
+        <a class="public-nav__github" href="https://github.com/MwooVancity/tank-royale" target="_blank" rel="noreferrer" aria-label="Tank Royale on GitHub"><span class="public-nav__github-label">GitHub</span><span class="public-nav__stars"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m8 1.2 2.1 4.2 4.7.7-3.4 3.3.8 4.7L8 11.9l-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L8 1.2Z"/></svg><span data-github-stars>195</span></span></a>
         <a class="public-nav__cta" href="/"><span class="public-nav__play-icon" aria-hidden="true"></span>Play Now</a>
       </div>
     </div>
@@ -41,15 +41,15 @@
       <div class="docs-hero-copy">
         <p class="docs-hero-eyebrow"><span data-doc-icon="manual"></span><span>Engineering field manual // Updated 28 August 2026</span></p>
         <h1>Inside the<br><span>browser battlefield</span></h1>
-        <p class="hero-lede">See how <strong>Claude of Tanks</strong> turns Three.js, deterministic simulation, procedural vehicles, physical ballistics, networking, and production tooling into one playable browser game.</p>
+        <p class="hero-lede">See how <strong>Tank Royale</strong> turns Three.js, deterministic simulation, procedural vehicles, physical ballistics, networking, and production tooling into one playable browser game.</p>
         <div class="docs-hero-actions">
           <a class="primary" href="#chapters"><span data-doc-icon="manual"></span>Explore system guides</a>
-          <a href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/ARCHITECTURE.md"><span data-doc-icon="github"></span>Read the architecture</a>
+          <a href="https://github.com/MwooVancity/tankroyale/blob/main/docs/ARCHITECTURE.md"><span data-doc-icon="github"></span>Read the architecture</a>
         </div>
         <p class="docs-hero-route"><span>12 focused manuals</span><span>Renderer-free public pages</span><span>Executable verification</span></p>
       </div>
       <figure class="doc-hero-reel">
-        <video controls playsinline preload="metadata" poster="/media/promo-v13/claude-of-tanks-promo-badged.jpg" aria-label="Claude of Tanks feature reel with chapter labels and synchronized score"><source src="/media/promo-v13/claude-of-tanks-promo-badged.mp4" type="video/mp4"><track kind="captions" src="/media/promo-v13/claude-of-tanks-promo-v13.vtt" srclang="en" label="English" default></video>
+        <video controls playsinline preload="metadata" poster="/media/promo-v13/tank-royale-promo-badged.jpg" aria-label="Tank Royale feature reel with chapter labels and synchronized score"><source src="/media/promo-v13/tank-royale-promo-badged.mp4" type="video/mp4"><track kind="captions" src="/media/promo-v13/tank-royale-promo-v13.vtt" srclang="en" label="English" default></video>
         <figcaption><span>Current in-engine feature reel</span><strong>Approved v13 // 24 seconds</strong></figcaption>
       </figure>
     </div>
@@ -92,7 +92,7 @@
     <article class="docs-main">
       <section class="doc-section" id="overview">
         <p class="section-index">01 // Current system</p><h2><span class="doc-section-icon" data-doc-icon="overview"></span><span>Current runtime overview</span></h2>
-        <p class="lead">Claude of Tanks is a browser-based armored combat game built directly on Three.js. Production exposes <strong>{{COT_PRODUCTION_VEHICLES}} first-party procedural vehicles</strong>; a keyed local-development build exposes <strong>{{COT_DEVELOPMENT_VEHICLES}} playable models</strong> from <strong>{{COT_SAVED_VEHICLE_RECORDS}} saved roster records</strong>. The game contains <strong>{{COT_BATTLEFIELDS}} authored battlefields</strong>, runs combat at a fixed <strong>60 Hz</strong>, and supports local bots, persistent private and LAN rooms, and dedicated ranked authority.</p>
+        <p class="lead">Tank Royale is a browser-based armored combat game built directly on Three.js. Production exposes <strong>{{COT_PRODUCTION_VEHICLES}} first-party procedural vehicles</strong>; a keyed local-development build exposes <strong>{{COT_DEVELOPMENT_VEHICLES}} playable models</strong> from <strong>{{COT_SAVED_VEHICLE_RECORDS}} saved roster records</strong>. The game contains <strong>{{COT_BATTLEFIELDS}} authored battlefields</strong>, runs combat at a fixed <strong>60 Hz</strong>, and supports local bots, persistent private and LAN rooms, and dedicated ranked authority.</p>
         <div class="principles"><article class="principle"><span class="principle-mark"><span data-doc-icon="authority"></span><b>01</b></span><h3>Authoritative simulation</h3><p>Clients request actions. The authority resolves movement, reloads, hits, damage, visibility, destruction, and match results.</p></article><article class="principle"><span class="principle-mark"><span data-doc-icon="measured"></span><b>02</b></span><h3>Measured presentation</h3><p>Three.js renders simulation state and adjusts visual cost without changing combat rate, map dimensions, ballistics, or armor.</p></article><article class="principle"><span class="principle-mark"><span data-doc-icon="assets"></span><b>03</b></span><h3>Verified assets</h3><p>Geometry fingerprints, generated diagrams, deterministic screenshots, browser checks, and release tests verify the current assets.</p></article></div>
         <div class="callout warning"><strong>Scope statement</strong>Vehicle statistics and diagnostic overlays describe this game simulation. They are not real-world protection, engineering, or survivability assessments.</div>
         <div class="doc-media-block" data-media-archive data-mode="rail" data-limit="8"></div>
@@ -154,7 +154,7 @@ node src/engine/shadowStability.selftest.mjs</code></pre></div>
 
       <section class="doc-section" id="mobile">
         <p class="section-index">09 // Mobile compatibility</p><h2><span class="doc-section-icon" data-doc-icon="mobile"></span><span>Mobile rendering and input</span></h2>
-        <div class="doc-image-pair"><figure><img src="/media/presentation-r1/ui_mobile.webp" alt="Claude of Tanks mobile garage interface" loading="lazy"><figcaption>Touch interface // safe-area layout and direct controls</figcaption></figure><figure><img src="/media/presentation-r1/45_delta_contact.webp" alt="Mobile-compatible battlefield composition rendered by the game" loading="lazy"><figcaption>Adaptive rendering // unchanged simulation</figcaption></figure></div>
+        <div class="doc-image-pair"><figure><img src="/media/presentation-r1/ui_mobile.webp" alt="Tank Royale mobile garage interface" loading="lazy"><figcaption>Touch interface // safe-area layout and direct controls</figcaption></figure><figure><img src="/media/presentation-r1/45_delta_contact.webp" alt="Mobile-compatible battlefield composition rendered by the game" loading="lazy"><figcaption>Adaptive rendering // unchanged simulation</figcaption></figure></div>
         <p>Phones and tablets receive dual-stick movement, swipe aim, pinch-to-scope, held/dynamic fire, accessible ammunition and equipment placement, safe-area-aware layout, compact settings, and automatic device tiers. Boot-time GPU probes, pixel-ratio caps, memory-conscious detail, shadow rescue, PMREM validation, and a black-scene watchdog let presentation recover without changing gameplay.</p>
       </section>
 
@@ -208,7 +208,7 @@ npm test
 npm run tank:native:check
 npm run test:net:seven:live
 npm run build</code></pre></div>
-        <p>Continue with <a class="inline-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/ARCHITECTURE.md">architecture</a>, <a class="inline-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/PERFORMANCE.md">performance</a>, <a class="inline-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/MULTIPLAYER-ARCHITECTURE.md">multiplayer</a>, <a class="inline-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/STUDIO.md">Studio</a>, <a class="inline-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/GALLERY.md">Gallery</a>, and the maintained <a class="inline-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/docs/decisions/">architecture decisions</a>.</p>
+        <p>Continue with <a class="inline-link" href="https://github.com/MwooVancity/tankroyale/blob/main/docs/ARCHITECTURE.md">architecture</a>, <a class="inline-link" href="https://github.com/MwooVancity/tankroyale/blob/main/docs/PERFORMANCE.md">performance</a>, <a class="inline-link" href="https://github.com/MwooVancity/tankroyale/blob/main/docs/MULTIPLAYER-ARCHITECTURE.md">multiplayer</a>, <a class="inline-link" href="https://github.com/MwooVancity/tankroyale/blob/main/docs/STUDIO.md">Studio</a>, <a class="inline-link" href="https://github.com/MwooVancity/tankroyale/blob/main/docs/GALLERY.md">Gallery</a>, and the maintained <a class="inline-link" href="https://github.com/MwooVancity/tankroyale/blob/main/docs/decisions/">architecture decisions</a>.</p>
       </section>
     </article>
 
@@ -234,7 +234,7 @@ npm run build</code></pre></div>
     <div class="docs-archive-body" id="docsArchiveBody"></div>
   </dialog>
 
-  <footer class="docs-footer"><div class="inner shell"><a class="brand" href="/home" aria-label="Claude of Tanks showcase"><img src="/brand/logo-mark-metal.svg" alt=""><span>Claude <b>of Tanks</b></span></a><div class="footer-links"><a href="/gallery">Tank Gallery</a><a href="/">Garage</a><a href="/studio">Scene Studio</a><a href="https://github.com/Kevin-Liu-01/Claude-of-Tanks" aria-label="Claude of Tanks on GitHub"><span>GitHub</span><span class="footer-stars"><span aria-hidden="true">★</span><span data-github-stars>195</span></span></a></div><span class="footer-mark">Public field manual // 2026</span></div></footer>
+  <footer class="docs-footer"><div class="inner shell"><a class="brand" href="/home" aria-label="Tank Royale showcase"><img src="/brand/logo-mark-metal.svg" alt=""><span>Claude <b>of Tanks</b></span></a><div class="footer-links"><a href="/gallery">Tank Gallery</a><a href="/">Garage</a><a href="/studio">Scene Studio</a><a href="https://github.com/MwooVancity/tankroyale" aria-label="Tank Royale on GitHub"><span>GitHub</span><span class="footer-stars"><span aria-hidden="true">★</span><span data-github-stars>195</span></span></a></div><span class="footer-mark">Public field manual // 2026</span></div></footer>
   <div class="docs-toast" id="docsToast" role="status"></div>
   <script type="module" src="/src/analytics.ts"></script>
   <script type="module" src="/src/presentation/publicNav.ts"></script>

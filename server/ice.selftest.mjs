@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createIceConfigHandler } from '../api/ice.ts';
 
-async function invoke(handler, { method = 'GET', origin = 'https://cot.kevinliu.studio' } = {}) {
+async function invoke(handler, { method = 'GET', origin = 'https://cot.tankroyale.app' } = {}) {
   const headers = new Map();
   let text = '';
   const response = {

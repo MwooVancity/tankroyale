@@ -35,7 +35,7 @@ const attribution = read('docs/ATTRIBUTION.md');
 const packageJson = JSON.parse(read('package.json'));
 
 assert.match(license, /^MIT License/);
-assert.match(license, /Copyright \(c\) 2026 Kevin B\. Liu/);
+assert.match(license, /Copyright \(c\) 2026 alice B\. Liu/);
 assert.equal(license, priorMitLicense, 'root MIT text must remain standard and detectable');
 assert.match(licensePolicy, /MIT-licensed by default/i);
 assert.match(licensePolicy, /src\/vehicles\/\*\*/);
@@ -58,8 +58,8 @@ assert.doesNotMatch(attribution, /private, personal-use, never-published/i);
 const publicPages = ['home.html', 'index.html', 'docs.html', 'gallery.html'];
 for (const path of publicPages) {
   const html = read(path);
-  assert.match(html, /<meta name="author" content="Kevin B\. Liu"\s*\/?>/i, `${path}: author meta`);
-  assert.match(html, /<meta name="copyright" content="Copyright © 2026 Kevin B\. Liu"\s*\/?>/i, `${path}: copyright meta`);
+  assert.match(html, /<meta name="author" content="alice B\. Liu"\s*\/?>/i, `${path}: author meta`);
+  assert.match(html, /<meta name="copyright" content="Copyright © 2026 alice B\. Liu"\s*\/?>/i, `${path}: copyright meta`);
 }
 
 for (const id of ALL_TANK_IDS) {

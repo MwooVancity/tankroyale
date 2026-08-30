@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 const root = resolve('public/media/hero-rails-r2');
 const manifest = JSON.parse(readFileSync(resolve(root, 'manifest.json'), 'utf8'));
 
-assert.equal(manifest.libraryId, 'claude-of-tanks-hero-rails-r2');
+assert.equal(manifest.libraryId, 'tank-royale-hero-rails-r2');
 assert.equal(manifest.rails.length, 5, 'the landing film library owns exactly five reviewed rails');
 assert.equal(new Set(manifest.rails.map((rail) => rail.map)).size, 5,
   'each rail opens on a distinct battlefield');

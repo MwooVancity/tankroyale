@@ -1,4 +1,4 @@
-// Publish the canonical, owner-approved Claude of Tanks showcase library.
+// Publish the canonical, owner-approved Tank Royale showcase library.
 //
 // The 4K campaign masters remain under shots/ (gitignored). This command
 // verifies their quality receipt, creates checked-in web renditions, preserves
@@ -122,7 +122,7 @@ function campaignShots(qualityReport) {
         kind,
         collection: 'marketing-battles-r3',
         shotStyle: scene.meta?.category || kind,
-        alt: `${title} on ${map}, captured from the live Claude of Tanks renderer`,
+        alt: `${title} on ${map}, captured from the live Tank Royale renderer`,
         actors: scene.actors.map((actor) => actor.id),
         effects,
         seed: scene.seed,
@@ -199,7 +199,7 @@ function ownerPickShots() {
       feature: meta.feature || inferFeature(scene.effects),
       kind: 'owner pick',
       collection: 'owner-picks-r1',
-      alt: `${title} on ${map}, captured from the live Claude of Tanks renderer`,
+      alt: `${title} on ${map}, captured from the live Tank Royale renderer`,
       actors: scene.actors.map((actor) => actor.id),
       effects: [...new Set(scene.effects.map((effect) => effect.type))],
       seed: scene.seed,
@@ -266,7 +266,7 @@ function interfaceShots() {
       feature,
       kind: 'interface',
       collection: 'live-interface-r1',
-      alt: `${title} captured from the live Claude of Tanks game`,
+      alt: `${title} captured from the live Tank Royale game`,
       actors: [],
       effects: [],
       quality: { ownerApproved: true },
@@ -288,10 +288,10 @@ const shots = [...ownerPicks, ...campaign, ...studio.shots, ...interfaces]
   .map((shot, index) => ({ ...shot, sequence: index + 1 }));
 
 const manifest = {
-  libraryId: 'claude-of-tanks-showcase-r1',
+  libraryId: 'tank-royale-showcase-r1',
   schemaVersion: 1,
   generatedAt: '2026-08-19',
-  renderer: 'Claude of Tanks Scene Studio and deterministic game harness',
+  renderer: 'Tank Royale Scene Studio and deterministic game harness',
   firstPartyRuntimeOnly: true,
   review: 'Owner-approved feature shortlist plus every quality-gated action and foreground campaign frame',
   sourceDimensions: { width: 3840, height: 2160 },

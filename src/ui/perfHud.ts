@@ -213,7 +213,7 @@ export function createPerfHud({
   ensureStyle('cot-perfhud-style', PERF_HUD_CSS);
   const el = document.createElement('aside');
   el.id = 'cot-perfhud';
-  el.setAttribute('aria-label', 'COT debug telemetry');
+  el.setAttribute('aria-label', 'TR debug telemetry');
   el.innerHTML = `
     <header class="ph-head"><span class="ph-icon" aria-hidden="true">${uiIconSVG('graphics', 18)}</span>
       <div><div class="ph-title">Battle Diagnostics</div><div class="ph-sub">F8 · Settings → Interface</div></div>

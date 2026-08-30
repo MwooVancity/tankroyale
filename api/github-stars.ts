@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-const REPOSITORY_API = 'https://api.github.com/repos/Kevin-Liu-01/claude-of-tanks';
+const REPOSITORY_API = 'https://api.github.com/repos/MwooVancity/tank-royale';
 const SUCCESS_CACHE_CONTROL = 'public, max-age=60, s-maxage=900, stale-while-revalidate=86400';
 
 export interface GitHubStarsHandlerOptions {
@@ -38,7 +38,7 @@ export function createGitHubStarsHandler({
       const upstream = await fetchImpl(REPOSITORY_API, {
         headers: {
           Accept: 'application/vnd.github+json',
-          'User-Agent': 'claude-of-tanks-star-counter',
+          'User-Agent': 'tank-royale-star-counter',
         },
         signal: AbortSignal.timeout(4_000),
       });

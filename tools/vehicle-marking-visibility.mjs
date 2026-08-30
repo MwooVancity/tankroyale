@@ -7,7 +7,7 @@ import { ALL_TANK_IDS } from '../src/vehicles/specs.js';
 
 const outputArg = process.argv.find((arg) => arg.startsWith('--sheet='));
 const sheetPath = resolve(outputArg?.slice('--sheet='.length)
-  || '/tmp/claude-of-tanks-vehicle-markings-fleet.png');
+  || '/tmp/tank-royale-vehicle-markings-fleet.png');
 const requestedIds = process.argv.find((arg) => arg.startsWith('--ids='))
   ?.slice('--ids='.length).split(',').map((id) => id.trim()).filter(Boolean);
 const ids = requestedIds?.length ? requestedIds : ALL_TANK_IDS;

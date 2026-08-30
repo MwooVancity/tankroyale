@@ -1,4 +1,4 @@
-# Claude of Tanks is public and may be indexed. Search and user-directed
+# Tank Royale is public and may be indexed. Search and user-directed
 # retrieval agents are listed explicitly for operational clarity; access is
 # still granted by the universal rule below.
 User-agent: *
@@ -22,4 +22,4 @@ Allow: /
 User-agent: Perplexity-User
 Allow: /
 
-Sitemap: https://cot.kevinliu.studio/sitemap.xml
+Sitemap: https://cot.tankroyale.app/sitemap.xml

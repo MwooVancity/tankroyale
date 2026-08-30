@@ -15,7 +15,7 @@ async function invoke(handler, method = 'GET') {
 
 const live = await invoke(createGitHubStarsHandler({
   fetchImpl: async (url, init) => {
-    assert.equal(url, 'https://api.github.com/repos/Kevin-Liu-01/claude-of-tanks');
+    assert.equal(url, 'https://api.github.com/repos/MwooVancity/tank-royale');
     assert.equal(init.headers.Accept, 'application/vnd.github+json');
     return new Response(JSON.stringify({ stargazers_count: 321 }), { status: 200 });
   },

@@ -3,7 +3,7 @@ name: src-fx-skill
 description: Work on pooled particles, impacts, destruction effects, decals, and shared FX time.
 ---
 
-# claude-of-tanks / src/fx
+# tank-royale / src/fx
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

@@ -1,10 +1,10 @@
 <p align="center">
-  <a href="https://cot.kevinliu.studio">
-    <img src="public/brand/og-image.png" alt="Claude of Tanks armored battle with the crest badge and wordmark">
+  <a href="https://cot.tankroyale.app">
+    <img src="public/brand/og-image.png" alt="Tank Royale armored battle with the crest badge and wordmark">
   </a>
 </p>
 
-<h1 align="center">CLAUDE OF TANKS</h1>
+<h1 align="center">TANK ROYALE</h1>
 
 <p align="center">
   Free browser-native armored combat built with <strong>Three.js</strong>. Take 120 production-visible first-party procedural vehicles
@@ -14,10 +14,10 @@
 
 <table width="100%" align="center">
 <tr>
-<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.kevinliu.studio/"><img src="public/brand/features/play.svg" height="58" alt="Play armored combat"><br><strong>PLAY</strong></a></td>
-<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.kevinliu.studio/docs"><img src="public/brand/nav/docs.svg" height="58" alt="Open the armored vehicle field manual"><br><strong>FIELD MANUAL</strong></a></td>
-<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.kevinliu.studio/gallery"><img src="public/brand/nav/tank-gallery.svg" height="58" alt="Open Tank Gallery"><br><strong>TANK GALLERY</strong></a></td>
-<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.kevinliu.studio/studio"><img src="public/brand/nav/studio.svg" height="58" alt="Open Scene Studio"><br><strong>SCENE STUDIO</strong></a></td>
+<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.tankroyale.app/"><img src="public/brand/features/play.svg" height="58" alt="Play armored combat"><br><strong>PLAY</strong></a></td>
+<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.tankroyale.app/docs"><img src="public/brand/nav/docs.svg" height="58" alt="Open the armored vehicle field manual"><br><strong>FIELD MANUAL</strong></a></td>
+<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.tankroyale.app/gallery"><img src="public/brand/nav/tank-gallery.svg" height="58" alt="Open Tank Gallery"><br><strong>TANK GALLERY</strong></a></td>
+<td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="https://cot.tankroyale.app/studio"><img src="public/brand/nav/studio.svg" height="58" alt="Open Scene Studio"><br><strong>SCENE STUDIO</strong></a></td>
 <td width="20%" align="center" valign="middle" bgcolor="#05080b"><a href="docs/INDEX.md"><img src="public/brand/features/modules.svg" height="58" alt="Open the engineering documentation"><br><strong>ENGINEERING DOCS</strong></a></td>
 </tr>
 </table>
@@ -92,7 +92,7 @@ recoil, impacts, sparks, smoke, debris, and destruction effects.
 </table>
 
 <p align="center">
-  <a href="https://cot.kevinliu.studio/home"><strong>OPEN THE FULL LANDING SHOWCASE</strong></a>
+  <a href="https://cot.tankroyale.app/home"><strong>OPEN THE FULL LANDING SHOWCASE</strong></a>
 </p>
 
 ## Vehicle-specific mechanics
@@ -113,7 +113,7 @@ guidance, suspension, ammunition, anatomy, and control behavior while remaining 
 </tr>
 <tr>
 <td width="50%"><img src="public/media/feature-evidence-r2/gallery-carro45t-modules.webp" alt="Carro 45t internal modules and crew shown in Tank Gallery"><br><sub><b>Internal anatomy:</b> the Gallery shows crew, gun, turret ring, engine, fuel, ammunition, tracks, optics, radio, and vehicle-specific feed or missile systems.</sub></td>
-<td width="50%"><img src="public/media/feature-evidence-r2/garage-fleet.webp" alt="Claude of Tanks garage displaying the procedural vehicle fleet"><br><sub><b>One shared fleet:</b> battle, garage, Gallery, Studio, bots, icons, diagrams, and technical dossiers read the same vehicle specifications—120 in production or 157 in keyed local development.</sub></td>
+<td width="50%"><img src="public/media/feature-evidence-r2/garage-fleet.webp" alt="Tank Royale garage displaying the procedural vehicle fleet"><br><sub><b>One shared fleet:</b> battle, garage, Gallery, Studio, bots, icons, diagrams, and technical dossiers read the same vehicle specifications—120 in production or 157 in keyed local development.</sub></td>
 </tr>
 </table>
 
@@ -315,8 +315,8 @@ without repeating the six hero frames.
 </table>
 
 [Browse the full showcase manifest](public/media/showcase-r1/manifest.json),
-[open the public Tank Gallery](https://cot.kevinliu.studio/gallery), or
-[build a new shot in Scene Studio](https://cot.kevinliu.studio/studio).
+[open the public Tank Gallery](https://cot.tankroyale.app/gallery), or
+[build a new shot in Scene Studio](https://cot.tankroyale.app/studio).
 
 ## Architecture
 
@@ -362,11 +362,11 @@ have executable checks.
 
 ## Credits and licensing
 
-**Kevin B. Liu** created, designed, and directed the project. Claude and Codex assisted with research, vehicle authoring,
+**Michael Woo** created, designed, and directed the project. Claude and Codex assisted with research, vehicle authoring,
 simulation, networking, design, performance, quality assurance, documentation, and deployment. They are development
 tools, not co-authors or copyright holders.
 
-All gameplay code and every selectable procedural vehicle model are original first-party work by Kevin B. Liu. The
+All gameplay code and every selectable procedural vehicle model are original first-party work by Michael Woo. The
 repository is MIT-licensed by default, with procedural vehicle and battlefield source, fleet and map data, generated game
 assets, capture recipes, authored media, and first-party branding expressly excluded as proprietary Reserved Content.
 Earlier public revisions remain available under the MIT terms under which they were released. See [`LICENSE`](LICENSE), [`LICENSE-POLICY.md`](LICENSE-POLICY.md),

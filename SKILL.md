@@ -1,9 +1,9 @@
 ---
-name: claude-of-tanks-skill
-description: Build and verify Claude of Tanks without crossing simulation, rendering, fleet-generation, or shared-worktree ownership boundaries.
+name: tank-royale-skill
+description: Build and verify Tank Royale without crossing simulation, rendering, fleet-generation, or shared-worktree ownership boundaries.
 ---
 
-# claude-of-tanks — working here
+# tank-royale — working here
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

@@ -102,7 +102,7 @@ copyFileSync(gameplaySource, gameplayPublic);
 poster(gameplaySource, gameplayPoster, 3840);
 
 const manifest = {
-  libraryId: 'claude-of-tanks-hero-rails-r2',
+  libraryId: 'tank-royale-hero-rails-r2',
   schemaVersion: 1,
   source: 'In-engine Scene Studio recording from deterministic first-party battle scenes',
   renderer: sourceManifest.renderer,

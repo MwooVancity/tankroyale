@@ -7,7 +7,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const manifest = JSON.parse(readFileSync(join(ROOT, 'public/media/showcase-r1/manifest.json'), 'utf8'));
 const captureRecipes = JSON.parse(readFileSync(join(ROOT, 'public/media/capture-recipes-r1.json'), 'utf8'));
 
-assert.equal(manifest.libraryId, 'claude-of-tanks-showcase-r1');
+assert.equal(manifest.libraryId, 'tank-royale-showcase-r1');
 assert.deepEqual(manifest.counts, {
   ownerPicks: 13,
   action: 30,

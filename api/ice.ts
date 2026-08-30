@@ -1,8 +1,8 @@
 const OFFICIAL_ORIGINS = new Set([
-  'https://cot.kevinliu.studio',
-  'https://claudeoftanks.kevinliu.studio',
-  'https://claude-of-tanks.vercel.app',
-  'https://claude-of-tanks-kl01s-projects.vercel.app',
+  'https://cot.tankroyale.app',
+  'https://claudeoftanks.tankroyale.app',
+  'https://tank-royale.vercel.app',
+  'https://tank-royale-kl01s-projects.vercel.app',
 ]);
 const DEFAULT_TTL_SECONDS = 8 * 60 * 60;
 

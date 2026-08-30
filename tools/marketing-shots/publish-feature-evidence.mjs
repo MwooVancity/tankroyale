@@ -63,7 +63,7 @@ const images = captures.map(([id, title, source]) => {
 });
 
 const manifest = {
-  libraryId: 'claude-of-tanks-feature-evidence-r2',
+  libraryId: 'tank-royale-feature-evidence-r2',
   schemaVersion: 1,
   source: 'Native 4K in-engine and public-interface captures',
   qualityGate: {

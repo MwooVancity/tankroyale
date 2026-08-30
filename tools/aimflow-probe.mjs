@@ -2,7 +2,7 @@
 //
 // Owner-reported regressions this guards (2026-07-31):
 //  1. Camera/aim coupling — THE SPEC IS THE DEPLOYED BUILD
-//     (https://claude-of-tanks.vercel.app, characterized by
+//     (https://tank-royale.vercel.app, characterized by
 //     tools/aim-parity-probe.mjs): pointer-lock mouselook pans the camera and
 //     the gun converges onto the reticle; the camera translates with the hull
 //     but never rotates with it. In CURSOR-AIM mode (pointer lock denied —

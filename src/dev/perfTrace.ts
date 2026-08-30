@@ -291,7 +291,7 @@ export function createDevTraceCore(options: DevTraceOptions = {}) {
     if (kind === 'bus') {
       eventNext = row.seq; lastEventName = name; counts[name] = (counts[name] || 0) + 1;
     }
-    if (consoleAll) console.info(`[COT trace ${row.tMs}ms] ${kind}:${name}`, row.data);
+    if (consoleAll) console.info(`[TR trace ${row.tMs}ms] ${kind}:${name}`, row.data);
     return row;
   }
   function anomaly(name: string, data: Record<string, unknown>, at = now()): TraceEventRow | null {

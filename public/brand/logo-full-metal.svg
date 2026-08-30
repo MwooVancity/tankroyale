@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 210" role="img" aria-label="Claude of Tanks">
-  <!-- Claude of Tanks v4 full lockup, METAL treatment (owner ask, brand r2):
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 210" role="img" aria-label="Tank Royale">
+  <!-- Tank Royale v4 full lockup, METAL treatment (owner ask, brand r2):
        the embossed metal crest (master: public/brand/logo-mark-metal.svg —
        keep in sync) + the lockup wordmark from logo-full.svg re-cut in
        brushed steel (vertical banded gradient, hairline gunmetal edge so it
@@ -23,7 +23,7 @@
   </defs>
   <g transform="translate(5 5) scale(0.78125)">
   <!-- v4.1 (owner-directed): speed lines removed — the tank is the primary feature; tank scaled +6% and re-centered in the bowl; ground bar trimmed to the bowl curve; metal variant promoted to favicon. v4.3: ground bar removed entirely; cannon back at -10 degrees but translated down 4 units on the turret face. -->
-  <!-- Claude of Tanks v4 crest mark — METAL treatment (embossed badge for
+  <!-- Tank Royale v4 crest mark — METAL treatment (embossed badge for
        premium/medal surfaces). Same shield geometry + tank composition as
        logo-mark-bw.svg / logo-mark.svg (keep in sync). v4 (owner-directed
        cleanup; v3 archived in public/brand/v3-shield/): tank rescaled to fit
@@ -203,6 +203,6 @@
     <path d="M30 250 L230 60 L252 92 L80 262 Z" fill="#ffffff" opacity=".05"/>
   </g>
 </g>
-  <text class="wm1" x="227" y="102">CLAUDE</text>
-  <text class="wm2" x="229" y="138">OF TANKS</text>
+  <text class="wm1" x="227" y="102">TANK</text>
+  <text class="wm2" x="229" y="138">ROYALE</text>
 </svg>

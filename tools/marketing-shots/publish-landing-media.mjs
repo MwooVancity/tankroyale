@@ -110,7 +110,7 @@ const mosaic = [
 }));
 
 const manifest = {
-  libraryId: 'claude-of-tanks-landing-r1',
+  libraryId: 'tank-royale-landing-r1',
   schemaVersion: 1,
   source: 'Owner-directed selection from first-party Scene Studio and marketing-shot libraries',
   hero,

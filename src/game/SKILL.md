@@ -3,7 +3,7 @@ name: src-game-skill
 description: Work on battle integration, bots, input, garage dressing, progression, replays, and studio state.
 ---
 
-# claude-of-tanks / src/game
+# tank-royale / src/game
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

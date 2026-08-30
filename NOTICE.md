@@ -1,12 +1,12 @@
-# Claude of Tanks — authorship notice
+# Tank Royale — authorship notice
 
-Claude of Tanks was created, designed, and directed by **Kevin B. Liu**.
+Tank Royale was created, designed, and directed by **Michael Woo**.
 Claude and Codex were development tools; they are not authors, creators, or
 copyright holders of the project's first-party work.
 
 Unless a file, embedded notice, or [`docs/ATTRIBUTION.md`](docs/ATTRIBUTION.md)
 identifies another author or license, every original file and asset in this
-repository is Copyright © 2026 Kevin B. Liu.
+repository is Copyright © 2026 Michael Woo.
 
 The repository is MIT-licensed by default, with the exceptions defined in
 [`LICENSE-POLICY.md`](LICENSE-POLICY.md):
@@ -22,7 +22,7 @@ The path-level map in `LICENSE-POLICY.md` determines which first-party license a
 An individual file does not need to repeat this notice for that map to apply.
 
 Every selectable vehicle model is original procedural geometry authored for
-this project by Kevin B. Liu. External vehicle models are comparison or
+this project by Michael Woo. External vehicle models are comparison or
 research inputs only; they are not playable geometry and retain their original
 authors and licenses.
 

@@ -519,7 +519,7 @@ export function createSurfaceMarkup({
         creator: spec?.authorship?.creator || 'Michael Woo',
         creatorUrl: spec?.authorship?.creatorUrl || 'https://github.com/mwoo778',
         copyright: spec?.authorship?.copyright || 'Copyright © 2026 Michael Woo',
-        license: spec?.authorship?.license || 'LicenseRef-Claude-of-Tanks-Proprietary-Content-1.0',
+        license: spec?.authorship?.license || 'LicenseRef-Tank-Royale-Proprietary-Content-1.0',
         mode: 'first-party-procedural-only',
         createTankOptions: { proceduralOnly: true, quality: 'high', camoSeed: 4242 },
         externalGeometryLoaded: false,

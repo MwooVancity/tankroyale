@@ -569,10 +569,10 @@
     <div class="cot-boot-inner">
       <!-- Brand badge: v4.3 colored crest (master copy public/brand/logo-mark.svg
            - keep in sync). Inline SVG so it needs no network round-trip at all. -->
-      <svg class="cot-boot-mark" viewBox="0 0 256 256" aria-label="Claude of Tanks">
+      <svg class="cot-boot-mark" viewBox="0 0 256 256" aria-label="Tank Royale">
       <!-- INLINE COPY of public/brand/logo-mark.svg (v4.6) — the splash must paint before any network fetch, so the crest is inlined. When the logo changes, re-copy the master file body here (brand r3 note). -->
   <!-- v4.1 (owner-directed): speed lines removed — the tank is the primary feature; tank scaled +6% and re-centered in the bowl; ground bar trimmed to the bowl curve; metal variant promoted to favicon. v4.3: ground bar removed entirely; cannon back at -10 degrees but translated down 4 units on the turret face. -->
-  <!-- Claude of Tanks v4 crest mark — COLORED PRIMARY (the one the game uses:
+  <!-- Tank Royale v4 crest mark — COLORED PRIMARY (the one the game uses:
        splash, garage, favicons, og cards). Owner-approved side-profile
        composition — stylized modern MBT (original vector art) with the Claude
        Code mascot (Anthropic; via thesvg.org — see docs/ATTRIBUTION.md)
@@ -699,8 +699,8 @@
 </svg>
 
       <div class="cot-boot-word">
-        <span class="l1">CLAUDE</span>
-        <span class="l2"><i></i><span>OF TANKS</span><i></i></span>
+        <span class="l1">TANK</span>
+        <span class="l2"><i></i><span>ROYALE</span><i></i></span>
       </div>
       <div class="cot-boot-invite" id="cot-boot-invite" aria-live="polite"></div>
       <div class="cot-boot-load">
@@ -722,7 +722,7 @@
           </svg>
           <span>Credits</span>
         </button>
-        <a class="cot-boot-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks" target="_blank" rel="noopener noreferrer" aria-label="Claude of Tanks on GitHub">
+        <a class="cot-boot-link" href="https://github.com/MwooVancity/tankroyale" target="_blank" rel="noopener noreferrer" aria-label="Tank Royale on GitHub">
           <svg class="cot-boot-link-icon github" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M12 .8A11.4 11.4 0 0 0 8.4 23c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.1 1.2A10.8 10.8 0 0 1 12 5.8c1 0 1.9.1 2.8.4C17 4.7 18 5 18 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.4 5.7.4.4.8 1.1.8 2.1v3.3c0 .3.2.7.8.6A11.4 11.4 0 0 0 12 .8Z" />
           </svg>
@@ -733,22 +733,18 @@
       <div class="cot-boot-gate" id="cot-boot-gate">Press any key to continue</div>
       <button class="cot-boot-retry" id="cot-boot-retry" type="button">Retry loading</button>
     </div>
-    <div class="cot-boot-foot">Created by Kevin Liu &middot; Three.js technology demo</div>
+    <div class="cot-boot-foot">Created by Michael Woo &middot; Three.js technology demo</div>
   </div>
 
   <dialog class="cot-credits" id="cot-credits" data-cot-boot-control aria-labelledby="cot-credits-title">
     <div class="cot-credits-grid">
-      <img class="cot-credits-portrait" src="https://github.com/Kevin-Liu-01.png?size=480" alt="Kevin Liu" />
       <div class="cot-credits-copy">
         <button class="cot-credits-close" id="cot-credits-close" type="button" aria-label="Close credits">&times;</button>
-        <span class="cot-credits-kicker">Creator / designer / director</span>
-        <h2 id="cot-credits-title">Kevin B. Liu</h2>
-        <p>I designed and built Claude of Tanks as an experiment in how far one person can take an original browser game with persistent agent collaboration. Claude and Codex were development tools, not co-authors.</p>
-        <p>The vehicles, simulation, combat systems, interface, performance work, testing, documentation, and production pipeline were developed end-to-end through a long-running multi-agent Claude and Codex workflow. Every selectable tank is original procedural model work by Kevin B. Liu.</p>
+        <span class="cot-credits-kicker">Creator / designer / developer</span>
+        <h2 id="cot-credits-title">Michael Woo</h2>
+        <p>Tank Royale — a browser-native armored warfare game built with Three.js. Multiplayer tank battles, bots, X-ray killcams. No install, no account.</p>
         <div class="cot-credits-actions">
-          <a class="cot-boot-link" href="https://github.com/Kevin-Liu-01" target="_blank" rel="noopener noreferrer">Kevin on GitHub</a>
-          <a class="cot-boot-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks" target="_blank" rel="noopener noreferrer" aria-label="Claude of Tanks source code on GitHub"><span>Source code</span><span class="cot-github-stars"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m8 1.2 2.1 4.2 4.7.7-3.4 3.3.8 4.7L8 11.9l-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L8 1.2Z"/></svg><span data-github-stars>195</span></span></a>
-          <a class="cot-boot-link" href="https://github.com/Kevin-Liu-01/Claude-of-Tanks/blob/main/NOTICE.md" target="_blank" rel="noopener noreferrer">Authorship notice</a>
+          <a class="cot-boot-link" href="https://github.com/MwooVancity/tankroyale" target="_blank" rel="noopener noreferrer">Source code</a>
         </div>
       </div>
     </div>
@@ -769,7 +765,7 @@
         invite.textContent = invitationTitle;
         invite.classList.add('on');
         boot.classList.add('has-invite');
-        document.title = invitationTitle + ' — Claude of Tanks';
+        document.title = invitationTitle + ' — Tank Royale';
       }
 
       const dialog = document.getElementById('cot-credits');

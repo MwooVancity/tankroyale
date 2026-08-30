@@ -12,8 +12,8 @@ assert.deepEqual(
   'LAN invite links preserve their deployment mode',
 );
 assert.deepEqual(
-  parseRoomInvite('https://cot.example/?room=ABC234&host=Commander%20Kevin'),
-  { roomCode: 'ABC234', mode: 'private', hostName: 'Commander Kevin' },
+  parseRoomInvite('https://cot.example/?room=ABC234&host=Commander%20alice'),
+  { roomCode: 'ABC234', mode: 'private', hostName: 'Commander Alex' },
   'named invite links preserve the normalized host callsign',
 );
 assert.equal(parseRoomInvite('https://cot.example/?room=SHORT'), null);
@@ -22,10 +22,10 @@ assert.equal(parseRoomInvite('not a valid URL'), null);
 assert.equal(
   createRoomInviteUrl({
     roomCode: 'abc234',
-    hostName: '  Commander   Kevin  ',
+    hostName: '  Commander   alice  ',
     baseUrl: 'https://cot.example/garage?netSim=1#debug',
   }),
-  'https://cot.example/garage?room=ABC234&host=Commander+Kevin',
+  'https://cot.example/garage?room=ABC234&host=Commander+alice',
   'private invites discard diagnostics and include the host callsign',
 );
 assert.equal(
@@ -50,7 +50,7 @@ assert.throws(() => createRoomInviteUrl({
   baseUrl: 'https://cot.example/',
 }), /six-character/);
 
-assert.equal(roomInviteTitle('Kevin'), 'Join Kevin’s Game');
+assert.equal(roomInviteTitle('Alex'), 'Join Alex’s Game');
 assert.equal(roomInviteTitle(''), 'Join a Private Game');
 
 console.log('roomInvite.selftest: named private and LAN invite links passed');

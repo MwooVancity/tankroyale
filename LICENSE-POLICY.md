@@ -1,8 +1,8 @@
-# Claude of Tanks license policy
+# Tank Royale license policy
 
-Copyright © 2026 Kevin B. Liu.
+Copyright © 2026 Michael Woo.
 
-Claude of Tanks is **MIT-licensed by default, with expressly identified
+Tank Royale is **MIT-licensed by default, with expressly identified
 proprietary content exceptions**. The root [`LICENSE`](LICENSE) contains the
 unmodified MIT License and applies to first-party material except for the
 Reserved Content below. Public availability does not place the exceptions

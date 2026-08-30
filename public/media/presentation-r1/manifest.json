@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-08-19",
-  "renderer": "Claude of Tanks Scene Studio and deterministic game harness",
+  "renderer": "Tank Royale Scene Studio and deterministic game harness",
   "firstPartyRuntimeOnly": true,
   "review": "Compatibility subset of the authoritative showcase-r1 library",
   "battleShotCount": 13,
@@ -18,7 +18,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Rooftop Dive on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Rooftop Dive on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "t90a_burlak",
         "mbt70"
@@ -43,7 +43,7 @@
       "feature": "Gunnery",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Muzzle Worm on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Muzzle Worm on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "strv103"
       ],
@@ -66,7 +66,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Ice Breaker on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "spz_puma",
         "leclerc_xlr",
@@ -91,7 +91,7 @@
       "feature": "Armor impacts",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Winter Village Hell on Frosthollow, captured from the live Claude of Tanks renderer",
+      "alt": "Winter Village Hell on Frosthollow, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "merkava4b",
@@ -119,7 +119,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Urban Overpass Dive on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Overpass Dive on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "t90a_burlak",
         "mbt70"
@@ -144,7 +144,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Urban Crossfire X on Steinburg, captured from the live Claude of Tanks renderer",
+      "alt": "Urban Crossfire X on Steinburg, captured from the live Tank Royale renderer",
       "actors": [
         "udes03",
         "pl01_105",
@@ -171,7 +171,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Column Massacre on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "type99a",
         "t90a_vladimir",
@@ -199,7 +199,7 @@
       "feature": "Armor impacts",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Claude of Tanks renderer",
+      "alt": "Verdant Meadow Duel on Verdant Fields, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "merkava4b"
@@ -224,7 +224,7 @@
       "feature": "Destruction",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Autumn Gold Inferno on Amberford, captured from the live Claude of Tanks renderer",
+      "alt": "Autumn Gold Inferno on Amberford, captured from the live Tank Royale renderer",
       "actors": [
         "type99a",
         "t90a_vladimir"
@@ -249,7 +249,7 @@
       "feature": "Armor impacts",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Autumn Orchard Stand on Amberford, captured from the live Claude of Tanks renderer",
+      "alt": "Autumn Orchard Stand on Amberford, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3"
       ],
@@ -274,7 +274,7 @@
       "feature": "Gunnery",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Claude of Tanks renderer",
+      "alt": "Steppe Horizon Charge on Tarkhan Steppe, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "strv103a",
@@ -299,7 +299,7 @@
       "feature": "Track physics",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Ram Abramsx T90m on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Ram Abramsx T90m on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "m1a2_sepv3",
         "merkava4b"
@@ -325,7 +325,7 @@
       "feature": "Gunnery",
       "kind": "owner pick",
       "collection": "owner-picks-r1",
-      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Claude of Tanks renderer",
+      "alt": "Desert Overwatch Line on Sirocco Wadi, captured from the live Tank Royale renderer",
       "actors": [
         "challenger_3",
         "strv103a",
@@ -499,7 +499,7 @@
       "feature": "World system",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Ironworks overview captured from the live Claude of Tanks game",
+      "alt": "Ironworks overview captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -515,7 +515,7 @@
       "feature": "Gunnery",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Live firing cycle captured from the live Claude of Tanks game",
+      "alt": "Live firing cycle captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -531,7 +531,7 @@
       "feature": "Destruction",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Destruction event captured from the live Claude of Tanks game",
+      "alt": "Destruction event captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -547,7 +547,7 @@
       "feature": "Tank design",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Tank Gallery live dossier captured from the live Claude of Tanks game",
+      "alt": "Tank Gallery live dossier captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -563,7 +563,7 @@
       "feature": "Interface",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Garage command deck captured from the live Claude of Tanks game",
+      "alt": "Garage command deck captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -579,7 +579,7 @@
       "feature": "Killcam",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Resolved-shot X-ray captured from the live Claude of Tanks game",
+      "alt": "Resolved-shot X-ray captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -595,7 +595,7 @@
       "feature": "Interface",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Responsive mobile command deck captured from the live Claude of Tanks game",
+      "alt": "Responsive mobile command deck captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -611,7 +611,7 @@
       "feature": "Interface",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Production battle HUD captured from the live Claude of Tanks game",
+      "alt": "Production battle HUD captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -627,7 +627,7 @@
       "feature": "Gunnery",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "Precision sight captured from the live Claude of Tanks game",
+      "alt": "Precision sight captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {
@@ -643,7 +643,7 @@
       "feature": "Tank design",
       "kind": "interface",
       "collection": "live-interface-r1",
-      "alt": "First-party vehicle rig captured from the live Claude of Tanks game",
+      "alt": "First-party vehicle rig captured from the live Tank Royale game",
       "actors": [],
       "effects": [],
       "quality": {

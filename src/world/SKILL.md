@@ -3,7 +3,7 @@ name: src-world-skill
 description: Work on terrain, maps, collision, vegetation, props, destructibles, and world streaming.
 ---
 
-# claude-of-tanks / src/world
+# tank-royale / src/world
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->

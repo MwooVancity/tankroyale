@@ -3,7 +3,7 @@ name: src-net-skill
 description: Implement the transport-independent multiplayer protocol, lobby, authority, snapshots, and network adapters.
 ---
 
-# claude-of-tanks / src/net
+# tank-royale / src/net
 
 ## Purpose
 

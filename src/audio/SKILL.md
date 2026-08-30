@@ -3,7 +3,7 @@ name: src-audio-skill
 description: Work on event-driven spatial audio, radio voices, engines, weapons, ambience, and mix state.
 ---
 
-# claude-of-tanks / src/audio
+# tank-royale / src/audio
 
 ## Purpose
 <!-- agent-docs:fill:purpose -->
