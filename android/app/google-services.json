@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1064912760959",
+    "project_id": "tanks-dbd56",
+    "storage_bucket": "tanks-dbd56.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064912760959:android:a54a57c582926786944f4a",
+        "android_client_info": {
+          "package_name": "app.tankroyale"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1064912760959-3io8ca42tli38il3lmd0535h9ev70gdi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.tankroyale",
+            "certificate_hash": "cd84826efddfc0d69ad87648a27e5e7086e9f76c"
+          }
+        },
+        {
+          "client_id": "1064912760959-6b5htqgdug3u19s8rm80u9994jjf9pkj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQAg2cnigG9xjD7DczeT0B5HGudUT5hpI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1064912760959-6b5htqgdug3u19s8rm80u9994jjf9pkj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
