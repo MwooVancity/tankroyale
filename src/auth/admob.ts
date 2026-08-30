@@ -4,13 +4,7 @@
  * Silently no-ops in browser / if network is down.
  */
 
-const TEST_INTERSTITIAL_ID = 'ca-app-pub-3940256099942544/1033173712'; // Google test ID
-
-declare const ADMOB_INTERSTITIAL_ID: string | undefined;
-const AD_ID =
-  typeof ADMOB_INTERSTITIAL_ID !== 'undefined' && ADMOB_INTERSTITIAL_ID
-    ? ADMOB_INTERSTITIAL_ID
-    : TEST_INTERSTITIAL_ID;
+const AD_ID = 'ca-app-pub-8997828618122077/6954732609';
 
 let initialized = false;
 let pending = false;
