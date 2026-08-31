@@ -95,7 +95,8 @@
     "build:mobile": "cross-env VITE_PUBLIC_BUILD=1 vite build",
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
-    "cap:ios": "npx cap open ios"
+    "cap:ios": "npx cap open ios",
+    "start": "node --experimental-strip-types server-render.ts"
   },
   "keywords": [],
   "author": "Michael Woo",
