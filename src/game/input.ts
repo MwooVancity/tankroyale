@@ -162,6 +162,7 @@ export interface InputLayer {
   onLockRestored(callback: () => void): () => void;
   getCursorNdc(out: InputVector): InputVector;
   releaseLock(): void;
+  dispose(): void;
 }
 
 /** Default primary bindings: WASD move, LMB fire, Shift sniper, Caps gun hold, RMB aim,
@@ -831,6 +832,12 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
   const onBlurClear = () => down.clear();
   const onContextMenu = (event: MouseEvent) => event.preventDefault();
 
+  const onVisibilityChange = () => { if (document.hidden) onBlurClear(); };
+  const onPointerLockError = () => noteLockDenied(false);
+  const onPointerLockChange = () => {
+    if (lockElement && document.pointerLockElement === lockElement) noteLockEngaged();
+  };
+
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   window.addEventListener('mousedown', onMouseDown);
@@ -838,15 +845,13 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
   window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('wheel', onWheel, { passive: true });
   window.addEventListener('blur', onBlurClear);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) onBlurClear(); });
+  document.addEventListener('visibilitychange', onVisibilityChange);
   window.addEventListener('contextmenu', onContextMenu);
   // CURSOR-AIM FALLBACK: browsers that deny the lock asynchronously report it
   // here (no promise, no throw) — a SOFT denial (streak); a successful lock
   // resets the streak and clears/announces the latch (noteLockEngaged).
-  document.addEventListener('pointerlockerror', () => noteLockDenied(false));
-  document.addEventListener('pointerlockchange', () => {
-    if (lockElement && document.pointerLockElement === lockElement) noteLockEngaged();
-  });
+  document.addEventListener('pointerlockerror', onPointerLockError);
+  document.addEventListener('pointerlockchange', onPointerLockChange);
 
   const isHeld = (actionId: ActionId) =>
     (maps[0][actionId] !== null && down.has(maps[0][actionId])) ||
@@ -1283,6 +1288,21 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
     /** Release pointer lock if held. */
     releaseLock() {
       if (api.isLocked() && document.exitPointerLock) document.exitPointerLock();
+    },
+
+    dispose() {
+      window.removeEventListener('gamepadconnected', onPadConnected);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('blur', onBlurClear);
+      window.removeEventListener('contextmenu', onContextMenu);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      document.removeEventListener('pointerlockerror', onPointerLockError);
+      document.removeEventListener('pointerlockchange', onPointerLockChange);
     },
   };
 

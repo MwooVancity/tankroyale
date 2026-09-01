@@ -122,6 +122,7 @@ export function connectDedicatedMatch({
   clientOptions = {},
 }: DedicatedConnectionOptions = {}): DedicatedConnection {
   if (typeof WebSocketImpl !== 'function') throw new Error('WebSocket is unavailable');
+  if (!url) throw new TypeError('dedicated match URL is required');
   const endpoint = new URL(String(url));
   if (endpoint.protocol !== 'ws:' && endpoint.protocol !== 'wss:') {
     throw new TypeError('dedicated match URL must use ws or wss');

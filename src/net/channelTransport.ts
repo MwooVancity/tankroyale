@@ -208,7 +208,9 @@ function createChannelTransport(
       const wireCodec = typeof event.data === 'string' ? codec : stateCodec;
       const decoded = wireCodec.decode(event.data);
       stats.received++;
-      for (const listener of [...messages]) listener(decoded);
+      for (const listener of [...messages]) {
+        try { listener(decoded); } catch { /* game logic error — don't close transport */ }
+      }
     } catch (error) {
       stats.decodeErrors++;
       for (const listener of [...errors]) listener(error);

@@ -53,6 +53,9 @@ export async function showMatchEndAd(): Promise<void> {
     } catch { /* no Android, cancelled, network down — fine */ }
   })();
 
-  await Promise.race([ad, done]);
-  pending = false;
+  try {
+    await Promise.race([ad, done]);
+  } finally {
+    pending = false;
+  }
 }
