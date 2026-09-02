@@ -2668,6 +2668,41 @@ window.__GAME_READY = true;
     await CapacitorUpdater.notifyAppReady();
   } catch { /* not in Capacitor context (browser dev) */ }
 })();
+
+// Screen wake lock — prevent screen sleep during gameplay on Android
+(async () => {
+  try {
+    if (!('wakeLock' in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    const acquire = async () => {
+      if (document.visibilityState === 'visible') {
+        lock = await navigator.wakeLock.request('screen');
+      }
+    };
+    await acquire();
+    // Re-acquire after tab/app comes back to foreground (lock releases on hide)
+    document.addEventListener('visibilitychange', acquire);
+  } catch { /* wake lock denied — fine, screen may dim */ }
+})();
+
+// Android back button — pause/resume instead of exiting the app
+(async () => {
+  try {
+    const { App } = await import('@capacitor/app');
+    App.addListener('backButton', ({ canGoBack }) => {
+      if (canGoBack) {
+        window.history.back();
+        return;
+      }
+      // In-battle: treat back as a pause gesture; otherwise let the OS handle it
+      const inBattle = game?.phase === 'battle';
+      if (!inBattle) {
+        App.exitApp();
+      }
+      // If in battle, swallow the back press — player must use in-game menu to quit
+    });
+  } catch { /* not in Capacitor context */ }
+})();
 pedestal.queueNeighbors();
 if (!STUDIO_BOOT_INTENT) scheduleGarageDressingBuild();
 window.__BOOT_TIMINGS = BOOT_TIMINGS;

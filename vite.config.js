@@ -128,7 +128,7 @@ export default {
   },
   build: {
     rollupOptions: {
-      external: ['@codetrix-studio/capacitor-google-auth', '@capacitor-community/admob', '@capgo/capacitor-updater'],
+      external: ['@codetrix-studio/capacitor-google-auth', '@capacitor-community/admob', '@capgo/capacitor-updater', '@capacitor/app'],
       // Multi-page build: the game and independently bootable public/tools
       // surfaces. Presentation routes never inherit the playable boot graph.
       input: {
