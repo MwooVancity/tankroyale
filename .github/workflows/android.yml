@@ -27,6 +27,12 @@ jobs:
           VITE_ICE_CONFIG_URL: ${{ secrets.VITE_ICE_CONFIG_URL }}
         run: npx cross-env VITE_PUBLIC_BUILD=1 npx vite build
 
+      - name: Upload OTA bundle to Capgo
+        if: ${{ env.CAPGO_TOKEN != '' }}
+        env:
+          CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
+        run: npx @capgo/cli@latest bundle upload --apikey "$CAPGO_TOKEN" --channel production
+
       - name: Inject google-services.json
         env:
           GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}

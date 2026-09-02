@@ -2661,6 +2661,13 @@ if (pendingRoomInvitePromise) {
   });
 }
 window.__GAME_READY = true;
+// Notify Capgo that this update is stable — must be called or Capgo rolls back
+(async () => {
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+    await CapacitorUpdater.notifyAppReady();
+  } catch { /* not in Capacitor context (browser dev) */ }
+})();
 pedestal.queueNeighbors();
 if (!STUDIO_BOOT_INTENT) scheduleGarageDressingBuild();
 window.__BOOT_TIMINGS = BOOT_TIMINGS;

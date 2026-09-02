@@ -14,6 +14,9 @@ const config: CapacitorConfig = {
     },
   },
   plugins: {
+    CapacitorUpdater: {
+      autoUpdate: true,
+    },
     GoogleAuth: {
       scopes: ['profile', 'email'],
       // serverClientId is set via google-services.json — do not hardcode here
