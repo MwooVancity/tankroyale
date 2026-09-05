@@ -16,6 +16,7 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorUpdater: {
       autoUpdate: true,
+      defaultChannel: 'production',
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
