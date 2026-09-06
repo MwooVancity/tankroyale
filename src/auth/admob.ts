@@ -30,7 +30,7 @@ async function getAdMob() {
 async function ensureConsent(AdMob: Awaited<ReturnType<typeof getAdMob>>): Promise<void> {
   try {
     const info = await AdMob.requestConsentInfo({
-      debugGeography: 0, // 0 = disabled, 1 = EEA, 2 = not EEA — remove debug in prod
+      debugGeography: 0,
       tagForUnderAgeOfConsent: false,
     });
     // status 'REQUIRED' means user in EEA/UK and hasn't consented yet
