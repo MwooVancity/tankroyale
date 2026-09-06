@@ -5,6 +5,13 @@
   "server": {
     "androidScheme": "https"
   },
+  "ios": {
+    "backgroundColor": "#05080b",
+    "contentInset": "never",
+    "allowsLinkPreview": false,
+    "scrollEnabled": false,
+    "limitsNavigationsToAppBoundDomains": true
+  },
   "plugins": {
     "CapacitorUpdater": {
       "autoUpdate": true,

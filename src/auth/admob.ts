@@ -44,6 +44,12 @@ async function ensureInit(): Promise<boolean> {
   if (initialized) return true;
   try {
     const AdMob = await getAdMob();
+    // iOS 14.5+: App Tracking Transparency must be requested before AdMob
+    // initialize(), otherwise Apple rejects the binary and ads are limited.
+    if ((globalThis as Record<string, unknown>).Capacitor &&
+        (globalThis as { Capacitor?: { getPlatform?(): string } }).Capacitor?.getPlatform?.() === 'ios') {
+      try { await (AdMob as unknown as Record<string, () => Promise<void>>).requestTrackingAuthorization(); } catch { /* pre-14.5 or already authorized */ }
+    }
     await ensureConsent(AdMob);
     await AdMob.initialize({ initializeForTesting: false });
     initialized = true;

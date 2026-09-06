@@ -1,0 +1,168 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [tank-royale-main]
+  workflow_dispatch:
+
+env:
+  ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+  ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+  ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        env:
+          VITE_SIGNAL_URL: ${{ secrets.VITE_SIGNAL_URL }}
+          VITE_ICE_CONFIG_URL: ${{ secrets.VITE_ICE_CONFIG_URL }}
+        run: npx cross-env VITE_PUBLIC_BUILD=1 npx vite build
+
+      - name: Add iOS platform
+        run: npx cap add ios
+
+      - name: Inject GoogleService-Info.plist
+        env:
+          GSPLIST: ${{ secrets.GOOGLE_SERVICES_PLIST }}
+        if: ${{ env.GSPLIST != '' }}
+        run: echo "$GSPLIST" | base64 --decode > ios/App/App/GoogleService-Info.plist
+
+      - name: Sync Capacitor (runs pod install)
+        run: npx cap sync ios
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/App/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/App/Podfile.lock') }}
+          restore-keys: ${{ runner.os }}-pods-
+
+      - name: Patch Info.plist
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          PB="/usr/libexec/PlistBuddy"
+
+          # Helper: set if exists, add if missing
+          set_or_add() { $PB -c "Set $1 $2" "$PLIST" 2>/dev/null || $PB -c "Add $1 $3 $2" "$PLIST"; }
+
+          # AdMob App ID (required — crash on launch without this)
+          set_or_add ":GADApplicationIdentifier" "ca-app-pub-8997828618122077~3006809388" "string"
+
+          # ATT prompt text — Apple rejects without this when AdMob is linked
+          set_or_add ":NSUserTrackingUsageDescription" \
+            "Tank Royale uses your advertising ID to show relevant ads that keep the game free to play." "string"
+
+          # Full-screen game — hide status bar, require full screen (needed for landscape lock)
+          set_or_add ":UIRequiresFullScreen" "true" "bool"
+          set_or_add ":UIStatusBarHidden" "true" "bool"
+          set_or_add ":UIViewControllerBasedStatusBarAppearance" "false" "bool"
+
+          # Landscape-only (phone)
+          $PB -c "Delete :UISupportedInterfaceOrientations" "$PLIST" 2>/dev/null || true
+          $PB -c "Add :UISupportedInterfaceOrientations array" "$PLIST"
+          $PB -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationLandscapeLeft" "$PLIST"
+          $PB -c "Add :UISupportedInterfaceOrientations:1 string UIInterfaceOrientationLandscapeRight" "$PLIST"
+
+          # Landscape-only (iPad)
+          $PB -c "Delete :UISupportedInterfaceOrientations~ipad" "$PLIST" 2>/dev/null || true
+          $PB -c "Add :UISupportedInterfaceOrientations~ipad array" "$PLIST"
+          $PB -c "Add :UISupportedInterfaceOrientations~ipad:0 string UIInterfaceOrientationLandscapeLeft" "$PLIST"
+          $PB -c "Add :UISupportedInterfaceOrientations~ipad:1 string UIInterfaceOrientationLandscapeRight" "$PLIST"
+
+          # Version — match Android's GITHUB_RUN_NUMBER scheme
+          $PB -c "Set :CFBundleVersion ${{ github.run_number }}" "$PLIST"
+          $PB -c "Set :CFBundleShortVersionString 1.${{ github.run_number }}.0" "$PLIST"
+
+          # Google Sign-In URL scheme from injected GoogleService-Info.plist
+          if [ -f ios/App/App/GoogleService-Info.plist ]; then
+            REVERSED_CLIENT_ID=$($PB -c "Print :REVERSED_CLIENT_ID" ios/App/App/GoogleService-Info.plist 2>/dev/null || true)
+            if [ -n "$REVERSED_CLIENT_ID" ]; then
+              $PB -c "Delete :CFBundleURLTypes" "$PLIST" 2>/dev/null || true
+              $PB -c "Add :CFBundleURLTypes array" "$PLIST"
+              $PB -c "Add :CFBundleURLTypes:0 dict" "$PLIST"
+              $PB -c "Add :CFBundleURLTypes:0:CFBundleURLName string app.tankroyale.googleauth" "$PLIST"
+              $PB -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST"
+              $PB -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $REVERSED_CLIENT_ID" "$PLIST"
+            fi
+          fi
+
+      - name: Set up App Store Connect API key
+        if: ${{ env.ASC_API_KEY_P8 != '' }}
+        run: |
+          mkdir -p ~/.private_keys
+          echo "$ASC_API_KEY_P8" | base64 --decode > ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+          chmod 600 ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      - name: Build release archive
+        if: ${{ env.ASC_API_KEY_P8 != '' }}
+        run: |
+          gem install xcpretty --no-document --quiet 2>/dev/null || true
+
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/.private_keys/AuthKey_${ASC_KEY_ID}.p8" \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}" \
+            DEVELOPMENT_TEAM="${APPLE_TEAM_ID}" \
+            CODE_SIGN_STYLE=Automatic \
+            | xcpretty || true
+
+          # xcpretty exits non-zero on warnings — verify archive directly
+          test -d "$RUNNER_TEMP/App.xcarchive" || { echo "Archive missing — build failed"; exit 1; }
+
+      - name: Export IPA and upload to App Store Connect
+        if: ${{ env.ASC_API_KEY_P8 != '' }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>TEAM_ID_PLACEHOLDER</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>upload</string>
+            <key>uploadSymbols</key><true/>
+            <key>uploadBitcode</key><false/>
+            <key>compileBitcode</key><false/>
+          </dict></plist>
+          PLIST
+
+          # Inject actual team ID
+          /usr/libexec/PlistBuddy -c "Set :teamID ${APPLE_TEAM_ID}" "$RUNNER_TEMP/ExportOptions.plist"
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportPath "$RUNNER_TEMP/ipa" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/.private_keys/AuthKey_${ASC_KEY_ID}.p8" \
+            -authenticationKeyID "${ASC_KEY_ID}" \
+            -authenticationKeyIssuerID "${ASC_ISSUER_ID}"
+
+      - name: Upload IPA artifact (always — even without ASC secrets)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tank-royale-ios
+          path: ${{ runner.temp }}/ipa/*.ipa
+          retention-days: 90
+          if-no-files-found: ignore
