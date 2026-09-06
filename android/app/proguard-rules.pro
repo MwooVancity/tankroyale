@@ -23,6 +23,20 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
+# AndroidX WebKit (WebSettingsCompat for force-dark, WebViewCompat)
+-keep class androidx.webkit.** { *; }
+-dontwarn androidx.webkit.**
+
+# Google Auth plugin (codetrix-studio)
+-keep class com.codetrixstudio.capacitor.GoogleAuth.** { *; }
+
+# Splash screen (AndroidX core-splashscreen)
+-keep class androidx.core.splashscreen.** { *; }
+
 # Preserve stack traces for crash reporting
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# R8 full mode: keep generic type signatures used by Gson/Capacitor reflection
+-keepattributes InnerClasses
+-keep class * extends java.lang.Enum { *; }

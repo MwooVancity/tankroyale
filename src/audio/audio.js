@@ -2601,6 +2601,8 @@ export function createAudio({ context: initialContext = null } = {}) {
       const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
       if (!AC) return;   // headless / unsupported: stay silently inert
       ctx = new AC({ latencyHint: 'interactive' });
+      // Expose for appStateChange suspend/resume in main.ts
+      try { (/** @type {any} */ (globalThis)).__AUDIO_CTX = ctx; } catch { /* ok */ }
     }
     if (ctx.state === 'suspended') ctx.resume();
     if (graphReady) return;

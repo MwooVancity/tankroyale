@@ -2661,6 +2661,15 @@ if (pendingRoomInvitePromise) {
   });
 }
 window.__GAME_READY = true;
+// Hide Capacitor splash screen now that the game is fully initialised.
+// autoHide:false in capacitor.config.json keeps the splash visible until here,
+// so the player never sees a black frame between splash and game canvas.
+(async () => {
+  try {
+    const { SplashScreen } = await import('@capacitor/splash-screen');
+    await SplashScreen.hide({ fadeOutDuration: 300 });
+  } catch { /* browser dev — no splash screen */ }
+})();
 // Notify Capgo that this update is stable — must be called or Capgo rolls back
 (async () => {
   try {
@@ -2700,6 +2709,31 @@ window.__GAME_READY = true;
         App.exitApp();
       }
       // If in battle, swallow the back press — player must use in-game menu to quit
+    });
+  } catch { /* not in Capacitor context */ }
+})();
+
+// Pause/resume all AudioContexts when app goes to background.
+// Capacitor's appStateChange fires reliably on Android; visibilitychange is
+// the browser-standard fallback (already used by the wake-lock above).
+(async () => {
+  try {
+    const { App } = await import('@capacitor/app');
+    App.addListener('appStateChange', ({ isActive }) => {
+      try {
+        // AudioContext instances self-suspend on visibilitychange in modern
+        // browsers, but Capacitor's WebView may not fire that event reliably.
+        // Manually suspend/resume every running context found on window.
+        const all: AudioContext[] = [];
+        try {
+          const g = globalThis as Record<string, unknown>;
+          if (g.__AUDIO_CTX instanceof AudioContext) all.push(g.__AUDIO_CTX as AudioContext);
+        } catch { /* no global ctx */ }
+        for (const ctx of all) {
+          if (!isActive && ctx.state === 'running') ctx.suspend();
+          if (isActive && ctx.state === 'suspended') ctx.resume();
+        }
+      } catch { /* audio context unavailable */ }
     });
   } catch { /* not in Capacitor context */ }
 })();
