@@ -127,6 +127,9 @@ export default {
     },
   },
   build: {
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
     rollupOptions: {
       external: ['@codetrix-studio/capacitor-google-auth', '@capacitor-community/admob', '@capgo/capacitor-updater', '@capacitor/app'],
       // Multi-page build: the game and independently bootable public/tools
