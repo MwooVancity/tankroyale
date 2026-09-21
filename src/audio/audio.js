@@ -2604,7 +2604,7 @@ export function createAudio({ context: initialContext = null } = {}) {
       // Expose for appStateChange suspend/resume in main.ts
       try { (/** @type {any} */ (globalThis)).__AUDIO_CTX = ctx; } catch { /* ok */ }
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     if (graphReady) return;
     buildGraph();
     buildBuffers();

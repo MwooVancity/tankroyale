@@ -137,7 +137,7 @@ export function createLazyAudio({
   const unlockContext = (): AudioContext | null => {
     if (!context) context = createContext();
     if (!context) return null;
-    if (context.state === 'suspended') void context.resume();
+    if (context.state === 'suspended') context.resume().catch(() => {});
     return context;
   };
 

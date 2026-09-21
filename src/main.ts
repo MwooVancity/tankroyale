@@ -2731,7 +2731,7 @@ window.__GAME_READY = true;
         } catch { /* no global ctx */ }
         for (const ctx of all) {
           if (!isActive && ctx.state === 'running') ctx.suspend();
-          if (isActive && ctx.state === 'suspended') ctx.resume();
+          if (isActive && ctx.state === 'suspended') ctx.resume().catch(() => {});
         }
       } catch { /* audio context unavailable */ }
     });
