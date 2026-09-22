@@ -44,7 +44,11 @@ jobs:
         run: echo "$GSJ" > android/app/google-services.json
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        # ponytail: promo/docs videos stay on the website; the app bundle must fit Play's 200 MB limit
+        run: |
+          find dist/media -type f \( -name '*.mp4' -o -name '*.webm' \) -delete || true
+          du -sh dist
+          npx cap sync android
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
