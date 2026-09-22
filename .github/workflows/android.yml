@@ -32,7 +32,10 @@ jobs:
         continue-on-error: true
         env:
           CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
-        run: npx @capgo/cli@7 bundle upload --apikey "$CAPGO_TOKEN" --channel production
+        run: |
+          # ponytail: registers app under token's org; errors harmlessly if already added
+          npx @capgo/cli@7 app add app.tankroyale --apikey "$CAPGO_TOKEN" || true
+          npx @capgo/cli@7 bundle upload --apikey "$CAPGO_TOKEN" --channel production
 
       - name: Inject google-services.json
         env:
