@@ -347,6 +347,20 @@
     :where(body[data-cot-width='compact'],body[data-cot-width='phone']) .cot-boot-load { margin-top: 32px; }
   </style>
   <script>
+    // Track every AudioContext so main.ts can suspend all of them when the
+    // Android app goes to the background (not just the one on __AUDIO_CTX).
+    (() => {
+      const Base = window.AudioContext || window.webkitAudioContext;
+      if (!Base) return;
+      const all = window.__AUDIO_CTXS = new Set();
+      const Tracked = class extends Base {
+        constructor(...args) { super(...args); all.add(this); }
+      };
+      window.AudioContext = Tracked;
+      if (window.webkitAudioContext) window.webkitAudioContext = Tracked;
+    })();
+  </script>
+  <script>
     // CHUNK RECOVERY r3: production sessions are deployment-pinned by routing
     // middleware, but a missing/obsolete pin can leave an old document asking
     // the current deployment for a removed lazy hash. Weak/mobile browsers can
@@ -422,6 +436,9 @@
 
       function showRetry(reason) {
         if (navigating) return;
+        // Native splash (autoHide:false) sits above the WebView; without this the
+        // Retry button is invisible and a failed boot looks like a frozen app.
+        try { window.Capacitor?.Plugins?.SplashScreen?.hide?.()?.catch?.(() => {}); } catch (_) {}
         const stage = document.getElementById('cot-boot-stage');
         let retry = document.getElementById('cot-boot-retry');
         if (stage) stage.textContent = reason === 'timeout' || reason.startsWith('stall:')

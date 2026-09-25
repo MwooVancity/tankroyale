@@ -7,25 +7,27 @@
  * users under GDPR). Result is cached by the Google UMP SDK — no repeated prompts.
  */
 
-const AD_ID = 'ca-app-pub-8997828618122077/6954732609';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+const AD_ID ='ca-app-pub-8997828618122077/6954732609';
 
 let initialized = false;
 let pending = false;
 
 async function getAdMob() {
-  const pkg = '@capacitor-community/admob';
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  const { AdMob } = await (new Function('p', 'return import(p)'))(pkg) as {
-    AdMob: {
-      initialize(opts: object): Promise<void>;
-      requestConsentInfo(opts: object): Promise<{ isConsentFormAvailable: boolean; status: string }>;
-      showConsentForm(): Promise<void>;
-      prepareInterstitial(opts: { adId: string }): Promise<void>;
-      showInterstitial(): Promise<void>;
-    };
-  };
-  return AdMob;
+  // A runtime import('@capacitor-community/admob') cannot resolve inside the
+  // packaged app, so ads never loaded. registerPlugin binds to the native side.
+  if (!Capacitor.isNativePlatform()) throw new Error('AdMob: not native');
+  return (adMobPlugin ??= registerPlugin<AdMobApi>('AdMob'));
 }
+interface AdMobApi {
+  initialize(opts: object): Promise<void>;
+  requestConsentInfo(opts: object): Promise<{ isConsentFormAvailable: boolean; status: string }>;
+  showConsentForm(): Promise<void>;
+  prepareInterstitial(opts: { adId: string }): Promise<void>;
+  showInterstitial(): Promise<void>;
+}
+let adMobPlugin: AdMobApi | undefined;
 
 async function ensureConsent(AdMob: Awaited<ReturnType<typeof getAdMob>>): Promise<void> {
   try {

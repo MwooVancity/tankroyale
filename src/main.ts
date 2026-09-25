@@ -2698,17 +2698,21 @@ window.__GAME_READY = true;
 (async () => {
   try {
     const { App } = await import('@capacitor/app');
+    // Back = Escape (opens the battle settings menu / closes garage panels).
+    // Exiting needs a second back press within 2 s so one tap never quits.
+    let lastBackAt = 0;
     App.addListener('backButton', ({ canGoBack }) => {
       if (canGoBack) {
         window.history.back();
         return;
       }
-      // In-battle: treat back as a pause gesture; otherwise let the OS handle it
-      const inBattle = game?.phase === 'battle';
-      if (!inBattle) {
-        App.exitApp();
+      for (const type of ['keydown', 'keyup']) {
+        document.dispatchEvent(new KeyboardEvent(type, { key: 'Escape', code: 'Escape', bubbles: true }));
       }
-      // If in battle, swallow the back press — player must use in-game menu to quit
+      if (game?.phase === 'battle') return;
+      const now = Date.now();
+      if (now - lastBackAt < 2000) { App.exitApp(); return; }
+      lastBackAt = now;
     });
   } catch { /* not in Capacitor context */ }
 })();
@@ -2724,11 +2728,9 @@ window.__GAME_READY = true;
         // AudioContext instances self-suspend on visibilitychange in modern
         // browsers, but Capacitor's WebView may not fire that event reliably.
         // Manually suspend/resume every running context found on window.
-        const all: AudioContext[] = [];
-        try {
-          const g = globalThis as Record<string, unknown>;
-          if (g.__AUDIO_CTX instanceof AudioContext) all.push(g.__AUDIO_CTX as AudioContext);
-        } catch { /* no global ctx */ }
+        const g = globalThis as Record<string, unknown>;
+        const all = new Set<AudioContext>((g.__AUDIO_CTXS as Set<AudioContext> | undefined) ?? []);
+        if (g.__AUDIO_CTX instanceof AudioContext) all.add(g.__AUDIO_CTX);
         for (const ctx of all) {
           if (!isActive && ctx.state === 'running') ctx.suspend();
           if (isActive && ctx.state === 'suspended') ctx.resume().catch(() => {});
