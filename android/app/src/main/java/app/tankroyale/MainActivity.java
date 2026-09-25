@@ -3,9 +3,11 @@ package app.tankroyale;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.WebViewListener;
 
 public class MainActivity extends BridgeActivity {
 
@@ -17,6 +19,17 @@ public class MainActivity extends BridgeActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         tuneWebView();
+
+        // WebGL renderer can be killed under memory pressure. Without a handler
+        // returning true, Android kills the whole app ("keeps stopping").
+        // Recreate the activity instead so the player lands back in the game.
+        getBridge().addWebViewListener(new WebViewListener() {
+            @Override
+            public boolean onRenderProcessGone(WebView webView, RenderProcessGoneDetail detail) {
+                recreate();
+                return true;
+            }
+        });
     }
 
     @Override
