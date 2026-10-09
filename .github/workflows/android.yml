@@ -128,3 +128,5 @@ jobs:
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           track: alpha
           status: completed
+          # Play refuses auto-submit while a rejected/pending change exists; upload only, submit in Play Console
+          changesNotSentForReview: true
