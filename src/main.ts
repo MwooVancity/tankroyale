@@ -1219,6 +1219,12 @@ renderer.userData.contextRecovery = {
     viewport.apply();
     post.resetAdaptiveResolution();
     lighting.update(true);
+    // Relink the scene's programs in sliced steps while frames stay gated, so the
+    // first restored frame is not one multi-second compile burst (Mali ANR shape).
+    try {
+      const yieldRestore = createFrameBudgetYielder(16);
+      for (const _ of forwardProgramWarm.initializeSteps(scene)) await yieldRestore();
+    } catch { /* the first real render remains the fallback */ }
     graphicsContextLost = false;
     post.setAdaptiveSuspended(false);
     // Some mobile browsers discard the outstanding rAF when the WebGL device
@@ -2683,13 +2689,6 @@ window.__GAME_READY = true;
     const { SplashScreen } = await import('@capacitor/splash-screen');
     await SplashScreen.hide({ fadeOutDuration: 300 });
   } catch { /* browser dev — no splash screen */ }
-})();
-// Notify Capgo that this update is stable — must be called or Capgo rolls back
-(async () => {
-  try {
-    const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
-    await CapacitorUpdater.notifyAppReady();
-  } catch { /* not in Capacitor context (browser dev) */ }
 })();
 
 // Screen wake lock — prevent screen sleep during gameplay on Android

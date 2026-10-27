@@ -12,7 +12,7 @@ assert.deepEqual(
   'LAN invite links preserve their deployment mode',
 );
 assert.deepEqual(
-  parseRoomInvite('https://cot.example/?room=ABC234&host=Commander%20alice'),
+  parseRoomInvite('https://cot.example/?room=ABC234&host=Commander%20Alex'),
   { roomCode: 'ABC234', mode: 'private', hostName: 'Commander Alex' },
   'named invite links preserve the normalized host callsign',
 );

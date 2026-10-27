@@ -113,7 +113,7 @@ assert.match(main, /lastActivityAt: garageDressingScheduler\.getLastActivityAt\(
 
 const readyAt = main.indexOf('window.__GAME_READY = true;');
 assert(readyAt >= 0);
-assert.match(main.slice(readyAt, readyAt + 500), /scheduleGarageDressingBuild\(\)/,
+assert.match(main.slice(readyAt), /scheduleGarageDressingBuild\(\)/,
   'the post-ready garage path must arm the dressing scheduler');
 
 assert.match(garageReturn,

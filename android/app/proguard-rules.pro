@@ -15,8 +15,6 @@
 -keep class com.google.android.gms.ads.** { *; }
 -dontwarn com.google.android.gms.ads.**
 
-# Capgo OTA updater
--keep class ee.forgr.capacitor_updater.** { *; }
 
 # WebView JavaScript interface (Capacitor bridge)
 -keepclassmembers class * {

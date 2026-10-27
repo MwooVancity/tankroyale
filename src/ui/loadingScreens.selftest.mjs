@@ -261,7 +261,7 @@ const coveredSubmissionBody = soloDeploymentSource.slice(
   soloDeploymentSource.indexOf('trace.deploymentCompileMs'),
 );
 assert.match(coveredSubmissionBody,
-  /forwardProgramWarm\.compile\(scene\)[\s\S]*createIsolatedForwardWarmBatches\(\{[\s\S]*root: fx\.group/,
+  /forwardProgramWarm\.initializeSteps\(scene\)[\s\S]*createIsolatedForwardWarmBatches\(\{[\s\S]*root: fx\.group/,
   'player battle entry must submit and bind exact FX against the gameplay target');
 const worldReadyAt = soloLoadingSource.indexOf("battleLoad.progress(0.555, 'Battlefield ready')");
 const rosterAssemblyAt = soloLoadingSource.indexOf(
@@ -284,10 +284,10 @@ assert.match(preRosterBattleLoad,
   /const fxTexture = ensureFx\(\)\.then[\s\S]{0,500}live\.preloadTextures[\s\S]{0,180}live\.warmTextures[\s\S]{0,260}battleVisuals\.stageRootTextureUploads\(live\.group, loadYield\)[\s\S]{0,1200}\(\) => fxTexture/,
   'exact combat atlases must install and upload alongside the independent world build');
 const stageRevealBody = battleVisualStreamerSource;
-assert.match(stageRevealBody, /forwardProgramWarm\.compile\(root\)[\s\S]{0,1400}await yieldForBudget\(true\)/,
+assert.match(stageRevealBody, /forwardProgramWarm\.initializeSteps\(root\)[\s\S]{0,1400}await yieldForBudget\(true\)/,
   'each streamed vehicle must submit its production-target shaders before yielding');
 assert.match(stageRevealBody,
-  /forwardProgramWarm\.compile\(root\)[\s\S]*if \(initiallyHidden\)[\s\S]*visual\.setVisible\?\.\(false\)[\s\S]*root\.removeFromParent\(\)[\s\S]*battleVisibilityDetached = true[\s\S]*await yieldForBudget\(true\)/,
+  /forwardProgramWarm\.initializeSteps\(root\)[\s\S]*if \(initiallyHidden\)[\s\S]*visual\.setVisible\?\.\(false\)[\s\S]*root\.removeFromParent\(\)[\s\S]*battleVisibilityDetached = true[\s\S]*await yieldForBudget\(true\)/,
   'countdown-streamed opponents must compile exactly, then detach before the next painted frame');
 assert.match(battlePresentationSource,
   /const setVisualResident = \(visual: TankVisual, resident: boolean\)[\s\S]{0,500}battleVisibilityDetached && !root\.parent\)[\s\S]{0,80}scene\.add\(root\)[\s\S]{0,500}if \(root\.parent === scene\)[\s\S]{0,100}root\.removeFromParent\(\)/,

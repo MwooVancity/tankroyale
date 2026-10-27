@@ -220,7 +220,7 @@ export function createGarage(opts) {
     `<button class="nv cot-nav-desktop" data-nav="docs" type="button" aria-label="Documentation" title="Documentation">` +
     `<img class="nvi nvi-product" src="/brand/nav/docs.svg" alt="" draggable="false">` +
     `<span class="nav-label">Docs</span></button>` +
-    `<a class="nv cot-github" data-nav="github" href="https://github.com/mwoo778/tank-royale" ` +
+    `<a class="nv cot-github" data-nav="github" href="https://github.com/MwooVancity/tankroyale" ` +
     `target="_blank" rel="noopener noreferrer" aria-label="View Tank Royale on GitHub" title="GitHub">` +
     `${uiIconSVG('github', 15, 'currentColor', 'nvi')}` +
     `<span class="nav-label">GitHub</span><span class="github-stars" data-github-stars>195</span></a>` +

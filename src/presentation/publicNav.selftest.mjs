@@ -32,7 +32,7 @@ const expectedLinks = [
   ['/studio', 'Studio'],
   ['/gallery', 'Tank Gallery'],
   ['/docs', 'Docs'],
-  ['https://github.com/mwoo778/tank-royale', `GitHub ${FALLBACK_GITHUB_STAR_COUNT}`],
+  ['https://github.com/MwooVancity/tankroyale', `GitHub ${FALLBACK_GITHUB_STAR_COUNT}`],
   ['/', 'Play Now'],
 ];
 const navCss = readFileSync(join(ROOT, 'src/presentation/publicNav.css'), 'utf8');
@@ -127,7 +127,7 @@ assert.match(gameHtml,
   'boot utility controls must keep balanced content-driven horizontal padding');
 assert.doesNotMatch(gameHtml, /\.cot-boot-links > \.cot-boot-link\s*\{[^}]*width: 132px;/,
   'boot utility controls must not return to the fixed width that cramped GitHub');
-const gameRepositoryLinks = [...gameHtml.matchAll(/<a[^>]+href="https:\/\/github\.com\/mwoo778\/Tank-Royale"[^>]*>([\s\S]*?)<\/a>/g)];
+const gameRepositoryLinks = [...gameHtml.matchAll(/<a[^>]+href="https:\/\/github\.com\/MwooVancity\/tankroyale"[^>]*>([\s\S]*?)<\/a>/g)];
 assert.equal(gameRepositoryLinks.length, 2, 'loading and credits screens must retain both repository controls');
 for (const [, contents] of gameRepositoryLinks) {
   assert.ok(contents.includes('data-github-stars'), 'every repository control in the loading flow shows stars');

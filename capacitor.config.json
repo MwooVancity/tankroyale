@@ -13,10 +13,6 @@
     "limitsNavigationsToAppBoundDomains": true
   },
   "plugins": {
-    "CapacitorUpdater": {
-      "autoUpdate": false,
-      "defaultChannel": "production"
-    },
     "GoogleAuth": {
       "androidClientId": "1064912760959-6b5htqgdug3u19s8rm80u9994jjf9pkj.apps.googleusercontent.com",
       "serverClientId": "1064912760959-6b5htqgdug3u19s8rm80u9994jjf9pkj.apps.googleusercontent.com",

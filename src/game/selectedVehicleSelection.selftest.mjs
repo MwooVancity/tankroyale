@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createSelectedVehicleSelection } from './selectedVehicleSelection.ts';
 
-const saved = new Map([['cot.lastTank.v1', 'm1a2']]);
+const saved = new Map([['tr.lastTank.v1', 'm1a2']]);
 const storage = {
   getItem: (key) => saved.get(key) ?? null,
   setItem: (key, value) => saved.set(key, value),
@@ -15,10 +15,10 @@ assert.equal(selection.id, 'm1a2');
 selection.set('diagnostic-hidden-tank');
 assert.equal(selection.id, 'diagnostic-hidden-tank');
 selection.remember('diagnostic-hidden-tank');
-assert.equal(saved.get('cot.lastTank.v1'), 'm1a2', 'hidden diagnostics are not persisted');
+assert.equal(saved.get('tr.lastTank.v1'), 'm1a2', 'hidden diagnostics are not persisted');
 selection.select('m1a1');
 assert.equal(selection.id, 'm1a1');
-assert.equal(saved.get('cot.lastTank.v1'), 'm1a1');
+assert.equal(saved.get('tr.lastTank.v1'), 'm1a1');
 
 const restricted = createSelectedVehicleSelection({
   visibleIds: ['m1a1'],

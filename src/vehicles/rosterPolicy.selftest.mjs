@@ -33,10 +33,10 @@ assert.equal(isRetiredHistoricalTank({ id: 'm4a3e8', era: 'ww2' }), true);
 assert.equal(isRetiredHistoricalTank({ id: 'tiger2', era: 'ww2' }), true);
 assert.equal(isRetiredHistoricalTank({ id: 'm1a2', era: 'modern' }), false);
 assert.equal(isRetiredHistoricalTank({ id: 't80u', era: 'modern' }), false);
-assert.equal(developmentFleetEnabled({ DEV: true, VITE_COT_DEV_FLEET_KEY: DEV_FLEET_KEY }), true);
-assert.equal(developmentFleetEnabled({ DEV: false, VITE_COT_DEV_FLEET_KEY: DEV_FLEET_KEY }), false,
+assert.equal(developmentFleetEnabled({ DEV: true, VITE_TR_DEV_FLEET_KEY: DEV_FLEET_KEY }), true);
+assert.equal(developmentFleetEnabled({ DEV: false, VITE_TR_DEV_FLEET_KEY: DEV_FLEET_KEY }), false,
   'production ignores the local development key');
-assert.equal(developmentFleetEnabled({ DEV: true, VITE_COT_DEV_FLEET_KEY: 'wrong' }), false);
+assert.equal(developmentFleetEnabled({ DEV: true, VITE_TR_DEV_FLEET_KEY: 'wrong' }), false);
 
 const ownerHidden = [
   'panther_g', 'tiger1', 'sturmtiger', 'jpz_e100',

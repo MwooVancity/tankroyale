@@ -42,7 +42,7 @@ assert.deepEqual(desktop.PRESETS.high.shadowMapSizes, [2048, 2048, 2048, 1024]);
 let notified = null;
 const unsubscribe = desktop.onPresetChange((preset) => { notified = preset.label; });
 desktop.setPresetName('medium');
-assert.equal(desktopBrowser.storage.get('cot.gfxPreset'), 'medium');
+assert.equal(desktopBrowser.storage.get('tr.gfxPreset'), 'medium');
 assert.equal(desktop.resolvePresetName(), 'medium');
 assert.equal(notified, 'Medium');
 assert.equal(unsubscribe(), true);
