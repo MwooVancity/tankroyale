@@ -115,9 +115,13 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
-      # Closed testing (alpha) upload; skipped until PLAY_SERVICE_ACCOUNT_JSON secret exists
+      # Closed testing (alpha) upload; skipped until PLAY_SERVICE_ACCOUNT_JSON secret exists.
+      # Play demands auto-submit when nothing is pending, and refuses it while a rejected/
+      # pending change exists. Try auto-submit first; on failure upload without submitting.
       - name: Upload to Google Play (closed testing)
+        id: play_auto
         if: ${{ env.PLAY_JSON != '' && env.KEYSTORE_BASE64 != '' }}
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         env:
           PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -128,5 +132,14 @@ jobs:
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           track: alpha
           status: completed
-          # Play refuses auto-submit while a rejected/pending change exists; upload only, submit in Play Console
+
+      - name: Upload to Google Play (closed testing, manual submit)
+        if: ${{ steps.play_auto.outcome == 'failure' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.tankroyale
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: alpha
+          status: completed
           changesNotSentForReview: true
