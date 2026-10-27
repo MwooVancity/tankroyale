@@ -59,6 +59,12 @@ export function createIceConfigHandler({
       send(response, 403, { error: 'origin_forbidden' });
       return;
     }
+    // The app (https://localhost) calls this cross-origin with credentials:
+    // without these headers the browser drops the body and TURN never loads.
+    if (origin) {
+      response.setHeader('access-control-allow-origin', origin);
+      response.setHeader('access-control-allow-credentials', 'true');
+    }
 
     const staticJson = String(env.COT_TURN_ICE_SERVERS_JSON || '').trim();
     if (staticJson) {

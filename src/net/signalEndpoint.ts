@@ -25,7 +25,16 @@ export function resolveSignalUrl({
   hostname = 'localhost',
 }: SignalEndpointOptions = {}): string {
   const explicit = String(configured || '').trim();
-  if (explicit) return explicit;
+  if (explicit) {
+    // A bare origin (e.g. VITE_SIGNAL_URL="wss://tankroyale.onrender.com") dials
+    // the server root, which answers HTTP 403: online play never connected in
+    // the shipped app. The signaling WebSocket lives at /api/signal.
+    try {
+      const url = new URL(explicit);
+      if (url.pathname === '/' || url.pathname === '') url.pathname = '/api/signal';
+      return url.toString();
+    } catch { return explicit; }
+  }
   const scheme = protocol === 'https:' ? 'wss:' : 'ws:';
   const hostnameText = String(hostname);
   const host = hostnameText.includes(':') && !hostnameText.startsWith('[')
