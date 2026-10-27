@@ -131,7 +131,12 @@ export default {
       drop: ['console', 'debugger'],
     },
     rollupOptions: {
-      external: ['@codetrix-studio/capacitor-google-auth', '@capacitor-community/admob', '@capgo/capacitor-updater', '@capacitor/app'],
+      // No externals: an external Capacitor package is left as a bare
+      // import('@capacitor/app') that cannot resolve in the WebView. That
+      // failure fired vite:preloadError -> boot recovery reloaded the game twice
+      // and showed "A game file did not load" ("the game does not start"
+      // reviews), and the Android back button / background audio never worked.
+      // Native plugins bind through @capacitor/core registerPlugin instead.
       // Multi-page build: the game and independently bootable public/tools
       // surfaces. Presentation routes never inherit the playable boot graph.
       input: {
