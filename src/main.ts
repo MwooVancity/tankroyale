@@ -2761,6 +2761,15 @@ window.__GAME_READY = true;
     });
   } catch { /* not in Capacitor context */ }
 })();
+// Wake the free-tier signal server as soon as the app is up, so a sleeping server
+// is warm by the time the player opens Play (its connect timeout is only 5 s).
+try {
+  const signal = import.meta.env.VITE_SIGNAL_URL;
+  if (signal) {
+    fetch(`${new URL(String(signal).replace(/^ws/, 'http')).origin}/health`, { mode: 'no-cors' })
+      .catch(() => { /* offline: the play menu reports it */ });
+  }
+} catch { /* malformed URL: nothing to wake */ }
 pedestal.queueNeighbors();
 if (!STUDIO_BOOT_INTENT) scheduleGarageDressingBuild();
 window.__BOOT_TIMINGS = BOOT_TIMINGS;

@@ -1,0 +1,22 @@
+name: Keep multiplayer server awake
+
+# Render's free plan sleeps a web service after 15 minutes without traffic, and a cold
+# start takes 30-60 s, longer than the app's 5 s signaling connect timeout. Pinging
+# /health every 10 minutes keeps it warm (one service 24/7 fits the 750 free hours/month).
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping signal server
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS --max-time 90 https://tankroyale.onrender.com/health; then echo; exit 0; fi
+            sleep 10
+          done
+          echo "signal server did not answer /health" && exit 1

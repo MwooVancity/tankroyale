@@ -461,17 +461,23 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
   // arm the legacy-overlay suppressor the moment the battle is decided —
     // endOverlayRuntime.show() runs later in the same tick and must never flash the
   // old button/earnings line before the end screen takes the frame
+  // Interstitial on Android (no-op in browser): never over the kill-cam replay and
+  // never after a dropped connection. It waits for the replay to hand over to results.
+  let adDue = false;
   bus.on('battle:ended', (payload) => {
     document.body.classList.add('cot-es-armed');
-    // Interstitial on Android (no-op in browser); never after a dropped connection.
-    if ((payload as unknown as { reason?: string } | null)?.reason === 'network_disconnect') return;
+    adDue = (payload as unknown as { reason?: string } | null)?.reason !== 'network_disconnect';
+  });
+  bus.on('killcam:done', () => {
+    if (!adDue) return;
+    adDue = false;
     import('../auth/admob.ts').then(({ showMatchEndAd }) => showMatchEndAd()).catch(() => {});
   });
   // any path into a fresh battle retires the screen — including the debug
   // __DEBUG.startBattle flow, which skips the garage's ui:battleStart (the
   // garage path also lands here via hud.setMode -> shotInfo.hideStats)
   bus.on('phase:change', (payload) => {
-    if (isRecord(payload) && payload.phase === 'battle') api.hide();
+    if (isRecord(payload) && payload.phase === 'battle') { adDue = false; api.hide(); }
   });
   bus.on('network:roomState', (context) => {
     roomContext = readRoomContext(context);

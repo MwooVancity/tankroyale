@@ -1479,10 +1479,20 @@ export function createPlayMenu({
       closeCurrentSession('menu_closed');
     }
   }
+  // Escape / Android Back closes the open Play menu (capture phase, before Settings
+  // would open on top of it). Same as tapping the close button.
+  const escapeClosesMenu = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !root.classList.contains('show')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    hide();
+  };
+  window.addEventListener('keydown', escapeClosesMenu, true);
   function dispose(): void {
     handedOff = false;
     if (activeRoom || session) closeCurrentSession('menu_disposed');
     else hide(false);
+    window.removeEventListener('keydown', escapeClosesMenu, true);
     window.removeEventListener('resize', closeMenusOnResize);
     root.remove();
   }
