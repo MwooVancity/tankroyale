@@ -292,7 +292,8 @@ export function createSoloBattleDeploymentRuntime({
         });
         const fxForwardWarmBatches = [];
         try {
-          forwardProgramWarm.compile(scene);
+          // ANR fix: sliced per-object compile, never one whole-scene burst.
+          for (const _ of forwardProgramWarm.initializeSteps(scene)) await coveredYield();
           fx.group.visible = false;
           for (const batch of createIsolatedForwardWarmBatches({
             scene,

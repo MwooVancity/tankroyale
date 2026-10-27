@@ -15,7 +15,7 @@ interface GarageLightingWarmPort {
 }
 
 interface ForwardProgramWarmPort {
-  compile(root: Object3D): void;
+  initializeSteps(root?: Object3D): Generator<void, void, unknown>;
 }
 
 interface GaragePostWarmPort {
@@ -66,8 +66,14 @@ export async function warmGarageGpuPipeline({
   warmScene = warmSceneOffscreenBatched,
   now = () => performance.now(),
 }: GarageGpuWarmOptions): Promise<void> {
+  // ANR fix (Play vitals 2026-10-25, Mali/Android 15): one whole-scene compile
+  // held the in-process WebView GPU thread in glLinkProgram for 5s+. Same
+  // programs, compiled per object, yielding a frame whenever ~16ms piles up.
   const compileAt = now();
-  try { forwardPrograms.compile(scene); } catch { /* first real render is fallback */ }
+  const yieldCompile = createYielder(16);
+  try {
+    for (const _ of forwardPrograms.initializeSteps(scene)) await yieldCompile();
+  } catch { /* first real render is fallback */ }
   timings.postCompile = Math.round(now() - compileAt);
 
   lighting.update(true);

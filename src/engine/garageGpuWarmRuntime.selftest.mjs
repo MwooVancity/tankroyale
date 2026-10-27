@@ -25,9 +25,12 @@ await warmGarageGpuPipeline({
     },
   },
   forwardPrograms: {
-    compile(root) {
+    *initializeSteps(root) {
       assert.equal(root, scene);
       calls.push(['compile']);
+      yield;
+      calls.push(['compile']);
+      yield;
     },
   },
   post: {
@@ -54,7 +57,11 @@ await warmGarageGpuPipeline({
 });
 
 assert.deepEqual(calls[0], ['compile'], 'production-target submission happens first');
-assert.deepEqual(calls[1], ['light', true], 'shadow state follows forward submission');
+assert.deepEqual(calls.slice(0, 4), [['compile'], ['yield', undefined], ['compile'], ['yield', undefined]],
+  'program compile is sliced: the warm yields between steps (ANR fix)');
+const lightAt = calls.findIndex((c) => c[0] === 'light');
+assert.ok(lightAt > calls.findLastIndex((c) => c[0] === 'compile'), 'shadow state follows forward submission');
+assert.deepEqual(calls[lightAt], ['light', true]);
 assert.deepEqual(calls.at(-1), ['render', 1 / 60], 'one complete post frame seals the warm');
 assert.equal(timings.postCompile, 10);
 assert.equal(timings.shadowPassMax, 7);

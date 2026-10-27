@@ -1768,7 +1768,9 @@ const networkBattlePresentation = createNetworkBattlePresentationAccess({
       },
       shotCards: (specIds: readonly string[]) => hud?.warmShotCards(specIds),
       compile: async () => {
-        forwardProgramWarm.compile(scene);
+        // ANR fix: sliced per-object compile, never one whole-scene burst.
+        const yieldCompile = createFrameBudgetYielder(16);
+        for (const _ of forwardProgramWarm.initializeSteps(scene)) await yieldCompile();
         for (const _ of forwardProgramWarm.linkerBreathingSlices(24)) await nextFrame();
       },
     },
