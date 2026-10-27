@@ -525,7 +525,10 @@
         const message = String(event.reason && (event.reason.message || event.reason) || '');
         const bootRuntime = !window.__GAME_READY
           && isSameOriginGameCode(`${message} ${event.reason?.stack || ''}`);
-        if (bootRuntime || /module script|dynamically imported module|module preload|failed to fetch/i.test(message)) {
+        // "failed to fetch" only means a lost game file during boot; mid-match it is a
+        // network blip (analytics, API) and must never reload the page and kill the match.
+        if (bootRuntime || /module script|dynamically imported module|module preload/i.test(message)
+          || (!window.__GAME_READY && /failed to fetch/i.test(message))) {
           recover(bootRuntime ? 'boot-promise' : 'module-promise');
         }
       });

@@ -47,7 +47,7 @@ interface ArmorAimWarmOwner {
 }
 
 interface ForwardCompileOwner {
-  compile(root: Object3D): void;
+  initializeSteps(root?: Object3D): Generator<void, void, unknown>;
 }
 
 export interface BattleVisualStreamerOptions<TGame extends { tanks: BattleVisualEntity[] }> {
@@ -154,7 +154,8 @@ export function createBattleVisualStreamer<TGame extends { tanks: BattleVisualEn
     visual.prewarmBurn?.();
     armorAimOverlay.prime(entity);
     const restoreArmorWarmVisibility = armorAimOverlay.warm();
-    try { forwardProgramWarm.compile(root); } catch { /* first render fallback */ }
+    // ANR fix: per-object compile with frame yields, not one whole-tank burst.
+    try { for (const _ of forwardProgramWarm.initializeSteps(root)) await yieldForBudget(); } catch { /* first render fallback */ }
     finally { restoreArmorWarmVisibility(); }
     root.userData.loadCompileMs = Math.round(now() - compileAt);
     if (initiallyHidden) {

@@ -227,8 +227,10 @@ export function installBattleRecords(bus: ProfileEventBus | null | undefined): v
       damage: tally.damage,
       vehicleId: tally.vehicleId,
       mapId: event.mapId || tally.mapId,
-      durationS: Number.isFinite(event.durationS)
-        ? Number(event.durationS) : Math.max(0, (Date.now() - tally.startedAt) / 1000),
+      // senders emit timeS (sim time); wall clock would count loading and background time
+      durationS: Number.isFinite(event.durationS) ? Number(event.durationS)
+        : Number.isFinite(event.timeS) ? Number(event.timeS)
+        : Math.max(0, (Date.now() - tally.startedAt) / 1000),
     });
     tally = null;
   });

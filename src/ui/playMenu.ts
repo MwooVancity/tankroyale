@@ -593,6 +593,14 @@ export function createPlayMenu({
   ensureStyle(STYLE_ID, CSS);
   const root = document.createElement('div');
   root.className = 'cot-play';
+  queueMicrotask(() => {
+    // No ranked match service is deployed: without VITE_MATCH_SERVICE_URL the
+    // app would dial https://localhost:8790 (the phone itself). Hide the mode
+    // instead of offering a button that can never connect. Dev (http) keeps it.
+    if (import.meta.env.VITE_MATCH_SERVICE_URL || location.protocol === 'http:') return;
+    const ranked = root.querySelector<HTMLButtonElement>('[data-mode="ranked"]');
+    if (ranked) { ranked.disabled = true; ranked.style.display = 'none'; }
+  });
   const ruleCards = Object.values(GAME_MODE_DEFINITIONS).map((rule) =>
     `<button class="rule" data-game-mode="${rule.id}" type="button" title="${rule.description}">
       ${uiIconSVG(rule.icon, 23)}<span class="rule-copy"><b>${rule.label}</b><small>${rule.shortLabel}</small></span></button>`).join('');

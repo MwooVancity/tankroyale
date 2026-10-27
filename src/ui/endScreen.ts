@@ -461,9 +461,10 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
   // arm the legacy-overlay suppressor the moment the battle is decided —
     // endOverlayRuntime.show() runs later in the same tick and must never flash the
   // old button/earnings line before the end screen takes the frame
-  bus.on('battle:ended', () => {
+  bus.on('battle:ended', (payload) => {
     document.body.classList.add('cot-es-armed');
-    // Show 10-second interstitial ad on Android; no-op in browser.
+    // Interstitial on Android (no-op in browser); never after a dropped connection.
+    if ((payload as unknown as { reason?: string } | null)?.reason === 'network_disconnect') return;
     import('../auth/admob.ts').then(({ showMatchEndAd }) => showMatchEndAd()).catch(() => {});
   });
   // any path into a fresh battle retires the screen — including the debug
@@ -745,7 +746,7 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
         const row = el('div', 'es-kr', killList);
         row.innerHTML =
           '<span class="si"></span>' +
-          `<span class="nm">${kr.name || kr.id}</span>` +
+          `<span class="nm">${escapeHtml(kr.name || kr.id)}</span>` +
           `<span class="dm">${kr.dmg > 0 ? fmtN(kr.dmg) : ''}</span>`;
         maskIcon(requiredDescendant<HTMLElement>(row, '.si'), kr.specId || kr.id, 'side_silhouette',
           'rgba(255,209,102,.85)');
@@ -797,7 +798,7 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
           if (r.kills > 0) details.push(`${r.kills} kill${r.kills === 1 ? '' : 's'}`);
           row.innerHTML =
             '<span class="si"></span>' +
-            `<span class="identity"><span class="nm">${r.isPlayer ? '<b class="you">YOU</b>' : ''}${r.name || r.id}</span>` +
+            `<span class="identity"><span class="nm">${r.isPlayer ? '<b class="you">YOU</b>' : ''}${escapeHtml(r.name || r.id)}</span>` +
             `<span class="veh">${details.filter(Boolean).join(' · ')}</span></span>` +
             '<span class="output"><span class="ov"></span><span class="obar" aria-hidden="true"><i></i></span></span>' +
             `<span class="st">${uiIconSVG(r.dead ? 'skull' : 'check', 16)}</span>`;
@@ -869,4 +870,11 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
     },
   };
   return api;
+}
+
+// Player names arrive from the network; never let them become markup.
+function escapeHtml(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>
+  )[ch]);
 }

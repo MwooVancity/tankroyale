@@ -48,7 +48,7 @@ const streamer = createBattleVisualStreamer({
     prime(entity) { primed.push(entity.specId); },
     warm() { return () => { restored += 1; }; },
   },
-  forwardProgramWarm: { compile(root) { compiled.push(root); } },
+  forwardProgramWarm: { *initializeSteps(root) { compiled.push(root); yield; } },
   recordTiming(timing) { timings.push(timing); },
   now: () => { clock += 2; return clock; },
 });

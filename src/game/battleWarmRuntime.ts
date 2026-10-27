@@ -787,12 +787,8 @@ function* warmDestroyedRosterVariantsSteps(
     try {
       visual.setDestroyed({ pop: true, ageS: 0 });
       visual.root.visible = true;
-      const before = (renderer.info.programs || []).length;
-      forwardProgramWarm.compile(visual.root);
-      const programs = renderer.info.programs || [];
-      for (let index = before; index < programs.length; index += 1) {
-        try { programs[index].getUniforms(); } catch (_) { /* warm only */ }
-      }
+      // ANR fix: per-object compile (initializeSteps also drains uniforms), yielding between.
+      yield* forwardProgramWarm.initializeSteps(visual.root);
     } catch (_) { /* warm only */ }
     finally {
       try { visual.resetDestroyed(); } catch (_) { /* warm only */ }

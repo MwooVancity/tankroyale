@@ -4,6 +4,8 @@
  * falls back to no-op in browser (desktop play still works).
  */
 
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
 export interface GoogleUser {
   id: string;
   displayName: string;
@@ -46,10 +48,10 @@ export async function signInWithGoogle(): Promise<GoogleUser | null> {
   if (cached) return cached;
 
   try {
-    // Use indirect import so Vite/rolldown doesn't try to bundle the native plugin
-    const pkg = '@codetrix-studio/capacitor-google-auth';
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const { GoogleAuth } = await (new Function('p', 'return import(p)'))(pkg) as { GoogleAuth: { initialize(): Promise<void>; signIn(): Promise<{ id: string; displayName: string; name: string; email: string; imageUrl: string }>; signOut(): Promise<void> } };
+    // A runtime import('@codetrix-studio/...') can never resolve inside the packaged
+    // app (same bug admob.ts had), so sign-in silently never ran. Bind natively.
+    if (!Capacitor.isNativePlatform()) return null;
+    const GoogleAuth = registerPlugin<{ initialize(): Promise<void>; signIn(): Promise<{ id: string; displayName: string; name: string; email: string; imageUrl: string }>; signOut(): Promise<void> }>('GoogleAuth');
     await GoogleAuth.initialize();
     const result = await GoogleAuth.signIn();
     const user: GoogleUser = {

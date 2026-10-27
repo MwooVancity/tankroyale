@@ -1708,7 +1708,8 @@ const networkBattlePresentation = createNetworkBattlePresentationAccess({
         audio.warmBattleEvents(),
       ]).then(([modules]) => modules),
       loadWorld: (mapId: string, onProgress: (fraction: number, label: string) => void) => (
-        ensureWorld(mapId, onProgress)
+        // ANR fix: no whole-map compile here; the network warm's sliced compile covers it.
+        ensureWorld(mapId, onProgress, { precompile: false })
       ),
       publishMatch: (match: unknown) => networkSession.publishMatch(legacyPort(match)),
       getMatch: () => networkSession.match,
@@ -1813,7 +1814,18 @@ const networkBattleLauncher = createNetworkBattleLaunchRuntime(legacyPort({
   clearNetworkRound: () => networkSession.clearRound(),
   closeMatch: closeNetworkMatch,
   enterGarage: () => garageReturn.enter(),
-  setNetworkStatus: (status: unknown) => networkSession.status?.set(legacyPort(status)),
+  setNetworkStatus: (status: unknown) => {
+    networkSession.status?.set(legacyPort(status));
+    // Soft-lock fix: once reconnecting is exhausted the battle stays frozen with only a
+    // text banner. Return the player to the garage after they have seen the message.
+    if ((status as { state?: string } | null)?.state === 'failed' && game?.phase === 'battle') {
+      setTimeout(() => {
+        if (game?.phase !== 'battle') return;
+        try { closeNetworkMatch(); } catch { /* already closed */ }
+        garageReturn.enter();
+      }, 3000);
+    }
+  },
   recordEntryFailure: (failure: unknown) => {
     if (typeof window !== 'undefined') window.__NETWORK_ENTRY_FAILURE = failure;
   },
@@ -2708,10 +2720,18 @@ window.__GAME_READY = true;
         window.history.back();
         return;
       }
-      for (const type of ['keydown', 'keyup']) {
-        document.dispatchEvent(new KeyboardEvent(type, { key: 'Escape', code: 'Escape', bubbles: true }));
-      }
-      if (game?.phase === 'battle') return;
+      // Dispatch at the focused element so panel/modal-level Escape handlers
+      // (modal.ts, camo studio, pickers) receive it, not only document ones.
+      const target: EventTarget = (document.activeElement && document.activeElement !== document.body)
+        ? document.activeElement : document;
+      const down = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true });
+      target.dispatchEvent(down);
+      target.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true }));
+      // Something consumed Back (closed a panel): never count it toward exiting.
+      if (down.defaultPrevented) { lastBackAt = 0; return; }
+      // Only the plain garage can exit (results, kill-cam, studio and battle never do),
+      // and only on a second unconsumed press within 2 s.
+      if (game?.phase !== 'garage') { lastBackAt = 0; return; }
       const now = Date.now();
       if (now - lastBackAt < 2000) { App.exitApp(); return; }
       lastBackAt = now;

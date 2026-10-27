@@ -65,17 +65,26 @@ async function ensureInit(): Promise<boolean> {
  * Show a 10-second interstitial after a match ends.
  * Resolves after ad closes or 10s — whichever comes first.
  */
+let matchesSinceAd = 0;
+const MATCHES_PER_AD = 3; // one interstitial every 3rd match, not every match
+
 export async function showMatchEndAd(): Promise<void> {
   if (pending) return;
+  matchesSinceAd += 1;
+  if (matchesSinceAd < MATCHES_PER_AD) return;
+  matchesSinceAd = 0;
   pending = true;
 
-  const done = new Promise<void>((resolve) => setTimeout(resolve, 10_000));
+  let timedOut = false;
+  const done = new Promise<void>((resolve) => setTimeout(() => { timedOut = true; resolve(); }, 10_000));
 
   const ad = (async () => {
     try {
       if (!await ensureInit()) return;
       const AdMob = await getAdMob();
       await AdMob.prepareInterstitial({ adId: AD_ID });
+      // A slow load must never pop the ad later, in the middle of the next battle.
+      if (timedOut) return;
       await AdMob.showInterstitial();
     } catch { /* no Android, cancelled, network down — fine */ }
   })();

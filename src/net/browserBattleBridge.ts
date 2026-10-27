@@ -856,7 +856,8 @@ export function createBrowserBattleBridge({
           bIsPlayer: event.bId === id,
           pos: [event.x, event.y, event.z],
         });
-    } else if (event.type === 'match_ended') {
+    } else if (event.type === 'match_ended' && !game.result) {
+        // guard: a replayed match_ended after reconnect must not end the battle twice
         const result = spectator ? 'draw' : event.result === 'draw' ? 'draw'
           : event.result === viewerTeam ? 'victory' : 'defeat';
         game.result = result;

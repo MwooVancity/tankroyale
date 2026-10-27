@@ -11,6 +11,10 @@ import com.getcapacitor.WebViewListener;
 
 public class MainActivity extends BridgeActivity {
 
+    // static: survives recreate() within the same process
+    private static long renderGoneWindowStart = 0;
+    private static int renderGoneCount = 0;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +30,19 @@ public class MainActivity extends BridgeActivity {
         getBridge().addWebViewListener(new WebViewListener() {
             @Override
             public boolean onRenderProcessGone(WebView webView, RenderProcessGoneDetail detail) {
-                recreate();
+                // A dead renderer's WebView must never be used again: detach + destroy it.
+                try {
+                    if (webView.getParent() instanceof android.view.ViewGroup) {
+                        ((android.view.ViewGroup) webView.getParent()).removeView(webView);
+                    }
+                    webView.destroy();
+                } catch (Exception ignored) { }
+                // Cap restarts: a phone that dies at the same memory peak every launch
+                // would otherwise restart forever. Max 2 recreates per minute, then close.
+                long now = android.os.SystemClock.elapsedRealtime();
+                if (now - renderGoneWindowStart > 60_000) { renderGoneWindowStart = now; renderGoneCount = 0; }
+                renderGoneCount++;
+                if (renderGoneCount > 2) finish(); else recreate();
                 return true;
             }
         });
