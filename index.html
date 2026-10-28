@@ -9,10 +9,12 @@
     // Show how to fix it and stop the page before any game script runs.
     (function () {
       var m = /Chrome\/(\d+)/.exec(navigator.userAgent);
-      if (!m || +m[1] >= 85) return;
+      // 94: three.js core needs it; 92/93 lack Array.prototype.at / Object.hasOwn.
+      if (!m || +m[1] >= 94) return;
       document.write('<div style="font:16px/1.5 sans-serif;color:#eee;background:#0b0f14;position:fixed;top:0;left:0;right:0;bottom:0;padding:32px;text-align:center">' +
         '<h2>Update needed</h2><p>Tank Royale needs a newer Android System WebView (yours is version ' + m[1] + ').</p>' +
         '<p><a style="color:#f5a623;font-weight:bold" href="https://play.google.com/store/apps/details?id=com.google.android.webview">Update Android System WebView</a></p>' +
+        '<p>On Android 7 to 9, update <a style="color:#f5a623;font-weight:bold" href="https://play.google.com/store/apps/details?id=com.android.chrome">Google Chrome</a> instead.</p>' +
         '<p>Then reopen the game.</p></div>');
       window.stop();
     })();
@@ -572,6 +574,8 @@
         clearInterval(health);
         if (stageTimer) clearTimeout(stageTimer);
         if (stageRecoveryTimer) clearTimeout(stageRecoveryTimer);
+        // A slow boot showed Retry; once ready it would only reboot the game.
+        document.getElementById('cot-boot-retry')?.classList.remove('on');
         // Keep the short-lived receipt. Clearing it immediately at ready made
         // a persistently missing post-boot chunk eligible for another reload
         // before the user could request it again.
@@ -774,6 +778,12 @@
       </div>
       <div class="cot-boot-gate" id="cot-boot-gate">Press any key to continue</div>
       <button class="cot-boot-retry" id="cot-boot-retry" type="button">Retry loading</button>
+      <script>
+        // The Android app never leaves for GitHub (Test Lab's robot ended up in Chrome).
+        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+          document.querySelectorAll('a.cot-boot-link[href*="github.com"]').forEach(function (a) { a.remove(); });
+        }
+      </script>
     </div>
     <div class="cot-boot-foot">Created by Michael Woo &middot; Three.js technology demo</div>
   </div>

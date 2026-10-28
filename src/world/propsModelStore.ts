@@ -86,7 +86,7 @@ async function loadPackedModels(): Promise<BakedPropModels> {
     const fallback = await import('./propsModelFallback.ts');
     return fallback.loadFallbackPropModels() as BakedPropModels;
   }
-  const url = new URL('./props-models.bin.gz', import.meta.url);
+  const url = new URL('./props-models.gzpack', import.meta.url);
   const response = await fetch(url);
   if (!response.ok || !response.body) {
     throw new Error(`prop archive request failed (${response.status})`);

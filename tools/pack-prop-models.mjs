@@ -72,7 +72,7 @@ export function encodePropModelArchive(models) {
 
 export function writePropModelArchive({
   input = resolve('src/world/props-models.json'),
-  output = resolve('src/world/props-models.bin.gz'),
+  output = resolve('src/world/props-models.gzpack'),
 } = {}) {
   const models = JSON.parse(readFileSync(input, 'utf8'));
   const archive = encodePropModelArchive(models);

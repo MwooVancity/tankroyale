@@ -189,7 +189,7 @@ export function createGarage(opts) {
     // brand mark (tank + Claude Code commander) so the garage brand matches
     // the entry screen; master copy public/brand/logo-mark.svg
     `<img class="mark" src="/brand/logo-mark.svg" alt="" draggable="false">` +
-    `<span>CLAUDE <b>OF TANKS</b></span></div>` +
+    `<span>TANK <b>ROYALE</b></span></div>` +
     `<div class="cot-brand-utilities cot-header-nav" aria-label="Home and player record">` +
     `<button class="nv" data-nav="home" type="button" aria-label="Home" title="Home">` +
     `<img class="nvi nvi-product" src="/brand/nav/home.svg" alt="" draggable="false">` +
@@ -1947,6 +1947,13 @@ export function createGarage(opts) {
   root.querySelector('[data-nav="github"]').addEventListener('click', () => {
     emit('ui:click', {});
   });
+  // In the Android app these web pages reload index.html (a full game reboot)
+  // or leave the app for Chrome (Test Lab logs); the app shows the game only.
+  if (window.Capacitor?.isNativePlatform?.()) {
+    for (const nav of ['gallery', 'docs', 'home', 'github']) {
+      root.querySelector(`[data-nav="${nav}"]`)?.remove();
+    }
+  }
   for (const studioIntent of root.querySelectorAll(
     '[data-nav="studio"], [data-mobile-nav="studio"]',
   )) {

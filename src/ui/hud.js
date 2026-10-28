@@ -282,7 +282,7 @@ const BOT_NICKS = [
   'Feldwebel_K', 'OldNikolai', 'TinCanAlly', 'GrilleGuy', 'VodkaVanya',
   'CamoNet', 'LongStop', 'DerbyDozer', 'PakWagen',
 ];
-const PLAYER_NICK = 'Claude';
+const PLAYER_NICK = 'You';
 function hashStr(s) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }

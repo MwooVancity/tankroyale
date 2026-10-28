@@ -2716,11 +2716,9 @@ window.__GAME_READY = true;
     // Back = Escape (opens the battle settings menu / closes garage panels).
     // Exiting needs a second back press within 2 s so one tap never quits.
     let lastBackAt = 0;
-    App.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack) {
-        window.history.back();
-        return;
-      }
+    // Never history.back(): in the app every history step reloads index.html,
+    // i.e. a full game reboot (Test Lab, Android 17 emulator: Back -> reload).
+    App.addListener('backButton', () => {
       // Dispatch at the focused element so panel/modal-level Escape handlers
       // (modal.ts, camo studio, pickers) receive it, not only document ones.
       const target: EventTarget = (document.activeElement && document.activeElement !== document.body)

@@ -131,7 +131,7 @@ as the specific vehicle, and none had a separable turret (automatic loss).
 All sourced from [poly.pizza](https://poly.pizza); license verified on each
 asset page at download time. The original source files were baked to
 vertex-colored geometry in `src/world/props-models.json`, then packed without
-loss into `src/world/props-models.bin.gz` for runtime use and retired from
+loss into `src/world/props-models.gzpack` for runtime use and retired from
 tracked assets on 2026-08-26. The game fetches no external model file at
 runtime, and public builds no longer copy those redundant source binaries.
 
@@ -200,7 +200,7 @@ sourced but never placed: the map has no water gap to justify one.
 
 Pipeline note: winners are baked at build time to vertex-colored geometry
 (`node tools/bake-props-models.mjs` → `src/world/props-models.json`,
-then `node tools/pack-prop-models.mjs` → `src/world/props-models.bin.gz`). The
+then `node tools/pack-prop-models.mjs` → `src/world/props-models.gzpack`). The
 attributed JSON is the authoring source; the exact packed streams load only on
 Battle intent and the JSON is a demand-loaded compatibility fallback.
 

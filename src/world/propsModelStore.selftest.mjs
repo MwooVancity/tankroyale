@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { decodePropModelArchive } from './propsModelStore.ts';
 
 const source = JSON.parse(readFileSync(new URL('./props-models.json', import.meta.url), 'utf8'));
-const packed = gunzipSync(readFileSync(new URL('./props-models.bin.gz', import.meta.url)));
+const packed = gunzipSync(readFileSync(new URL('./props-models.gzpack', import.meta.url)));
 const view = packed.buffer.slice(packed.byteOffset, packed.byteOffset + packed.byteLength);
 const decoded = decodePropModelArchive(view);
 
