@@ -66,14 +66,16 @@ console.log('Uploaded', obj);
 
 // 3. Pick real phones: a low, a mid and a recent Android, different makers.
 const cat = await api(`https://testing.googleapis.com/v1/testEnvironmentCatalog/ANDROID?projectId=${PROJECT}`);
-const models = cat.androidDeviceCatalog.models.filter((m) => m.form === 'PHYSICAL' && m.formFactor === 'PHONE' && m.supportedVersionIds?.length);
+// FORM=VIRTUAL uses Test Lab's Android emulators (a separate free daily quota).
+const FORM = process.env.FORM || 'PHYSICAL';
+const models = cat.androidDeviceCatalog.models.filter((m) => m.form === FORM &&m.formFactor === 'PHONE' && m.supportedVersionIds?.length);
 const want = [[24, 28], [29, 32], [33, 99]], makers = new Set();
 for (const [lo, hi] of want) {
   for (const m of models) {
     // Only versions with phones actually in the lab (a NONE/LOW pick was never run).
-    const v = (m.perVersionInfo || []).filter((p) => p.deviceCapacity === 'DEVICE_CAPACITY_HIGH' || p.deviceCapacity === 'DEVICE_CAPACITY_MEDIUM')
+    const v = (m.perVersionInfo || []).filter((p) => FORM === 'VIRTUAL' || p.deviceCapacity === 'DEVICE_CAPACITY_HIGH' || p.deviceCapacity === 'DEVICE_CAPACITY_MEDIUM')
       .map((p) => Number(p.versionId)).filter((x) => x >= lo && x <= hi).sort((a, b) => a - b).at(-1);
-    if (v && !makers.has(m.manufacturer)) { picked.push({ androidModelId: m.id, androidVersionId: String(v), locale: 'en', orientation: 'landscape', name: `${m.manufacturer} ${m.name} / API ${v}` }); makers.add(m.manufacturer); break; }
+    if (v && !makers.has(FORM === 'VIRTUAL' ? m.id : m.manufacturer)) { picked.push({ androidModelId: m.id, androidVersionId: String(v), locale: 'en', orientation: 'landscape', name: `${m.manufacturer} ${m.name} / API ${v}` }); makers.add(FORM === 'VIRTUAL' ? m.id : m.manufacturer); break; }
   }
 }
 console.log('Devices:', picked.map((d) => d.name).join(' | '));
@@ -102,6 +104,7 @@ console.log('Matrix state', m.state, m.invalidMatrixDetails || '', 'outcome', m.
 const prefix = m.resultStorage.googleCloudStorage.gcsPath.replace(`gs://${BUCKET}/`, '');
 const objs = (await api(`https://storage.googleapis.com/storage/v1/b/${BUCKET}/o?prefix=${encodeURIComponent(prefix)}`)).items || [];
 const get = async (name) => Buffer.from(await (await fetch(`https://storage.googleapis.com/storage/v1/b/${BUCKET}/o/${encodeURIComponent(name)}?alt=media`, { headers: store })).arrayBuffer());
+if (!m.testExecutions) process.exit(1);
 for (const ex of m.testExecutions) {
   const dev = picked.find((d) => d.androidModelId === ex.environment.androidDevice.androidModelId && d.androidVersionId === ex.environment.androidDevice.androidVersionId);
   console.log(`\n== ${dev?.name || ex.environment.androidDevice.androidModelId + ' / API ' + ex.environment.androidDevice.androidVersionId} ::${ex.state} ${ex.testDetails?.errorMessage || ''}`);

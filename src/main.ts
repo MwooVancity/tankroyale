@@ -327,7 +327,9 @@ const engineCtx = {
     lighting.setupShadowMaterial(mat, extraHook)
   ),
   releaseShadowMaterial: (mat: THREE.Material) => lighting.releaseShadowMaterial(mat),
-  anisotropy: Math.min(8, renderer.capabilities.getMaxAnisotropy()),
+  // GPUs without EXT_texture_filter_anisotropic report 0; 1 = plain filtering
+  // (0 threw on battle entry on a Test Lab Android 16 emulator).
+  anisotropy: Math.max(1, Math.min(8, renderer.capabilities.getMaxAnisotropy())),
   quality: 'high',
 };
 // --- MAP-CONFIG WIRING + DEFERRED WORLD BUILD ------------------------------
