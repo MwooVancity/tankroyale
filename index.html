@@ -811,6 +811,28 @@
     })();
   </script>
 
+  <script>
+    // Android System WebView before 98 has no structuredClone, and the tank
+    // specs clone at import time: without this the game never boots there
+    // ("A game file did not load", seen on a Pixel 6a with WebView 95).
+    // ponytail: plain data only (objects, arrays, Date, Map, Set, typed arrays).
+    if (typeof window.structuredClone !== 'function') {
+      window.structuredClone = function clone(v, seen) {
+        if (v === null || typeof v !== 'object') return v;
+        seen = seen || new Map();
+        if (seen.has(v)) return seen.get(v);
+        var out;
+        if (v instanceof Date) return new Date(v.getTime());
+        if (ArrayBuffer.isView(v)) return v.slice ? v.slice() : new v.constructor(v);
+        if (v instanceof Map) { out = new Map(); seen.set(v, out); v.forEach(function (x, k) { out.set(clone(k, seen), clone(x, seen)); }); return out; }
+        if (v instanceof Set) { out = new Set(); seen.set(v, out); v.forEach(function (x) { out.add(clone(x, seen)); }); return out; }
+        out = Array.isArray(v) ? [] : {};
+        seen.set(v, out);
+        Object.keys(v).forEach(function (k) { out[k] = clone(v[k], seen); });
+        return out;
+      };
+    }
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

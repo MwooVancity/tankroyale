@@ -173,7 +173,8 @@ export function createMainFrameRuntime({
     }
 
     const studio = getStudio();
-    if (studio.active) {
+    // First frames can run before main.ts assigns the studio (Android 16 test).
+    if (studio?.active) {
       studio.tick(dtR);
       return;
     }
