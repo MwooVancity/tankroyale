@@ -598,7 +598,11 @@ export function createGarage(opts) {
     garageVariantButtons.set(variant.id, button);
   }
   refreshGarageVariantUi();
+  // Web pages (gallery/docs/home) reload index.html in the Android app, i.e. a
+  // full game reboot (Test Lab logs): every route to them is a no-op there.
+  const isNativeApp = !!window.Capacitor?.isNativePlatform?.();
   const openSelectedInGallery = (layer = 'appearance') => {
+    if (isNativeApp) return;
     emit('ui:click', {});
     window.location.href = garageGalleryHref(selectedId, layer);
   };
@@ -1933,10 +1937,12 @@ export function createGarage(opts) {
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'F8' }));
   };
   const openDocs = () => {
+    if (isNativeApp) return;
     emit('ui:click', {});
     window.location.href = '/docs'; // pretty route (vite.config.js rewrite)
   };
   const openHome = () => {
+    if (isNativeApp) return;
     emit('ui:click', {});
     window.location.href = '/home'; // pretty route (vite.config.js rewrite)
   };
@@ -1949,9 +1955,10 @@ export function createGarage(opts) {
   });
   // In the Android app these web pages reload index.html (a full game reboot)
   // or leave the app for Chrome (Test Lab logs); the app shows the game only.
-  if (window.Capacitor?.isNativePlatform?.()) {
+  if (isNativeApp) {
     for (const nav of ['gallery', 'docs', 'home', 'github']) {
       root.querySelector(`[data-nav="${nav}"]`)?.remove();
+      root.querySelector(`[data-mobile-nav="${nav}"]`)?.remove();
     }
   }
   for (const studioIntent of root.querySelectorAll(

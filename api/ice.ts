@@ -64,6 +64,7 @@ export function createIceConfigHandler({
     if (origin) {
       response.setHeader('access-control-allow-origin', origin);
       response.setHeader('access-control-allow-credentials', 'true');
+      response.setHeader('vary', 'Origin');
     }
 
     const staticJson = String(env.COT_TURN_ICE_SERVERS_JSON || '').trim();

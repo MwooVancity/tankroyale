@@ -116,12 +116,22 @@ export async function loadIceConfiguration({
   try {
     for (let attempt = 0; ; attempt++) {
       const remainingMs = Math.max(1, deadline - Date.now());
-      const response = await fetchImpl(endpoint, {
-        credentials: 'include',
-        cache: 'no-store',
-        signal: AbortSignal.timeout(remainingMs),
-      });
-      const body = await responseBody(response);
+      // Not AbortSignal.timeout: WebView < 103 lacks it and TURN silently
+      // fell back to STUN (no relay on mobile NAT).
+      const abort = new AbortController();
+      const abortTimer = setTimeout(() => abort.abort(), remainingMs);
+      let response: Response;
+      let body: Awaited<ReturnType<typeof responseBody>>;
+      try {
+        response = await fetchImpl(endpoint, {
+          credentials: 'include',
+          cache: 'no-store',
+          signal: abort.signal,
+        });
+        body = await responseBody(response); // the deadline covers the body too
+      } finally {
+        clearTimeout(abortTimer);
+      }
       if (!response.ok) {
         const reason = serviceError(body, response.status);
         const retryDelayMs = retryDelaysMs[attempt];
