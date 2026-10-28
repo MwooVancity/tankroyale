@@ -2,6 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // ES5 on purpose. The game needs Chrome/WebView 85+ syntax (??=, ?.); an
+    // older Android System WebView (factory image, never updated) fails with a
+    // SyntaxError on a frozen screen (Test Lab, Android 9 emulator, WebView 66).
+    // Show how to fix it and stop the page before any game script runs.
+    (function () {
+      var m = /Chrome\/(\d+)/.exec(navigator.userAgent);
+      if (!m || +m[1] >= 85) return;
+      document.write('<div style="font:16px/1.5 sans-serif;color:#eee;background:#0b0f14;position:fixed;top:0;left:0;right:0;bottom:0;padding:32px;text-align:center">' +
+        '<h2>Update needed</h2><p>Tank Royale needs a newer Android System WebView (yours is version ' + m[1] + ').</p>' +
+        '<p><a style="color:#f5a623;font-weight:bold" href="https://play.google.com/store/apps/details?id=com.google.android.webview">Update Android System WebView</a></p>' +
+        '<p>Then reopen the game.</p></div>');
+      window.stop();
+    })();
+  </script>
   <!-- MOBILE-UX r1: pinch must never zoom the PAGE (pinch-out is the scope
        gesture in battle — touchControls.js). maximum-scale/user-scalable stop
        spec-compliant mobile browsers; iOS Safari ignores user-scalable, so

@@ -73,8 +73,10 @@ const want = [[24, 28], [29, 32], [33, 99]], makers = new Set();
 for (const [lo, hi] of want) {
   for (const m of models) {
     // Only versions with phones actually in the lab (a NONE/LOW pick was never run).
-    const v = (m.perVersionInfo || []).filter((p) => FORM === 'VIRTUAL' || p.deviceCapacity === 'DEVICE_CAPACITY_HIGH' || p.deviceCapacity === 'DEVICE_CAPACITY_MEDIUM')
-      .map((p) => Number(p.versionId)).filter((x) => x >= lo && x <= hi).sort((a, b) => a - b).at(-1);
+    // Emulators carry no capacity info: any supported version is available.
+    const v = (FORM === 'VIRTUAL' ? m.supportedVersionIds : (m.perVersionInfo || [])
+      .filter((p) => p.deviceCapacity === 'DEVICE_CAPACITY_HIGH' || p.deviceCapacity === 'DEVICE_CAPACITY_MEDIUM').map((p) => p.versionId))
+      .map(Number).filter((x) => x >= lo && x <= hi).sort((a, b) => a - b).at(-1);
     if (v && !makers.has(FORM === 'VIRTUAL' ? m.id : m.manufacturer)) { picked.push({ androidModelId: m.id, androidVersionId: String(v), locale: 'en', orientation: 'landscape', name: `${m.manufacturer} ${m.name} / API ${v}` }); makers.add(FORM === 'VIRTUAL' ? m.id : m.manufacturer); break; }
   }
 }
