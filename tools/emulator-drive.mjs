@@ -16,11 +16,25 @@ for (let i = 0; i < 60 && !pages.length; i++) {
   if (!pages.length) await sleep(2000);
 }
 if (!pages.length) { console.log('FAIL no WebView page to debug'); process.exit(1); }
-const ws = new WebSocket(pages[0].webSocketDebuggerUrl);
-await new Promise((r, j) => { ws.onopen = r; ws.onerror = j; });
-
-let id = 0; const pending = new Map(); const errors = []; const log = [];
-ws.onmessage = (ev) => {
+let id = 0; const pending = new Map(); const errors = []; const log = []; const events = [];
+let ws;
+// The page can reload or its renderer can die mid-boot: reconnect instead of hanging.
+async function connect() {
+  let list = [];
+  for (let i = 0; i < 30 && !list.length; i++) {
+    try { list = (await (await fetch('http://127.0.0.1:9222/json')).json()).filter((p) => p.type === 'page'); } catch { /* gone */ }
+    if (!list.length) await sleep(2000);
+  }
+  if (!list.length) return false;
+  ws = new WebSocket(list[0].webSocketDebuggerUrl);
+  const ok = await new Promise((r) => { ws.onopen = () => r(true); ws.onerror = () => r(false); setTimeout(() => r(false), 10000); });
+  if (!ok) return false;
+  ws.onclose = () => { events.push(`devtools closed at ${new Date().toISOString()}`); for (const f of pending.values()) f({}); pending.clear(); };
+  ws.onmessage = onMessage;
+  await send('Runtime.enable'); await send('Page.enable');
+  return true;
+}
+const onMessage = (ev) => {
   const m = JSON.parse(ev.data);
   if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); return; }
   if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
@@ -30,17 +44,22 @@ ws.onmessage = (ev) => {
     if (m.params.type === 'error') errors.push(text);
   }
 };
-const send = (method, params = {}) => new Promise((r) => { const n = ++id; pending.set(n, r); ws.send(JSON.stringify({ id: n, method, params })); });
+const send = (method, params = {}) => new Promise((r) => {
+  if (!ws || ws.readyState !== 1) return r({});
+  const n = ++id; pending.set(n, r); ws.send(JSON.stringify({ id: n, method, params }));
+  setTimeout(() => { if (pending.delete(n)) r({}); }, 20000); // never hang on a dead page
+});
 const evalJs = async (expression) => (await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })).result?.result?.value;
 const shot = async (name) => {
   const r = await send('Page.captureScreenshot', { format: 'png' });
   if (r.result?.data) fs.writeFileSync(path.join(OUT, `${name}.png`), Buffer.from(r.result.data, 'base64'));
 };
-await send('Runtime.enable'); await send('Page.enable');
+if (!(await connect())) { console.log('FAIL cannot attach to WebView'); process.exit(1); }
 
 const result = { booted: false, bootSeconds: null, battleStarted: false, errors };
 const t0 = Date.now();
 while (Date.now() - t0 < 240_000) {
+  if (!ws || ws.readyState !== 1) await connect();
   if (await evalJs('!!window.__GAME_READY')) { result.booted = true; break; }
   await sleep(2000);
 }
@@ -60,7 +79,7 @@ if (result.booted) {
   result.battleStarted = result.battleClicked && !errors.some((e) => /entry failed/i.test(e));
   result.battleHud = await evalJs("!!document.querySelector('#hud, .hud, [data-hud]') && getComputedStyle(document.querySelector('#hud, .hud, [data-hud]')).display !== 'none'");
 }
-fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ ...result, log: log.slice(-200) }, null, 2));
-console.log(JSON.stringify({ ...result, errors: errors.slice(0, 20) }, null, 2));
-ws.close();
+fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ ...result, events, log: log.slice(-200) }, null, 2));
+console.log(JSON.stringify({ ...result, events, errors: errors.slice(0, 20) }, null, 2));
+ws?.close();
 process.exit(result.booted && result.battleStarted ? 0 : 1);
