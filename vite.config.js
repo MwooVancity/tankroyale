@@ -22,6 +22,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
 import { renderProductStats } from './src/productStats.ts';
+import { dvhFallbackPlugin } from './tools/dvh-fallback.mjs';
 
 /**
  * Transitive relative-import closure starting at src/main.ts.
@@ -87,6 +88,7 @@ function rewriteRoutes(req, res, next) {
 
 export default {
   plugins: [
+    dvhFallbackPlugin(),
     {
       name: 'cot-product-stats',
       transformIndexHtml(html) {
@@ -127,6 +129,9 @@ export default {
     },
   },
   build: {
+    // Matches the WebView 94 gate in index.html; also stops the CSS minifier
+    // dropping the vh fallbacks that cot-dvh-fallback writes.
+    cssTarget: 'chrome94',
     esbuild: {
       drop: ['console', 'debugger'],
     },
