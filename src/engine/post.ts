@@ -1599,13 +1599,19 @@ class LateFxPass extends Pass {
       softState.uCameraFar.value = this.camera.far;
 
       const oldBackground = this.scene.background;
+      const oldShadowAuto = renderer.shadowMap.autoUpdate;
       this.scene.background = null;
+      // The shadow maps were drawn by the opaque pass this frame. Left on,
+      // render() redrew every cascade here too: half of each phone frame
+      // (mobile-frame-probe: 2 world renders x 27 ms at 4x CPU throttle).
+      renderer.shadowMap.autoUpdate = false;
       try {
         this.camera.layers.set(LATE_FX_LAYER);
         renderer.setRenderTarget(this.target);
         renderer.render(this.scene, this.camera);
       } finally {
         this.scene.background = oldBackground;
+        renderer.shadowMap.autoUpdate = oldShadowAuto;
       }
 
       this.copyMaterial.uniforms.tDiffuse.value = this.target.texture;

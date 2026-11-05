@@ -91,13 +91,14 @@ async function loadPackedModels(): Promise<BakedPropModels> {
   if (!response.ok || !response.body) {
     throw new Error(`prop archive request failed (${response.status})`);
   }
-  // Static hosts disagree about `.gz`: Vite preview and some CDNs advertise
-  // Content-Encoding and Fetch hands us already-decoded bytes; object stores
-  // often serve the same file as opaque bytes. Support both without guessing.
-  if (response.headers.get('content-encoding')?.toLowerCase().includes('gzip')) {
-    return decodePropModelArchive(await response.arrayBuffer());
-  }
-  const decompressed = response.body.pipeThrough(new DecompressionStream('gzip'));
+  // Hosts disagree about this file: some send Content-Encoding (Fetch may or
+  // may not have decoded it), the Android app sends raw bytes. Trust the bytes,
+  // not the header: the gzip magic 1f 8b means still compressed (Vite preview
+  // sent "gzip" with undecoded bytes and battle entry threw on the signature).
+  const bytes = await response.arrayBuffer();
+  const head = new Uint8Array(bytes, 0, Math.min(2, bytes.byteLength));
+  if (head[0] !== 0x1f || head[1] !== 0x8b) return decodePropModelArchive(bytes);
+  const decompressed = new Response(bytes).body!.pipeThrough(new DecompressionStream('gzip'));
   return decodePropModelArchive(await new Response(decompressed).arrayBuffer());
 }
 
