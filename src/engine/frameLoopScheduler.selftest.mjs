@@ -133,6 +133,9 @@ function createHarness() {
 
 {
   const harness = createHarness();
+  harness.scheduler.restart();
+  assert.equal(harness.frames.size, 0, 'restart before boot never ticks unwired frame ports');
+  harness.setBoot(true);
   harness.scheduler.schedule();
   harness.scheduler.restart();
   assert.deepEqual(harness.cancelled, [1], 'restart cancels the old browser callback');

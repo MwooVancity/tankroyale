@@ -19,7 +19,11 @@ export function dvhFallbackPlugin() {
       const file = id.split('?')[0];
       if (file.includes('node_modules') || !/\.(css|ts|js)$/.test(file)) return null;
       if (!/\d[ds]vh\b/.test(code)) return null;
-      return { code: addVhFallback(code), map: null };
+      // In .ts/.js only CSS inside template literals is rewritten, never code.
+      // The copy goes on the same line, so line numbers (map: null) stay true.
+      const out = file.endsWith('.css') ? addVhFallback(code)
+        : code.replace(/`[^`]*`/g, (literal) => addVhFallback(literal));
+      return { code: out, map: null };
     },
   };
 }

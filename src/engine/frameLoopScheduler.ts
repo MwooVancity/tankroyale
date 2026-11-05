@@ -140,7 +140,9 @@ export function createFrameLoopScheduler({
   };
 
   const restart = () => {
-    if (disposed) return;
+    // A phase change or context wake during boot must not tick a frame
+    // runtime whose ports main.ts has not wired yet; boot's schedule() starts it.
+    if (disposed || !isBootComplete()) return;
     cancelQueued();
     // A wake is always immediate. The resulting tick chooses idle cadence
     // again only after input/phase owners have had a chance to mutate state.

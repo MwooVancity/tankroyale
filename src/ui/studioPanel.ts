@@ -18,6 +18,7 @@ import { mountMediaArchive } from '../presentation/mediaArchive.ts';
 import { PRODUCT_STATS } from '../productStats.ts';
 import { vehicleEraLabel } from '../vehicles/taxonomy.ts';
 import { createInfoButton, type InfoButton, type InfoImage } from './contextInfo.ts';
+import { isNativeApp } from './nativeApp.ts';
 
 const STUDIO_GROUP_INFO: Readonly<Record<string, string>> = Object.freeze({
   Battlefield: 'Choose the live battlefield, seed, and environmental foundation used by the current composition.',
@@ -541,7 +542,7 @@ export function createStudioPanel(S: StudioPanelApi): StudioPanelRuntime {
   const galleryBtn = el('button');
   galleryBtn.innerHTML = '<img src="/brand/nav/tank-gallery.svg" alt="">TANK GALLERY';
   // The Android app has no gallery page: navigating reboots the game.
-  if ((window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) galleryBtn.hidden = true;
+  if (isNativeApp()) galleryBtn.hidden = true;
   galleryBtn.addEventListener('click', () => {
     const id = S._internal.selected?.spec?.id;
     window.location.href = id ? `/gallery?id=${encodeURIComponent(id)}` : '/gallery';

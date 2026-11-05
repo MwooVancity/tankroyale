@@ -853,6 +853,7 @@
         if (seen.has(v)) return seen.get(v);
         var out;
         if (v instanceof Date) return new Date(v.getTime());
+        if (v instanceof ArrayBuffer) return v.slice(0);
         if (ArrayBuffer.isView(v)) return v.slice ? v.slice() : new DataView(v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength));
         if (v instanceof Map) { out = new Map(); seen.set(v, out); v.forEach(function (x, k) { out.set(clone(k, seen), clone(x, seen)); }); return out; }
         if (v instanceof Set) { out = new Set(); seen.set(v, out); v.forEach(function (x) { out.add(clone(x, seen)); }); return out; }

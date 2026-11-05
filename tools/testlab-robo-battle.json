@@ -1,0 +1,9 @@
+[
+  { "eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 45000 },
+  { "eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{ "className": "android.webkit.WebView" }] },
+  { "eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 5000 },
+  { "eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{ "contentDescription": "Start Bots battle" }] },
+  { "eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{ "text": "Start Bots battle" }] },
+  { "eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{ "text": "BATTLE" }] },
+  { "eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 120000 }
+]

@@ -160,7 +160,8 @@ export async function loadIceConfiguration({
       };
     }
   } catch (error) {
-    const reason = error instanceof Error && error.name === 'TimeoutError'
+    // Our deadline AbortController aborts with AbortError (WebView < 103 has no AbortSignal.timeout).
+    const reason = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')
       ? 'turn_service_timeout'
       : 'turn_service_unavailable';
     return stunFallback(reason);

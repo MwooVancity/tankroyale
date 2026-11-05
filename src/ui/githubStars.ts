@@ -1,3 +1,4 @@
+import { isNativeApp } from './nativeApp.ts';
 const REPOSITORY_STATS_ENDPOINT = '/api/github-stars';
 const STAR_CACHE_KEY = 'tr:github-stars';
 const STAR_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
@@ -59,7 +60,7 @@ function writeCachedStars(count: number): void {
 
 async function fetchGitHubStars(): Promise<number | null> {
   // The Android app has no /api route on https://localhost (and no GitHub UI).
-  if ((window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) return null;
+  if (isNativeApp()) return null;
   try {
     const response = await fetch(REPOSITORY_STATS_ENDPOINT, {
       headers: { Accept: 'application/json' },

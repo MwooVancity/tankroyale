@@ -63,6 +63,13 @@ const code = execFileSync('curl', ['-s', '-o', path.join(OUT, 'upload.json'), '-
   `https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent(obj)}`]).toString();
 if (code !== '200') throw new Error('upload ' + code + ' ' + fs.readFileSync(path.join(OUT, 'upload.json'), 'utf8').slice(0, 300));
 console.log('Uploaded', obj);
+// ROBO=<file>: a Robo script run first (e.g. tools/testlab-robo-battle.json taps BATTLE).
+let roboScript;
+if (process.env.ROBO) {
+  const name = `vc${VC}/robo.json`;
+  await api(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent(name)}`, { method: 'POST', body: fs.readFileSync(process.env.ROBO) });
+  roboScript = { gcsPath: `gs://${BUCKET}/${name}` };
+}
 
 // 3. Pick real phones: a low, a mid and a recent Android, different makers.
 const cat = await api(`https://testing.googleapis.com/v1/testEnvironmentCatalog/ANDROID?projectId=${PROJECT}`);
@@ -87,7 +94,7 @@ await refresh();
 matrix = await api(`https://testing.googleapis.com/v1/projects/${PROJECT}/testMatrices`, {
   method: 'POST',
   body: JSON.stringify({
-    testSpecification: { testTimeout: '420s', androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG } },
+    testSpecification: { testTimeout: '420s', androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, roboScript } },
     environmentMatrix: { androidDeviceList: { androidDevices: picked.map(({ name, ...d }) => d) } },
     resultStorage: { googleCloudStorage: { gcsPath: `gs://${BUCKET}/vc${VC}/results/${Date.now()}` } },
   }),

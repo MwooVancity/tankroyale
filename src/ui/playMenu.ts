@@ -10,6 +10,7 @@ import {
   type PrivateRoomConnection,
 } from '../net/privateRoomConnectionRuntime.ts';
 import { resolveSignalUrl } from '../net/signalEndpoint.ts';
+import { isNativeApp } from './nativeApp.ts';
 import { automaticPlayerName, normalizePlayerName } from '../net/playerNames.ts';
 import { signInWithGoogle, getCachedGoogleUser } from '../auth/googleAuth.ts';
 import { normalizeRoomCode } from '../net/protocol.ts';
@@ -572,8 +573,22 @@ function defaultRankedUrl(): string {
 
 async function iceServers(mode: string): Promise<IceConfiguration> {
   const configured = import.meta.env.VITE_ICE_CONFIG_URL;
-  const endpoint = configured || (location.protocol === 'https:' ? '/api/ice' : '');
-  return loadIceConfiguration({ mode, endpoint });
+  return loadIceConfiguration({ mode, endpoint: configured || defaultIceUrl() });
+}
+
+function defaultIceUrl(): string {
+  // In the app /api/ice on https://localhost is index.html; the signal server
+  // hosts /api/ice too (server-render.ts), so ask it instead.
+  if (isNativeApp()) {
+    try {
+      const url = new URL(defaultSignalUrl());
+      url.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
+      url.pathname = '/api/ice';
+      url.search = '';
+      return url.toString();
+    } catch { return ''; }
+  }
+  return location.protocol === 'https:' ? '/api/ice' : '';
 }
 
 export function createPlayMenu({
