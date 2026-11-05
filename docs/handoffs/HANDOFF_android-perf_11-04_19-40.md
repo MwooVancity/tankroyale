@@ -31,7 +31,7 @@ No `docs/WORK-ORDER.md` or `state/grind-active.json` in this repo (those are cal
 | Refused: posting own 5-star rating | Play rating manipulation = account ban | n/a; offered in-app review API + review replies |
 
 ## Files affected
-Modified/created: listed above. Uncommitted and NOT this session's (leave alone): `.gitignore` (adds research_notes/ reports/ is calcscrape's? no: tank-royale `.gitignore` diff predates; check before committing), `docs/HANDOFF-2026-09-22.md`, `graphify-out/`, `src/graphify-out/`, `public/brand/store-assets/`, `tools/gen-store-assets*.mjs`, `tools/resize-icon.mjs`.
+Modified/created: listed above. Uncommitted and NOT this session's (leave alone): `.gitignore` (diff predates this work; read it before committing), `docs/HANDOFF-2026-09-22.md`, `graphify-out/`, `src/graphify-out/`, `public/brand/store-assets/`, `tools/gen-store-assets*.mjs`, `tools/resize-icon.mjs`.
 
 ## Technical context
 - Probe: `npm run build:mobile && node tools/mobile-frame-probe.mjs 4` (headed Chrome window opens; headless falls back to software GL and stalls). Enters battle via `window.__DEBUG.startBattle('m1a2')` (the real BATTLE button opens the play menu; a JS `.click()` does not start). `NOSHADOW=1` freezes shadow updates.
