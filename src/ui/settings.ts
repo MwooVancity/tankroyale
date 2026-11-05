@@ -50,7 +50,7 @@ import type {
 import {
   getDeviceTier, getMobilePresetChoice, getStoredChoice,
   MOBILE_PRESET_ORDER, PRESET_ORDER, PRESETS,
-  setMobilePresetName, setPresetName,
+  setMobilePresetName, setPresetName, MOBILE_DEFAULT_PRESET,
   type PresetName,
 } from '../engine/quality.ts';
 
@@ -1342,7 +1342,7 @@ export function createSettings(opts: SettingsOptions): SettingsRuntime {
     cancelCapture();
     clearConflict();
     if (activeTab === 'graphics') {
-      if (getDeviceTier() === 'mobile') setMobilePresetName('mobile');
+      if (getDeviceTier() === 'mobile') setMobilePresetName(MOBILE_DEFAULT_PRESET);
       else setPresetName('auto');
       renderTab();
       return;

@@ -327,6 +327,9 @@ export const PRESETS: Readonly<Record<PresetName, QualityPreset>> = {
 
 export const PRESET_ORDER: readonly DesktopPresetName[] = ['low', 'medium', 'high', 'ultra'];
 export const MOBILE_PRESET_ORDER: readonly MobilePresetName[] = ['mobile-low', 'mobile', 'mobile-high'];
+// Test Lab, Pixel 6a (Android 12): Balanced ran a Bots battle at 7 fps.
+// Phones start on Performance; players opt up from the GFX button.
+export const MOBILE_DEFAULT_PRESET: MobilePresetName = 'mobile-low';
 
 const listeners = new Set<PresetListener>();
 
@@ -441,7 +444,13 @@ export function resolveAutoTier(): AutoTier {
  * @returns {boolean} true if a tier step was applied
  */
 export function reportSustainedOverload(): boolean {
-  if (getDeviceTier() === 'mobile') return false;
+  if (getDeviceTier() === 'mobile') {
+    // Phones step down too (Quality -> Balanced -> Performance), persisted.
+    const i = MOBILE_PRESET_ORDER.indexOf(getMobilePresetChoice());
+    if (i <= 0) return false;
+    setMobilePresetName(MOBILE_PRESET_ORDER[i - 1]!);
+    return true;
+  }
   if (getStoredChoice() !== 'auto') return false;
   const cur = resolveAutoTier();
   const i = AUTO_ORDER.indexOf(cur);
@@ -473,13 +482,13 @@ export function getMobilePresetChoice(): MobilePresetName {
       _mobileResetHandled = true;
       if (new URLSearchParams(window.location.search).has('gfxreset')) {
         window.localStorage.removeItem(LS_MOBILE_KEY);
-        return 'mobile';
+        return MOBILE_DEFAULT_PRESET;
       }
     }
     const v = window.localStorage.getItem(LS_MOBILE_KEY);
     if (v === 'mobile-low' || v === 'mobile' || v === 'mobile-high') return v;
   } catch (_) { /* storage blocked — balanced is the safe default */ }
-  return 'mobile';
+  return MOBILE_DEFAULT_PRESET;
 }
 
 /**

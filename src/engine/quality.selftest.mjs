@@ -27,7 +27,11 @@ function installBrowser(search, { memory = 8, cores = 8 } = {}) {
 installBrowser('?tier=mobile');
 const mobile = await import('./quality.ts?quality-mobile-contract');
 assert.equal(mobile.resolveDeviceTier({ capabilities: { maxTextureSize: 8192 } }), 'mobile');
-assert.equal(mobile.resolvePresetName(), 'mobile');
+assert.equal(mobile.resolvePresetName(), 'mobile-low', 'phones start on Performance (Pixel 6a: 7 fps on Balanced)');
+assert.equal(mobile.reportSustainedOverload(), false, 'Performance is the phone floor');
+mobile.setMobilePresetName('mobile-high');
+assert.equal(mobile.reportSustainedOverload(), true);
+assert.equal(mobile.resolvePresetName(), 'mobile', 'sustained overload steps a phone down one preset');
 assert.equal(mobile.texSize(4096, 'vehicle'), 2048,
   'mobile vehicle textures retain their tier cap');
 assert.deepEqual(mobile.MOBILE_PRESET_ORDER, ['mobile-low', 'mobile', 'mobile-high']);
