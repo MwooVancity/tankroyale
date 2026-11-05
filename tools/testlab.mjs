@@ -87,6 +87,8 @@ for (const [lo, hi] of want) {
     if (v && !makers.has(FORM === 'VIRTUAL' ? m.id : m.manufacturer)) { picked.push({ androidModelId: m.id, androidVersionId: String(v), locale: 'en', orientation: 'landscape', name: `${m.manufacturer} ${m.name} / API ${v}` }); makers.add(FORM === 'VIRTUAL' ? m.id : m.manufacturer); break; }
   }
 }
+// MODEL=<id> (e.g. bluejay = Pixel 6a) runs one phone only: 5 physical runs/day.
+if (process.env.MODEL) picked = [{ androidModelId: process.env.MODEL, androidVersionId: process.env.API || '32', locale: 'en', orientation: 'landscape', name: process.env.MODEL }];
 console.log('Devices:', picked.map((d) => d.name).join(' | '));
 
 // 4. Robo crawl: boots the app, taps through screens, records video + logcat.

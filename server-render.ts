@@ -23,7 +23,9 @@ const iceHandler = createIceConfigHandler({
   env: {
     ...process.env,
     // Free Google STUN servers — no account needed
-    COT_TURN_ICE_SERVERS_JSON: process.env.TR_ICE_SERVERS_JSON || JSON.stringify([
+    // A static list wins over the Cloudflare TURN relay in api/ice.ts, so it is
+    // only set when no relay key is configured (STUN alone fails on carrier NAT).
+    COT_TURN_ICE_SERVERS_JSON: process.env.COT_CLOUDFLARE_TURN_KEY_ID ? '' : process.env.TR_ICE_SERVERS_JSON || JSON.stringify([
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun2.l.google.com:19302' },
