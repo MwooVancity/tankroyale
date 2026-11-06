@@ -2131,6 +2131,8 @@ export function createPost(
   let dynClock = 0;
   let dynLastStep = 0;
   let telemetryClock = 0;
+  let perfLogClock = 0;
+  const perfLogSize = new THREE.Vector2();
   // cadence ring: ~3 s of frame deltas; p10 estimates the true vsync period
   // robustly (min alone anchors on double-fire jitter outliers).
   const dynRing = new Float32Array(180);
@@ -2249,6 +2251,17 @@ export function createPost(
       renderer.domElement.dataset.frameEmaMs = dynEma.toFixed(2);
       renderer.domElement.dataset.dynScale = dynScale.toFixed(3);
       renderer.domElement.dataset.dynBudgetMs = dynBudgetMs.toFixed(2);
+      // Phone diagnosis without a browser: one line every 5 s lands in
+      // Android logcat (Capacitor/Console), which Firebase Test Lab returns.
+      if (dynClock - perfLogClock >= 5) {
+        perfLogClock = dynClock;
+        const buf = renderer.getDrawingBufferSize(perfLogSize);
+        console.info(`[perf] fps=${renderer.domElement.dataset.fps || '?'} frameEmaMs=${dynEma.toFixed(1)}`
+          + ` scale=${dynScale.toFixed(2)} dpr=${renderer.getPixelRatio().toFixed(2)} buf=${buf.x}x${buf.y}`
+          + ` trim=${perfTrim} preset=${(preset as { id?: string }).id ?? '?'} msaa=${msaaSamples}`
+          + ` lastPassCalls=${renderer.info.render.calls} tris=${renderer.info.render.triangles}`
+          + ` progs=${renderer.info.programs?.length ?? '?'} geos=${renderer.info.memory.geometries}`);
+      }
     }
     if (dynPin !== null) return; // QA pin owns the scale; telemetry stays live
     // Resolution only moves inside a preset's readability fence. DPR-1
