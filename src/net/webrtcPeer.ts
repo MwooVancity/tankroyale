@@ -2,11 +2,13 @@ import {
   createWebRTCSplitTransport,
   type ChannelTransport,
 } from './channelTransport.ts';
+import { createRelayChannel, type RelayChannel, type RelayDataSignal } from './signalRelayChannel.ts';
 
 export type RtcSignal =
   | { kind: 'ice'; candidate: RTCIceCandidateInit }
   | { kind: 'description'; description: RTCSessionDescriptionInit }
-  | { kind: 'restart' };
+  | { kind: 'restart' }
+  | RelayDataSignal;
 
 export type MatchTransport = ChannelTransport;
 
@@ -16,6 +18,8 @@ export interface WebRtcPeerSession {
   readonly transportReady: Promise<MatchTransport>;
   readonly connectionState: RTCPeerConnectionState;
   readonly recoveryAttempts: number;
+  /** true once match traffic runs through the signal-server relay */
+  readonly relayed: boolean;
   start(): Promise<void>;
   handleSignal(signal: RtcSignal): Promise<void>;
   close(reason?: string): void;
@@ -34,6 +38,13 @@ export interface WebRtcPeerOptions {
   disconnectGraceMs?: number;
   initialRecoveryDelayMs?: number;
   connectTimeoutMs?: number;
+  /**
+   * Fall back to tunneling the match channels through signaling (onSignal /
+   * handleSignal 'data' signals) when WebRTC fails, times out, or has not
+   * connected within relayAfterMs.
+   */
+  signalRelay?: boolean;
+  relayAfterMs?: number;
 }
 
 export const MATCH_CONTROL_CHANNEL_LABEL = 'cot-match-v1';
@@ -89,6 +100,8 @@ export function createWebRTCPeer({
   disconnectGraceMs = 4_000,
   initialRecoveryDelayMs = 15_000,
   connectTimeoutMs = 60_000,
+  signalRelay = false,
+  relayAfterMs = 15_000,
 }: WebRtcPeerOptions): WebRtcPeerSession {
   if (role !== 'host' && role !== 'client') throw new TypeError('role must be host or client');
   if (typeof onSignal !== 'function') throw new TypeError('onSignal callback is required');
@@ -122,10 +135,39 @@ export function createWebRTCPeer({
   let recoveryAttempts = 0;
   let negotiationChain: Promise<unknown> = Promise.resolve();
   let connectTimer: ReturnType<typeof setTimeout> | null = null;
+  let relayTimer: ReturnType<typeof setTimeout> | null = null;
+  let relayChannels: Record<'c' | 's', RelayChannel> | null = null;
+  let relayRemoteClosed = false;
   const transportReady = new Promise<MatchTransport>((resolve, reject) => {
     settleTransport = resolve;
     rejectTransport = reject;
   });
+
+  // Switch to the signaling relay. Called once per session, before any RTC
+  // transport exists; tells the remote peer so both sides use the relay.
+  function activateRelay() {
+    if (!signalRelay || transport || closed || relayChannels) return false;
+    const send = (signal: RelayDataSignal) => onSignal(signal);
+    relayChannels = { c: createRelayChannel('c', send), s: createRelayChannel('s', send) };
+    for (const channel of channels.values()) channel.close();
+    channels.clear();
+    clearRecovery();
+    if (connectTimer) clearTimeout(connectTimer);
+    if (relayTimer) clearTimeout(relayTimer);
+    connectTimer = relayTimer = null;
+    peerConnection.onicecandidate = null;
+    peerConnection.ondatachannel = null;
+    peerConnection.onconnectionstatechange = null;
+    try { peerConnection.close(); } catch { /* already closed */ }
+    onSignal({ kind: 'data', ch: 'h' });
+    transport = createWebRTCSplitTransport(relayChannels.c, relayChannels.s, transportOptions);
+    transport.onClose(() => {
+      if (!relayRemoteClosed) onSignal({ kind: 'data', ch: 'x' });
+    });
+    onConnectionStateChange('connected');
+    settleTransport(transport);
+    return true;
+  }
 
   function settleIfReady() {
     if (transport || closed) return;
@@ -134,7 +176,8 @@ export function createWebRTCPeer({
     if (!control || !state || control.readyState !== 'open' || state.readyState !== 'open') return;
     transport = createWebRTCSplitTransport(control, state, transportOptions);
     if (connectTimer) clearTimeout(connectTimer);
-    connectTimer = null;
+    if (relayTimer) clearTimeout(relayTimer);
+    connectTimer = relayTimer = null;
     clearRecovery();
     settleTransport(transport);
   }
@@ -227,6 +270,7 @@ export function createWebRTCPeer({
     } else if (state === 'disconnected') {
       scheduleRecovery(disconnectGraceMs);
     } else if (state === 'failed') {
+      if (!transport && activateRelay()) return;
       clearRecovery();
       scheduleRecovery(0);
     } else if (state === 'closed') session.close('rtc_closed');
@@ -264,9 +308,24 @@ export function createWebRTCPeer({
   }
 
   function handleSignal(signal: RtcSignal): Promise<void> {
+    if (signal && typeof signal === 'object' && signal.kind === 'data') {
+      // Relay traffic never waits behind SDP negotiation.
+      if (closed) return Promise.resolve();
+      if (!relayChannels) activateRelay();
+      if (relayChannels) {
+        if (signal.ch === 'c' || signal.ch === 's') relayChannels[signal.ch].deliver(signal);
+        else if (signal.ch === 'x') {
+          relayRemoteClosed = true;
+          relayChannels.c.remoteClosed();
+          relayChannels.s.remoteClosed();
+        }
+      }
+      return Promise.resolve();
+    }
     return queueNegotiation(async () => {
       if (closed) return;
       if (!signal || typeof signal !== 'object') throw new TypeError('invalid RTC signal');
+      if ((signal as { kind: string }).kind === 'data') return; // handled before the negotiation queue
       if (signal.kind === 'restart') {
         if (role !== 'host') throw new Error('only the host accepts RTC restart requests');
         clearRecovery();
@@ -327,7 +386,8 @@ export function createWebRTCPeer({
       closed = true;
       clearRecovery();
       if (connectTimer) clearTimeout(connectTimer);
-      connectTimer = null;
+      if (relayTimer) clearTimeout(relayTimer);
+      connectTimer = relayTimer = null;
       pendingCandidates.length = 0;
       if (transport) transport.close(reason);
       else {
@@ -341,14 +401,21 @@ export function createWebRTCPeer({
       peerConnection.close();
     },
     restartIce() {
+      if (relayChannels) return;
       clearRecovery();
       scheduleRecovery(0);
     },
-    get connectionState() { return peerConnection.connectionState; },
+    get connectionState() { return relayChannels ? 'connected' : peerConnection.connectionState; },
+    get relayed() { return !!relayChannels; },
     get recoveryAttempts() { return recoveryAttempts; },
   };
+  if (signalRelay) {
+    relayTimer = setTimeout(() => { relayTimer = null; activateRelay(); }, relayAfterMs);
+    if (typeof relayTimer.unref === 'function') relayTimer.unref();
+  }
   connectTimer = setTimeout(() => {
     if (closed || transport) return;
+    if (activateRelay()) return;
     const seconds = Math.max(1, Math.ceil(connectTimeoutMs / 1_000));
     const error = Object.assign(new Error(`WebRTC could not connect within ${seconds} seconds.`), {
       code: 'rtc_connect_timeout',

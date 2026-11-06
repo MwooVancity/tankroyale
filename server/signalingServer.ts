@@ -15,6 +15,14 @@ import {
 const MAX_PAYLOAD_BYTES = 128 * 1024;
 const RATE_WINDOW_MS = 10_000;
 const RATE_MAX_MESSAGES = 120;
+// Match-traffic relay (WebRTC fallback, src/net/signalRelayChannel.ts). Its
+// own budget: game traffic is ~20-60 messages/s per room. Over budget, data is
+// dropped (state is lossy by design); a connection far over is closed.
+export const RELAY_MAX_DATA_CHARS = 60_000; // same as src/net/signalRelayChannel.ts
+export const RELAY_ROOM_MAX_MESSAGES = 1_500; // per room per RATE_WINDOW_MS
+export const RELAY_ROOM_MAX_CHARS = 8_000_000; // per room per RATE_WINDOW_MS (~800 KB/s)
+const RELAY_CONNECTION_MAX_MESSAGES = 1_200;
+const RELAY_CONNECTION_CLOSE_MESSAGES = 3_000;
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -115,6 +123,13 @@ function errorMessage(error: unknown, requestId: unknown = null): SignalingMessa
 function validateSignal(signal: unknown): Record<string, unknown> {
   if (!isRecord(signal)) throw new Error('invalid RTC signal');
   if (signal.kind === 'restart') return { kind: 'restart' };
+  if (signal.kind === 'data') {
+    if (!['c', 's', 'h', 'x'].includes(String(signal.ch))) throw new Error('invalid relay channel');
+    if (signal.d !== undefined && (typeof signal.d !== 'string' || signal.d.length > RELAY_MAX_DATA_CHARS)) {
+      throw Object.assign(new Error('relay message too large'), { code: 'relay_too_large' });
+    }
+    return { kind: 'data', ch: signal.ch, ...(typeof signal.d === 'string' ? { d: signal.d } : {}), ...(signal.b ? { b: 1 } : {}) };
+  }
   if (signal.kind === 'description') {
     const description = signal.description;
     if (!isRecord(description) || !['offer', 'answer'].includes(String(description.type)) ||
@@ -155,6 +170,12 @@ export function createSignalingServer({
     perMessageDeflate: false,
   });
   const rate = new WeakMap<WebSocket, RateWindow>();
+  const relayRate = new WeakMap<WebSocket, RateWindow>();
+  const roomRelay = new Map<string, RateWindow & { chars: number }>();
+  const windowed = <T extends RateWindow>(w: T, now: number, reset: (w: T) => void): T => {
+    if (now - w.start >= RATE_WINDOW_MS) { w.start = now; w.count = 0; reset(w); }
+    return w;
+  };
   const server = http.createServer(async (request, response) => {
     let pathname = '';
     try { pathname = new URL(String(request.url || ''), 'http://localhost').pathname; }
@@ -212,20 +233,23 @@ export function createSignalingServer({
 
   webSocketServer.on('connection', (connection: WebSocket) => {
     rate.set(connection, { start: Date.now(), count: 0 });
+    relayRate.set(connection, { start: Date.now(), count: 0 });
     let messageChain: Promise<void> = Promise.resolve();
     connection.on('message', (data: RawData, isBinary: boolean) => {
       const limit = rate.get(connection);
-      if (!limit) return;
+      const relayLimit = relayRate.get(connection);
+      if (!limit || !relayLimit) return;
       const now = Date.now();
-      if (now - limit.start >= RATE_WINDOW_MS) {
-        limit.start = now;
-        limit.count = 0;
-      }
-      limit.count++;
-      if (limit.count > RATE_MAX_MESSAGES) {
+      // Relay data rides its own bucket; anything claiming the data shape is
+      // re-checked after parsing and rejected if it is not a relay signal.
+      const relayData = !isBinary && data.toString().includes('"kind":"data"');
+      const bucket = windowed(relayData ? relayLimit : limit, now, () => {});
+      bucket.count++;
+      if (relayData ? bucket.count > RELAY_CONNECTION_CLOSE_MESSAGES : bucket.count > RATE_MAX_MESSAGES) {
         connection.close(1008, 'rate_limit');
         return;
       }
+      if (relayData && bucket.count > RELAY_CONNECTION_MAX_MESSAGES) return; // drop
       messageChain = messageChain.then(async () => {
         if (isBinary) {
           safeSend(connection, errorMessage(Object.assign(new Error('binary signaling is unsupported'), {
@@ -255,11 +279,24 @@ export function createSignalingServer({
               break;
             }
             case 'room_signal': {
+              const signal = validateSignal(payload.signal);
+              if (relayData !== (signal.kind === 'data')) {
+                throw Object.assign(new Error('invalid relay signal'), { code: 'invalid_payload' });
+              }
+              if (signal.kind === 'data') {
+                const code = String(payload.roomCode || '');
+                let room = roomRelay.get(code);
+                if (!room) roomRelay.set(code, room = { start: now, count: 0, chars: 0 });
+                windowed(room, now, (w) => { w.chars = 0; });
+                room.count++;
+                room.chars += typeof signal.d === 'string' ? signal.d.length : 0;
+                if (room.count > RELAY_ROOM_MAX_MESSAGES || room.chars > RELAY_ROOM_MAX_CHARS) break; // drop
+              }
               const notification = await store.relay(connection, {
                 roomCode: payload.roomCode,
                 toPeerId: payload.toPeerId,
                 toSessionId: payload.toSessionId,
-                signal: validateSignal(payload.signal),
+                signal,
               });
               await sendNotifications([notification]);
               break;
@@ -284,6 +321,7 @@ export function createSignalingServer({
               await sendNotifications(await store.leave(connection, 'client_leave'));
               break;
             default:
+              if (relayData) throw Object.assign(new Error('invalid relay signal'), { code: 'invalid_payload' });
               throw Object.assign(new Error('unknown signaling message'), { code: 'unknown_message' });
           }
         } catch (error: unknown) {
@@ -310,6 +348,8 @@ export function createSignalingServer({
   });
 
   const sweepTimer: ReturnType<typeof setInterval> = setInterval(() => {
+    const cutoff = Date.now() - RATE_WINDOW_MS;
+    for (const [code, w] of roomRelay) if (w.start < cutoff) roomRelay.delete(code);
     Promise.resolve(store.sweepExpired()).then(sendNotifications)
       .catch((error) => console.error('[signal] Room sweep failed', error));
   }, 60_000);
