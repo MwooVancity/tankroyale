@@ -2260,7 +2260,7 @@ export function createPost(
         console.info(`[perf] fps=${renderer.domElement.dataset.fps || '?'} frameEmaMs=${dynEma.toFixed(1)}`
           + ` mainThreadMs=${cpuMs == null ? '?' : cpuMs.toFixed(1)}`
           + ` scale=${dynScale.toFixed(2)} dpr=${renderer.getPixelRatio().toFixed(2)} buf=${buf.x}x${buf.y}`
-          + ` trim=${perfTrim} preset=${(preset as { id?: string }).id ?? '?'} msaa=${msaaSamples}`
+          + ` trim=${perfTrim} preset=${preset.label} msaa=${msaaSamples}`
           + ` lastPassCalls=${renderer.info.render.calls} tris=${renderer.info.render.triangles}`
           + ` progs=${renderer.info.programs?.length ?? '?'} geos=${renderer.info.memory.geometries}`);
       }
@@ -2415,6 +2415,8 @@ export function createPost(
     renderer.domElement.dataset.perfTrim = '0';
     applyAoEnabled();
     resetGovernorState();
+    // the preset may cap the canvas density: re-run the viewport resize path
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('resize'));
   });
 
   return {

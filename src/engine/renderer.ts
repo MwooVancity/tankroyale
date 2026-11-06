@@ -13,7 +13,7 @@
  * resolution governor.
  */
 import * as THREE from 'three';
-import { getDeviceTier, resolveDeviceTier, noteGpuRenderer } from './quality.ts';
+import { getDeviceTier, getPreset, resolveDeviceTier, noteGpuRenderer } from './quality.ts';
 import { outputResolution, type OutputResolution } from './resolutionPolicy.ts';
 import { routeShadowOnlyLayer } from './renderLayers.ts';
 
@@ -44,6 +44,7 @@ function applyOutputResolution(
     height,
     devicePixelRatio: window.devicePixelRatio || 1,
     mobile: getDeviceTier() === 'mobile',
+    maxPixelRatio: getPreset().maxOutputPixelRatio,
   });
   renderer.setPixelRatio(resolution.pixelRatio);
   (renderer as GameRenderer).userData.outputResolution = resolution;

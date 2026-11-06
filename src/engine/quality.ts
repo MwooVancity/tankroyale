@@ -62,6 +62,8 @@ export interface QualityPreset {
   readonly msaaSamples: number;
   readonly maxPixelRatio: number;
   readonly adaptiveBasePixelRatio?: number;
+  /** cap on the final canvas density (resolutionPolicy); unset = native */
+  readonly maxOutputPixelRatio?: number;
   readonly dynMin: number;
   readonly aoScale: number;
   readonly bloomScale: number;
@@ -264,6 +266,11 @@ export const PRESETS: Readonly<Record<PresetName, QualityPreset>> = {
     // is reconstructed separately; sub-CSS input was the blocky failure mode.
     maxPixelRatio: 1.0,
     adaptiveBasePixelRatio: 1.0,
+    // Pixel 6a (Test Lab, Android 12, build 85): canvas at native 2401x1081
+    // while the scene renders at 915x412 -> frame 85 ms, main thread 43 ms,
+    // i.e. GPU-bound on full-screen native-res passes. Performance keeps
+    // the whole chain at CSS pixels; the WebView stretches the final image.
+    maxOutputPixelRatio: 1.0,
     aoScale: 0,
     bloomScale: 0.35,
     shadowMapSizes: [768, 768, 512, 512],

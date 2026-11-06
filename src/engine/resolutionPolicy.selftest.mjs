@@ -21,4 +21,11 @@ assert.ok(tablet.outputPixels <= MOBILE_OUTPUT_PIXEL_BUDGET + tablet.bufferWidth
 assert.equal(uiPixelRatio(220, 220, 3, true), 3, 'compact mobile HUD canvases stay device-native');
 assert.equal(uiPixelRatio(220, 220, 3, false), 2, 'desktop HUD canvases retain their established cap');
 
+// Phone Performance preset caps the canvas at CSS pixels (Pixel 6a was GPU-bound at native).
+const perf = outputResolution({ width: 915, height: 412, devicePixelRatio: 2.625, mobile: true, maxPixelRatio: 1 });
+assert.equal(perf.pixelRatio, 1, 'preset output cap wins over native mobile DPR');
+assert.equal(perf.outputPixels, 915 * 412, 'Performance canvas is CSS-pixel sized');
+assert.equal(outputPixelRatio({ width: 915, height: 412, devicePixelRatio: 2.625, mobile: true }), 2.625,
+  'presets without a cap keep native density');
+
 console.log('resolutionPolicy self-test passed');

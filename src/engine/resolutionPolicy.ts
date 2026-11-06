@@ -17,6 +17,8 @@ export interface OutputResolutionOptions {
   devicePixelRatio?: unknown;
   mobile?: boolean;
   mobilePixelBudget?: unknown;
+  /** quality preset cap on the final canvas density (e.g. phone Performance) */
+  maxPixelRatio?: unknown;
 }
 
 export interface OutputResolution {
@@ -43,9 +45,11 @@ export function outputPixelRatio({
   devicePixelRatio = 1,
   mobile = false,
   mobilePixelBudget = MOBILE_OUTPUT_PIXEL_BUDGET,
+  maxPixelRatio = Infinity,
 }: OutputResolutionOptions = {}): number {
   const dpr = finitePositive(devicePixelRatio, 1);
-  const cap = mobile ? MOBILE_OUTPUT_DPR_CAP : DESKTOP_OUTPUT_DPR_CAP;
+  const cap = Math.min(mobile ? MOBILE_OUTPUT_DPR_CAP : DESKTOP_OUTPUT_DPR_CAP,
+    finitePositive(maxPixelRatio, Infinity));
   const desired = Math.min(dpr, cap);
   if (!mobile) return desired;
   const area = Math.max(1, finitePositive(width, 1) * finitePositive(height, 1));
