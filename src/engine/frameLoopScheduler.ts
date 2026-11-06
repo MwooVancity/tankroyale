@@ -95,9 +95,14 @@ export function createFrameLoopScheduler({
     queued: 'none' as 'animation' | 'idle' | 'none',
   };
 
+  let tickCpuEmaMs = 0;
   const runTick = (timestampMs: number) => {
     lastTickWallMs = now();
     tick(timestampMs);
+    // Main-thread time of one whole frame (sim + scene + GL submission);
+    // post.ts logs it beside fps so a phone run splits CPU from GPU.
+    tickCpuEmaMs += (now() - lastTickWallMs - tickCpuEmaMs) * 0.1;
+    (globalThis as { __frameCpuMs?: number }).__frameCpuMs = tickCpuEmaMs;
   };
 
   const scheduleAnimation = () => {

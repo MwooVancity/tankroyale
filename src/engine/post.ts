@@ -2256,7 +2256,9 @@ export function createPost(
       if (dynClock - perfLogClock >= 5) {
         perfLogClock = dynClock;
         const buf = renderer.getDrawingBufferSize(perfLogSize);
+        const cpuMs = (globalThis as { __frameCpuMs?: number }).__frameCpuMs;
         console.info(`[perf] fps=${renderer.domElement.dataset.fps || '?'} frameEmaMs=${dynEma.toFixed(1)}`
+          + ` mainThreadMs=${cpuMs == null ? '?' : cpuMs.toFixed(1)}`
           + ` scale=${dynScale.toFixed(2)} dpr=${renderer.getPixelRatio().toFixed(2)} buf=${buf.x}x${buf.y}`
           + ` trim=${perfTrim} preset=${(preset as { id?: string }).id ?? '?'} msaa=${msaaSamples}`
           + ` lastPassCalls=${renderer.info.render.calls} tris=${renderer.info.render.triangles}`
