@@ -4586,6 +4586,7 @@ export function createTankMaterials(spec, engineCtx, camoSeed, quality = 'high',
 
   const disposables = [];
   const track = (r) => { disposables.push(r); return r; };
+  let botPaintMat = null;
 
   // PERF r3: static wreck, battle AI, player, and garage-preview tiers are
   // resolution-bounded in QUALITY_SIZES; authored inspection callers retain
@@ -4928,6 +4929,16 @@ vec4 burntTri( sampler2D m, vec3 p, vec3 n, float sc ) {
     trackLinkM: 0.165 * 4, // meters of track per full texture repeat (4 links)
     prepareBurnt,
     decal,
+    // Battle bots: one vertex-colored matte paint per tank so a moving node's
+    // small untextured parts (dark, detail, rubber, glass, wood...) draw as one
+    // mesh. Created on first use; per tank, so the wreck burn hook stays owned.
+    botPaint() {
+      return botPaintMat || (botPaintMat = track(setup(new THREE.MeshStandardMaterial({
+        color: 0xffffff, vertexColors: true, roughness: 0.95, metalness: 0.06,
+        roughnessMap: roughTex, normalMap: normalTex, normalScale: new THREE.Vector2(0.35, 0.35),
+        envMapIntensity: 0.22,
+      }))));
+    },
     dispose() {
       for (const rec of paintableRecs) shared.paintable.delete(rec);
       for (const resource of disposables) {

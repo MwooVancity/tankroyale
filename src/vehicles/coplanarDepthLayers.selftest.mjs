@@ -23,8 +23,13 @@ for (const options of [
   assert.equal(tank.root.userData.coplanarDepthLayerCount, layered.length,
     'root receipt counts every final color-pass mesh');
 
-  const hull = tank.root.getObjectByName('hull');
-  const detail = tank.root.getObjectByName('hullDark');
+  // low builds fold same-node parts into merged draws (botMerge_*): pick the
+  // armor-paint draw and any draw of another material on the hull node.
+  const hullNode = tank.root.getObjectByName('rig_hull');
+  const hull = tank.root.getObjectByName('hull')
+    || hullNode.children.find((o) => o.userData.botMerge && o.material.map);
+  const detail = tank.root.getObjectByName('hullDark')
+    || hullNode.children.find((o) => o.isMesh && !o.isInstancedMesh && o.userData.botMerge && o.material !== hull?.material);
   assert.ok(hull && detail, 'representative armor and detail meshes exist');
   hull.onBeforeRender(null, null, null, hull.geometry, hull.material, null);
   assert.equal(hull.material.polygonOffsetFactor, 0,

@@ -267,6 +267,9 @@ export function ensureTankVisual(game: RosterGameState, ent: RosterEntity) {
     // or a killcam restores every retained bot detail automatically.
     batchStatic: true,
     battleDetailLod: battleBot && !mobileBot,
+    // Bots only: small untextured parts share one vertex-colored paint
+    // (draw-call cut); the player's own tank keeps every material.
+    botPaint: battleBot,
   });
   engineCtx.scene.add(ent.visual.root);
   if (game._groundSampler && ent.visual.setGroundSampler) {

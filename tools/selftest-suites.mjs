@@ -307,6 +307,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'src/vehicles/profiles/challenger3HullClosure.selftest.mjs',
     'src/vehicles/tankAssets.selftest.mjs',
     'src/vehicles/battleDetailLod.selftest.mjs',
+    'src/vehicles/botMerge.selftest.mjs',
     'src/vehicles/combatAnatomy.selftest.mjs',
     'src/vehicles/gunArticulation.selftest.mjs',
     'src/vehicles/recoilRig.selftest.mjs',

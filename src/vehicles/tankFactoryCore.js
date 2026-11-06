@@ -384,6 +384,124 @@ function batchMobileStaticChildren(parents, disposables, onBatch = null) {
   return { sourceMeshes, batches, savedDraws: sourceMeshes - batches };
 }
 
+// Low-geometry battle builds (every bot, the phone player): after the
+// conservative sibling batching above, still ~50-75 draws per tank remain
+// (hull/turret buckets, LOD greebles, fittings) and 9 bots cost ~480 draws,
+// the measured phone frame bottleneck (Pixel 6a 7-9 fps). Merge every static
+// mesh into ONE mesh per (moving node, material, detail tier). Moving nodes
+// are the root and every rig_* group (turret, gun, recoil, barrels, muzzle):
+// runtime animates only those. Running gear, tracks, ERA instances, markings,
+// shadow proxies and anything with its own onBeforeRender stay separate, and a
+// multi-level LOD (track pad mid level) is never collapsed. Materials are kept,
+// so the wreck burn sweep and per-material looks are unchanged.
+const MOVING_NODE = (o, root) => o === root || /^rig_/.test(o.name || '');
+const DEFAULT_ON_BEFORE_RENDER = THREE.Object3D.prototype.onBeforeRender;
+// Untextured opaque single-sided standard paint can fold into the tank's
+// vertex-colored botPaint: its color is baked per vertex, so the merge key no
+// longer splits on dark/detail/rubber/glass/wood. Textured (camo hull, barrel),
+// physical, transparent, emissive and double-sided materials keep their own.
+function botPaintable(m) {
+  return m.isMeshStandardMaterial && !m.isMeshPhysicalMaterial && !m.map && !m.alphaMap
+    && !m.transparent && !(m.alphaTest > 0) && m.side === THREE.FrontSide && m.visible !== false
+    && !(m.emissive && m.emissive.getHex() !== 0 && m.emissiveIntensity > 0);
+}
+function toBotPaintGeometry(geometry, material) {
+  const color = material.color;
+  const count = geometry.attributes.position.count;
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', geometry.attributes.position);
+  if (!geometry.attributes.normal) geometry.computeVertexNormals();
+  out.setAttribute('normal', geometry.attributes.normal);
+  out.setAttribute('uv', geometry.attributes.uv
+    || new THREE.BufferAttribute(new Float32Array(count * 2), 2));
+  // vertex colors only counted when the source material read them
+  const src = material.vertexColors ? geometry.attributes.color : null;
+  const rgb = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    rgb[i * 3] = color.r * (src ? src.getX(i) : 1);
+    rgb[i * 3 + 1] = color.g * (src ? src.getY(i) : 1);
+    rgb[i * 3 + 2] = color.b * (src ? src.getZ(i) : 1);
+  }
+  out.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
+  if (geometry.index) out.setIndex(geometry.index);
+  return out;
+}
+function mergeBotMeshesPerMovingNode(root, detailRecords, decalMeshes, disposables, paint = null) {
+  const detailSet = new Set(detailRecords.map((r) => r.object));
+  const decalSet = new Set(decalMeshes);
+  const groups = new Map();
+  root.updateMatrixWorld(true);
+  root.traverse((mesh) => {
+    if (!mesh.isMesh || mesh.isInstancedMesh || mesh.isBatchedMesh || mesh.isSkinnedMesh) return;
+    const ud = mesh.userData || {};
+    if (!mesh.visible || mesh.children.length || Array.isArray(mesh.material) || !mesh.material
+        || mesh.material.colorWrite === false || decalSet.has(mesh)
+        || ud.runningGear || ud.vehicleMarking || ud.authoredShadowProxy || ud.shadowOnly
+        || /^(gear|procShadow)/.test(mesh.name || '')
+        || mesh.onBeforeRender !== DEFAULT_ON_BEFORE_RENDER
+        || Object.keys(mesh.morphTargetDictionary || {}).length) return;
+    const geo = mesh.geometry;
+    if (!geo || Object.keys(geo.morphAttributes || {}).length || geo.drawRange.start !== 0
+        || (Number.isFinite(geo.drawRange.count) && geo.drawRange.count !== Infinity)) return;
+    let node = mesh.parent;
+    let detail = detailSet.has(mesh);
+    while (node && !MOVING_NODE(node, root)) {
+      if (!node.visible || node.userData?.runningGear) return;
+      if (node.isLOD && node.levels.filter((l) => l.object
+          && (l.object.isMesh || l.object.children.length)).length > 1) return;
+      if (detailSet.has(node)) detail = true;
+      node = node.parent;
+    }
+    if (!node) return;
+    const paintable = paint && botPaintable(mesh.material);
+    const attrs = paintable ? 'botPaint' : Object.entries(geo.attributes)
+      .map(([name, attr]) => `${name}:${attr.itemSize}:${attr.normalized ? 1 : 0}`).sort().join(',');
+    const key = [node.id, paintable ? paint().id : mesh.material.id, detail ? 1 : 0, attrs, geo.index ? 1 : 0,
+      mesh.castShadow ? 1 : 0, mesh.receiveShadow ? 1 : 0, mesh.renderOrder,
+      mesh.layers.mask, mesh.frustumCulled ? 1 : 0].join('|');
+    let group = groups.get(key);
+    if (!group) groups.set(key, group = { node, detail, paintable, meshes: [] });
+    group.meshes.push(mesh);
+  });
+  const inv = new THREE.Matrix4();
+  const rel = new THREE.Matrix4();
+  const merged = new Set();
+  let sourceMeshes = 0;
+  let batches = 0;
+  for (const { node, detail, paintable, meshes } of groups.values()) {
+    if (meshes.length < 2) continue;
+    inv.copy(node.matrixWorld).invert();
+    const geometries = meshes.map((mesh) => {
+      const g = mesh.geometry.clone().applyMatrix4(rel.multiplyMatrices(inv, mesh.matrixWorld));
+      return paintable ? toBotPaintGeometry(g, mesh.material) : g;
+    });
+    const geometry = mergeGeometries(geometries, false);
+    for (const g of geometries) g.dispose();
+    if (!geometry) continue;
+    disposables.push(geometry);
+    const source = meshes[0];
+    const batch = new THREE.Mesh(geometry, paintable ? paint() : source.material);
+    batch.name = `botMerge_${batches}`;
+    batch.userData.botMerge = true;
+    if (source.userData.combatHitboxRole) batch.userData.combatHitboxRole = source.userData.combatHitboxRole;
+    if (source.userData.appearanceRole) batch.userData.appearanceRole = source.userData.appearanceRole;
+    batch.castShadow = source.castShadow;
+    batch.receiveShadow = source.receiveShadow;
+    batch.renderOrder = source.renderOrder;
+    batch.layers.mask = source.layers.mask;
+    batch.frustumCulled = source.frustumCulled;
+    for (const mesh of meshes) { mesh.parent.remove(mesh); merged.add(mesh); }
+    node.add(batch);
+    if (detail) detailRecords.push({ object: batch, baseVisible: true });
+    sourceMeshes += meshes.length;
+    batches++;
+  }
+  for (let i = detailRecords.length - 1; i >= 0; i--) {
+    if (merged.has(detailRecords[i].object)) detailRecords.splice(i, 1);
+  }
+  return { sourceMeshes, batches, savedDraws: sourceMeshes - batches };
+}
+
 function collectMobileDetailObjects(root, rigParents) {
   const records = [];
   const managedGroups = new Set();
@@ -5788,6 +5906,8 @@ function createGeometryReceiptMaterials() {
   tagVehicleMaterial(mats.trackLink, 'trackSteel', 'track-steel-receipt');
   tagVehicleMaterial(mats.spareTrack, 'trackSteel', 'spare-track-steel-receipt');
   mats.decal = () => mats.detail;
+  let botPaint = null;
+  mats.botPaint = () => botPaint || (botPaint = make(0xffffff));
   mats.dispose = () => { for (const resource of owned) resource.dispose(); };
   return mats;
 }
@@ -6211,6 +6331,7 @@ export function createTank(specId, engineCtx, opts = {}) {
     geometryReceipt = false,
     batchStatic = false,
     battleDetailLod = false,
+    botPaint = false,
   } = opts;
   const spec = getSpec(specId);
   const armor = spec.armor;
@@ -8231,6 +8352,11 @@ export function createTank(specId, engineCtx, opts = {}) {
       });
     root.userData.staticBatchSavedDraws = batchStats.savedDraws;
     const detailObjects = collectMobileDetailObjects(root, [hullG, turretG, gunG, recoilG]);
+    if (geometryQuality === 'low') {
+      const mergeStats = mergeBotMeshesPerMovingNode(root, detailObjects, decalMeshes, disposables,
+        botPaint && mats.botPaint ? () => mats.botPaint() : null);
+      root.userData.botMergeSavedDraws = mergeStats.savedDraws;
+    }
     if (geometryQuality === 'low') mobileDetailObjects = detailObjects;
     else if (battleDetailLod) {
       const installed = installBattleDetailGroups(detailObjects);
