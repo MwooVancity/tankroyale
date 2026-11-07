@@ -4,6 +4,8 @@
 **Reader:** a phone player starting a Bots battle.
 
 ## Numbers (dated)
+- 2026-11-07: PRODUCTION = 1.87.0 [87] (promoted via tools/play.mjs, notes "smoother and sharper", sent for Google review). Evidence: vc874 (87's code, Pixel 6a Android 12) fps p10 20.6 / p50 26.9 / p90 29.9, bots 7/7, 0 crashes; end screen proven on vc878 (same end-screen code, 4-min QA round).
+- 2026-11-07: vc878 (commit 92ee4b8c code: + Lambert terrain and leaves, Pixel 6a): fps p10 14.6 / p50 20.2 / p90 27.3; 25-30 fps for the first ~2 min, 17-20 in heavy combat with the main thread at 40-50 ms. The combat frame is now main-thread bound. [round] end "defeat", 0 crashes. Not clearly better than vc874 (different battle each run).
 - 2026-11-07: FINAL clean build (commit 9e3838ab, debug APK, Test Lab vc874, Pixel 6a Android 12, Bots battle, 102 [perf] samples): fps p10 20.6 / p50 26.9 / p90 29.9 (build-86 equivalent vc871: 10.1 / 10.5 / 12.3). Canvas 1372x618 (1.5x), HUD 'ALLIES 6 / ENEMY 6', bots=7/7 at start, 0 crashes. Release gate FAILS the 30 fps bar: pushed to alpha only, NOT promoted to production. Round end not reached (the Robo player sits idle). Online two-phone test NOT done on Android.
 - 2026-11-07: "0 allies 0 enemies" root cause (build 86 Test Lab screenshot, Pixel 6a Android 12): bots DID spawn (allies visible on screen); the HUD's big numbers were kill scores (start at 0) and the loading screen hard-coded "Allies 0 / Enemies 0". Fixed: HUD shows tanks alive per team, loading shows "–" until rosters arrive. Logcat now proves it: `[perf] ... bots=7/7`.
 - 2026-11-07: Pixel 6a on-phone A/B lab (`VITE_PERF_LAB=1`, `src/engine/perfLab.ts`, Test Lab vc871-873, fps): build-86 base 11.7; shadows frozen 11.8; no post chain 12.3; Lambert override 44.4; half resolution 27.6. Cost = per-pixel world material shading + 6 idle point lights + alpha grass, not draw calls, shadows or post.
@@ -20,6 +22,7 @@
 GPU still sets the pace at the start of a battle (frame ~42 ms, main thread ~21 ms). Late in a battle the main thread grows to 35-55 ms (FX, more AI contacts), and the GPU frame grows to ~60 ms (smoke and fire overdraw).
 
 ## Next
+0. Lab #4 is built and waiting (Test Lab quota exceeded 2026-11-07): `VITE_PERF_LAB=1` build. It reads the new `[perf] split=sim,cam,world,fx,hud,light,render` and tests hiding the reticle or the whole HUD, shadows off, and 1.0x output. Fix the biggest main-thread part next.
 1. Late-battle cost: smoke and fire overdraw plus the LateFx pass (4 full-screen passes while any FX is alive), and main-thread JS (35-55 ms). Measure with perfLab configs.
 2. Terrain and foliage keep their PBR hook shaders. A Lambert port of the terrain hook is the remaining big GPU win (the Lambert override measured 44 fps).
 3. Shadow sampling: PCFSoft to PCF on the Performance preset (not yet measured).
