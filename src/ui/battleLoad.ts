@@ -192,10 +192,10 @@ export function createBattleLoadScreen(): BattleLoadScreen {
     `<main class="briefing"><div class="cap"><div class="kicker">Random Battle &middot; Standard</div>` +
     `<div class="mapname"></div></div>` +
     `<div class="teams">` +
-    `<div class="team ally"><div class="thead"><span>Allies</span><span class="n">0</span></div>` +
+    `<div class="team ally"><div class="thead"><span>Allies</span><span class="n">–</span></div>` +
     `<div class="rows"></div></div>` +
     `<div class="vs">VS</div>` +
-    `<div class="team foe"><div class="thead"><span>Enemies</span><span class="n">0</span></div>` +
+    `<div class="team foe"><div class="thead"><span>Enemies</span><span class="n">–</span></div>` +
     `<div class="rows"></div></div>` +
     `</div>` +
     `<div class="foot" aria-live="polite"><div class="fmeta"><div class="fstage">Loading battlefield</div>` +
@@ -245,7 +245,8 @@ export function createBattleLoadScreen(): BattleLoadScreen {
       el.append(tier, sil, nm);
       host.appendChild(el);
     }
-    countEl2.textContent = String(rows.length);
+    // Rosters arrive late (after the world build): "0" read as "no bots".
+    countEl2.textContent = rows.length ? String(rows.length) : '–';
   }
 
   const api: BattleLoadScreen = {

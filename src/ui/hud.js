@@ -1822,6 +1822,8 @@ export function initHud(bus) {
         }
       }
     }
+    // Logged by post.ts' [perf] line so a phone logcat proves bots exist.
+    globalThis.__perfBots = `${allyAlive}/${enemyAlive}`;
     const modeState = frame.matchModeState;
     if (modeState && modeState.id && modeState.id !== 'standard') {
       const ownTeam = modeState.perspectiveTeam === 'bravo' ? 'bravo' : 'alpha';
@@ -1879,10 +1881,11 @@ export function initHud(bus) {
     timerLabelEl.textContent = 'Time';
     const score = `${enemyTotal - enemyAlive}:${allyTotal - allyAlive}|${allyAlive}/${allyTotal}|${enemyAlive}/${enemyTotal}`;
     if (score !== lastScore) {
-      const allyKills = enemyTotal - enemyAlive;
-      const enemyKills = allyTotal - allyAlive;
-      fgEl.textContent = String(allyKills);
-      feEl.textContent = String(enemyKills);
+      // Big numerals = tanks still alive per team. They used to be kill
+      // scores, which start at 0, and phone players read "ALLIES 0 / ENEMY 0"
+      // as "no bots spawned" (owner, build 86). Kills stay on the frag chips.
+      fgEl.textContent = String(allyAlive);
+      feEl.textContent = String(enemyAlive);
       const slots = Math.max(allyTotal, enemyTotal);
       syncWedge(wedgeL, slots, deadEnemies, false);
       syncWedge(wedgeR, slots, deadAllies, true);
