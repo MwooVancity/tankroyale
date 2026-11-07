@@ -5,6 +5,13 @@ on:
     branches: [tank-royale-main]
   workflow_dispatch:
 
+# Two pushes minutes apart opened two Play edits and both failed with
+# "This edit has expired" (2026-11-07, builds for 92ee4b8c and 40be663b).
+# Queue uploads one at a time; never cancel one mid-upload.
+concurrency:
+  group: android-play-upload
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest

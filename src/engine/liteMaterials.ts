@@ -22,8 +22,12 @@ function toLambert(src: Std): THREE.Material {
     polygonOffset: src.polygonOffset, polygonOffsetFactor: src.polygonOffsetFactor, polygonOffsetUnits: src.polygonOffsetUnits,
     blending: src.blending, colorWrite: src.colorWrite, visible: src.visible, toneMapped: src.toneMapped,
   });
-  // Metals lit by Lambert read flat and dark; brighten toward their albedo.
-  if ((src.metalness ?? 0) > 0.5) m.color = src.color.clone().multiplyScalar(1.25);
+  // Share the source's Color objects: the garage repaints wheels and fittings
+  // after the swap (`retintEntryFittings`), and a copied color would not follow.
+  // Metals lit by Lambert read flat and dark; brighten toward their albedo
+  // (ponytail: own copy, so a repaint of a metal >0.5 part does not follow).
+  m.color = (src.metalness ?? 0) > 0.5 ? src.color.clone().multiplyScalar(1.25) : src.color;
+  m.emissive = src.emissive;
   m.userData = src.userData;
   cache.set(src, m);
   cache.set(m, m);

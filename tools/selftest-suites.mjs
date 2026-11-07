@@ -238,6 +238,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'server/signaling.selftest.mjs',
     'server/signalRelay.selftest.mjs',
     'server/signalRelayRate.selftest.mjs',
+    'src/engine/liteMaterials.selftest.mjs',
     'server/githubStars.selftest.mjs',
     'server/ice.selftest.mjs',
     'server/distributedRoomStore.selftest.mjs',
