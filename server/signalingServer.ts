@@ -16,13 +16,16 @@ const MAX_PAYLOAD_BYTES = 128 * 1024;
 const RATE_WINDOW_MS = 10_000;
 const RATE_MAX_MESSAGES = 120;
 // Match-traffic relay (WebRTC fallback, src/net/signalRelayChannel.ts). Its
-// own budget: game traffic is ~20-60 messages/s per room. Over budget, data is
-// dropped (state is lossy by design); a connection far over is closed.
+// own budget, sized for the biggest room (7v7, all 13 guests relayed): guests
+// send inputs at up to 60/s each (780/s) and the host sends 20 snapshots/s per
+// guest (260/s). The old 1500/1200 caps dropped 44% of a 2v2 room's traffic
+// (server/signalRelayRate.selftest.mjs). Over budget, data is dropped (state is
+// lossy by design); a connection far over is closed.
 export const RELAY_MAX_DATA_CHARS = 60_000; // same as src/net/signalRelayChannel.ts
-export const RELAY_ROOM_MAX_MESSAGES = 1_500; // per room per RATE_WINDOW_MS
-export const RELAY_ROOM_MAX_CHARS = 8_000_000; // per room per RATE_WINDOW_MS (~800 KB/s)
-const RELAY_CONNECTION_MAX_MESSAGES = 1_200;
-const RELAY_CONNECTION_CLOSE_MESSAGES = 3_000;
+export const RELAY_ROOM_MAX_MESSAGES = 15_000; // per room per RATE_WINDOW_MS (7v7 ~11k)
+export const RELAY_ROOM_MAX_CHARS = 20_000_000; // per room per RATE_WINDOW_MS (~2 MB/s)
+const RELAY_CONNECTION_MAX_MESSAGES = 4_000; // a 7v7 host sends ~2.6k snapshots
+const RELAY_CONNECTION_CLOSE_MESSAGES = 10_000;
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -249,7 +252,10 @@ export function createSignalingServer({
         connection.close(1008, 'rate_limit');
         return;
       }
-      if (relayData && bucket.count > RELAY_CONNECTION_MAX_MESSAGES) return; // drop
+      // Over budget, drop state snapshots ('s') but never the reliable control
+      // channel ('c': welcome, ready, events), which is never re-sent.
+      if (relayData && bucket.count > RELAY_CONNECTION_MAX_MESSAGES &&
+          !data.toString().includes('"ch":"c"')) return; // drop
       messageChain = messageChain.then(async () => {
         if (isBinary) {
           safeSend(connection, errorMessage(Object.assign(new Error('binary signaling is unsupported'), {
@@ -290,7 +296,8 @@ export function createSignalingServer({
                 windowed(room, now, (w) => { w.chars = 0; });
                 room.count++;
                 room.chars += typeof signal.d === 'string' ? signal.d.length : 0;
-                if (room.count > RELAY_ROOM_MAX_MESSAGES || room.chars > RELAY_ROOM_MAX_CHARS) break; // drop
+                if (signal.ch !== 'c' &&
+                    (room.count > RELAY_ROOM_MAX_MESSAGES || room.chars > RELAY_ROOM_MAX_CHARS)) break; // drop
               }
               const notification = await store.relay(connection, {
                 roomCode: payload.roomCode,

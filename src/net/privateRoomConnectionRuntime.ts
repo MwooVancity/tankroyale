@@ -119,7 +119,8 @@ export interface PrivateRoomConnectionRuntime {
 }
 
 const DEFAULT_ADAPTERS: ConnectionAdapters = {
-  createSignaling: (url) => new RoomSignalingClient({ url }),
+  // 15 s connect: a sleeping Render server needs ~10-20 s to wake.
+  createSignaling: (url) => new RoomSignalingClient({ url, connectTimeoutMs: 15_000 }),
   createHostSession: (options) =>
     new PrivateRoomHostSession(options) as unknown as HostSessionLike,
   createClientSession: (options) =>

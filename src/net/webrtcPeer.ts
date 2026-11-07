@@ -44,6 +44,8 @@ export interface WebRtcPeerOptions {
    * connected within relayAfterMs.
    */
   signalRelay?: boolean;
+  /** send backlog of the signaling socket the relay rides on */
+  relayBufferedAmount?: () => number;
   relayAfterMs?: number;
 }
 
@@ -101,6 +103,7 @@ export function createWebRTCPeer({
   initialRecoveryDelayMs = 15_000,
   connectTimeoutMs = 60_000,
   signalRelay = false,
+  relayBufferedAmount = () => 0,
   relayAfterMs = 15_000,
 }: WebRtcPeerOptions): WebRtcPeerSession {
   if (role !== 'host' && role !== 'client') throw new TypeError('role must be host or client');
@@ -148,7 +151,7 @@ export function createWebRTCPeer({
   function activateRelay() {
     if (!signalRelay || transport || closed || relayChannels) return false;
     const send = (signal: RelayDataSignal) => onSignal(signal);
-    relayChannels = { c: createRelayChannel('c', send), s: createRelayChannel('s', send) };
+    relayChannels = { c: createRelayChannel('c', send, relayBufferedAmount), s: createRelayChannel('s', send, relayBufferedAmount) };
     for (const channel of channels.values()) channel.close();
     channels.clear();
     clearRecovery();

@@ -308,6 +308,7 @@ export class PrivateRoomHostSession {
       onSignal: (signal) => this.signaling.sendSignal(peerId, signal, sessionId),
       // No TURN on carrier NAT: tunnel match traffic through signaling.
       signalRelay: true,
+      relayBufferedAmount: () => (this.signaling as { socket?: { bufferedAmount?: number } | null }).socket?.bufferedAmount ?? 0,
     }) as SessionPeer;
     session.sessionId = sessionId;
     this.peers.set(peerId, session);
@@ -479,6 +480,7 @@ export class PrivateRoomClientSession {
       RTCPeerConnectionImpl: this.RTCPeerConnectionImpl,
       connectTimeoutMs: this.connectTimeoutMs,
       signalRelay: true,
+      relayBufferedAmount: () => (this.signaling as { socket?: { bufferedAmount?: number } | null }).socket?.bufferedAmount ?? 0,
       onSignal: (signal) => this.signaling.sendSignal(
         this.roomInfo.hostId,
         signal,

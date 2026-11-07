@@ -5,8 +5,9 @@ import { WebSocket } from 'ws';
 import { RoomSignalingClient } from '../src/net/signalingClient.ts';
 
 const url = process.argv[2] || 'wss://tankroyale.onrender.com/api/signal';
-class OriginWS extends WebSocket { constructor(u, p) { super(u, p, { headers: { origin: 'http://localhost' } }); } }
+class OriginWS extends WebSocket { constructor(u, p) { super(u, p, { headers: { origin: process.env.ORIGIN || 'http://localhost' } }); } }
 const opts = { url, WebSocketImpl: OriginWS, eventPollIntervalMs: 500 };
+const t0 = Date.now();
 const host = new RoomSignalingClient(opts), guest = new RoomSignalingClient(opts);
 const room = await host.createRoom({ player: { id: `chk-h-${Date.now()}`, name: 'Check' }, maxPlayers: 2 });
 const joined = await guest.joinRoom({ roomCode: room.roomCode, player: { id: `chk-g-${Date.now()}`, name: 'Check' } });
@@ -16,6 +17,6 @@ const result = await new Promise((resolve) => {
   host.onEvent((m) => { if (m.type === 'error') { clearTimeout(t); resolve(`server error: ${m.payload?.message}`); } });
   host.sendSignal(joined.peerId, { kind: 'data', ch: 'c', d: 'relay-ok' }, guest.sessionId);
 });
-console.log(url, '->', result);
+console.log(url, '->', result, `(${Date.now() - t0} ms incl. connect)`);
 host.close?.(); guest.close?.();
 process.exit(result.startsWith('delivered') ? 0 : 1);

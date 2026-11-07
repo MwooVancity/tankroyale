@@ -46,6 +46,9 @@ export interface RelayChannel {
 export function createRelayChannel(
   ch: RelayChannelId,
   sendSignal: (signal: RelayDataSignal) => void,
+  // The signal WebSocket's real send backlog: channelTransport skips state
+  // snapshots on a busy link only when this is non-zero.
+  bufferedAmount: () => number = () => 0,
 ): RelayChannel {
   const listeners = new Map<string, Set<Listener>>();
   const emit = (type: string, event: { data?: unknown; error?: unknown }) => {
@@ -54,7 +57,7 @@ export function createRelayChannel(
   const channel: RelayChannel = {
     label: ch === 'c' ? 'relay-control' : 'relay-state',
     readyState: 'open',
-    bufferedAmount: 0,
+    get bufferedAmount() { return Number(bufferedAmount()) || 0; },
     // control = ordered + reliable (WebSocket is both); state = "unordered,
     // zero retransmits" contract, which an ordered reliable pipe satisfies.
     ordered: ch === 'c',

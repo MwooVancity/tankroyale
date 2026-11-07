@@ -606,6 +606,17 @@ export function createPlayMenu({
 }: PlayMenuOptions): PlayMenuRuntime {
   ensureFonts();
   ensureStyle(STYLE_ID, CSS);
+  // The free Render signal server sleeps after 15 idle minutes and takes
+  // ~10-20 s to wake (2026-11-07: cold connect failed, /health took 8 s).
+  // Wake it the moment the Play menu exists, before a room is requested.
+  if (isNativeApp()) {
+    try {
+      const health = new URL(defaultSignalUrl());
+      health.protocol = health.protocol === 'wss:' ? 'https:' : 'http:';
+      health.pathname = '/health';
+      fetch(health.toString(), { mode: 'no-cors' }).catch(() => {});
+    } catch { /* no signal URL: nothing to wake */ }
+  }
   const root = document.createElement('div');
   root.className = 'cot-play';
   queueMicrotask(() => {
