@@ -36,12 +36,22 @@ const run = (f) => new Promise((resolve) => {
   });
 });
 
+// Real-time network tests measure delivery against wall-clock windows; on a
+// 2-core CI runner next to the parallel pool they lost 0.8% (run #91). Run
+// them alone after the pool.
+const SERIAL = new Set([
+  'server/signalRelayRate.selftest.mjs',
+  'server/signalWake.selftest.mjs',
+  'server/seatToken.selftest.mjs',
+]);
 const started = Date.now();
 const results = [];
+const pool = files.filter((f) => !SERIAL.has(f));
 let next = 0;
 await Promise.all(Array.from({ length: Math.max(2, os.cpus().length) }, async () => {
-  while (next < files.length) results.push(await run(files[next++]));
+  while (next < pool.length) results.push(await run(pool[next++]));
 }));
+for (const f of files.filter((f) => SERIAL.has(f))) results.push(await run(f));
 const newFails = results.filter((r) => !r.ok && !KNOWN_FAILING.has(r.f));
 const fixed = results.filter((r) => r.ok && KNOWN_FAILING.has(r.f)).map((r) => r.f);
 console.log(`release-tests: ${results.length} run, ${results.filter((r) => !r.ok).length} failed (${newFails.length} new) in ${Math.round((Date.now() - started) / 1000)} s`);
