@@ -2768,13 +2768,19 @@ function* vegetationBuildSteps(
   const foliageDepthMats = {} as Record<Species, THREE.MeshDepthMaterial>;
   for (const sp of speciesList) {
     foliageTex[sp] = SPECIES[sp].tex(mulberry32(seed + SPECIES[sp].texSeed), palOf(sp));
-    const fm = new THREE.MeshStandardMaterial({
+    const leafParams = {
       map: foliageTex[sp], alphaTest: 0.38, alphaToCoverage: true, side: THREE.DoubleSide,
-      vertexColors: true, roughness: 1.0, metalness: 0.0,
-    });
-    fm.envMapIntensity = 0.85; // keep ambient on shaded leaves — no black cards
+      vertexColors: true,
+    };
+    // Phones (liteMaterials): Lambert leaves; the wind hook only patches
+    // chunks Lambert also has (common/project_vertex/map/alphatest).
+    const liteLeaf = !!getPreset().liteMaterials;
+    const fm = (liteLeaf
+      ? new THREE.MeshLambertMaterial(leafParams)
+      : new THREE.MeshStandardMaterial({ ...leafParams, roughness: 1.0, metalness: 0.0 })) as THREE.MeshStandardMaterial;
+    if (!liteLeaf) fm.envMapIntensity = 0.85; // keep ambient on shaded leaves — no black cards
     engineCtx.setupShadowMaterial(fm, foliageWindHook);
-    fm.customProgramCacheKey = () => 'world-tree-foliage-v10-' + sp; // aa-r1: + mip-alpha guard
+    fm.customProgramCacheKey = () => (liteLeaf ? 'world-tree-foliage-lite-v10-' : 'world-tree-foliage-v10-') + sp; // aa-r1: + mip-alpha guard
     foliageMats[sp] = fm;
     // alpha-tested shadow casting: without this every card shadows as a quad.
     // r6: palm gets a HIGHER shadow alphaTest — its frond texture covers most

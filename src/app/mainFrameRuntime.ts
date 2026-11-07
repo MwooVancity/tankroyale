@@ -199,6 +199,7 @@ export function createMainFrameRuntime({
       showroom.update(dtR);
     }
 
+    let splitAt = performance.now();
     const frameState = battleFrame.advance(
       dtR,
       frameWallDtS,
@@ -206,6 +207,7 @@ export function createMainFrameRuntime({
       game.phase === 'battle' && isBattleLoadCovering(),
     );
     dtR = frameState.dtSeconds;
+    splitAt = perfSplit('sim', splitAt);
     const { inBattle, paused, livePaused } = frameState;
     const killcamActive = frameState.killcamActive;
     cameraInput.autoAimPoint = getMobileAutoAim()
@@ -221,7 +223,9 @@ export function createMainFrameRuntime({
     }
     sniperFill.update();
 
+    splitAt = perfSplit('cam', splitAt);
     worldFramePresentation.update(dtR, inBattle, killcamActive);
+    splitAt = perfSplit('world', splitAt);
     if (fx) {
       fx.update(
         livePaused ? 0 : dtR * (killcamActive ? killcam.fxTimeScale : 1),
@@ -231,12 +235,14 @@ export function createMainFrameRuntime({
       );
     }
 
+    splitAt = perfSplit('fx', splitAt);
     matchModeWorld.update(
       inBattle ? game.matchModeState as MatchModePresentationState : null,
       game.timeS,
     );
     battleHudFrame.update(inBattle, killcamActive);
     audioListener.update(dtR, inBattle, killcamActive);
+    splitAt = perfSplit('hud', splitAt);
 
     // FOV animation only needs cascade geometry refresh; material splits do
     // not depend on FOV and remain untouched.
@@ -250,11 +256,22 @@ export function createMainFrameRuntime({
       game.phase === 'garage' && !garageShadowsDirty,
     );
     lighting.update(false, dtR);
+    splitAt = perfSplit('light', splitAt);
     post.render(dtR);
+    perfSplit('render', splitAt);
     if (game.phase === 'garage') clearGaragePresentationDirty();
     if (game.phase === 'battle') battleEntryLifecycle.noteBattleFrame();
     perfHud.update(dtR * 1000);
   };
 
   return { tick, noteFovPrimed };
+}
+
+// Main-thread split per frame part (EMA ms), printed by post.ts' [perf] line
+// so a phone logcat shows which part of the JS frame grows in combat.
+const perfSplitMs: Record<string, number> = ((globalThis as { __perfSplit?: Record<string, number> }).__perfSplit = {});
+function perfSplit(part: string, since: number): number {
+  const now = performance.now();
+  perfSplitMs[part] = (perfSplitMs[part] ?? 0) * 0.9 + (now - since) * 0.1;
+  return now;
 }

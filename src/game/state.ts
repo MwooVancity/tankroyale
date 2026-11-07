@@ -419,7 +419,8 @@ function soloDebugFlags(): SoloDebugFlags | null {
 const COMBAT_SEED = 6000;
 // module repair duration lives with the state machine: sim/damage.ts REPAIR_S
 const FIRE_TICK_S = 0.5;
-const BATTLE_TIME_LIMIT_S = 900; // 15:00 clock (HUD counts it down) — timeout = draw
+// VITE_QA_ROUND_S: test builds only (Test Lab proves the end screen inside Robo's window).
+const BATTLE_TIME_LIMIT_S = Number(import.meta.env?.VITE_QA_ROUND_S) || 900; // 15:00 clock (HUD counts it down) — timeout = draw
 
 // module-scope scratch — no per-frame allocation
 const _muzzle = new THREE.Vector3();

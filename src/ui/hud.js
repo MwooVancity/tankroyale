@@ -248,7 +248,7 @@ import { MAX_SPOT_RANGE_M as SPOT_RANGE_M, SPOT_LINGER_S as SPOT_PERSIST_S }
 // SPOTTING SECTION: single source of truth for the sixth-sense timing —
 // the lamp fuse/window MUST match the sim's getConcealment display gate.
 import { SIXTH_SENSE_DELAY_S, SIXTH_SENSE_SHOW_S } from '../sim/spotting.ts';
-const BATTLE_DURATION_S = 900; // 15:00 countdown
+const BATTLE_DURATION_S = Number(import.meta.env?.VITE_QA_ROUND_S) || 900; // 15:00 countdown (VITE_QA_ROUND_S: test builds)
 
 // Default shell card data (used only when a forced screenshot aim view arrives
 // before any live frame — matches the m1a2 default player loadout).

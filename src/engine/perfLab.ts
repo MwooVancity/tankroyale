@@ -19,12 +19,18 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   };
   const setTerrainLite = (lite: boolean) => { for (const m of terrainMats()) { m.defines = lite ? { TERRAIN_LITE: '' } : {}; m.needsUpdate = true; } };
   const out = (r: number) => ({ on: () => setScale(-r), off: () => setScale(null) });
+  const hideCss = (sel: string) => ({
+    on: () => document.querySelectorAll<HTMLElement>(sel).forEach((e) => { e.style.display = 'none'; }),
+    off: () => document.querySelectorAll<HTMLElement>(sel).forEach((e) => { e.style.display = ''; }),
+  });
+  // Shadows fully off (pass + sampling; recompiles, the stall reset handles it).
+  const shadowCasters = (on: boolean) => scene.traverse((o) => { if ((o as THREE.DirectionalLight).isDirectionalLight) (o as THREE.DirectionalLight).castShadow = on; });
   const cfgs: Cfg[] = [
     { name: 'ship', on: nop, off: nop },
-    { name: 'ship+out1.5', ...out(1.5) },
-    { name: 'ship+out2.0', ...out(2.0) },
-    { name: 'ship+outNative', ...out(window.devicePixelRatio || 1) },
-    { name: 'ship+all@1.25', ...scaled(1.25) },
+    { name: 'ship+hud:reticleHidden', ...hideCss('.cot-ret') },
+    { name: 'ship+hud:allHidden', ...hideCss('.cot-hud') },
+    { name: 'ship+shadowsOff', on: () => { shadowCasters(false); }, off: () => { shadowCasters(true); } },
+    { name: 'ship+out1.0', ...out(1.0) },
     { name: 'ship+terrainFull', on: () => setTerrainLite(false), off: () => setTerrainLite(true) },
     { name: 'ship+hide:vegetation', on: () => { const v = scene.getObjectByName('vegetation'); if (v) v.visible = false; }, off: () => { const v = scene.getObjectByName('vegetation'); if (v) v.visible = true; } },
     { name: 'ship+shadowFreeze', on: () => { renderer.shadowMap.autoUpdate = false; }, off: () => { renderer.shadowMap.autoUpdate = true; } },

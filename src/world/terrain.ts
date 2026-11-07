@@ -2854,8 +2854,13 @@ function createSplatMaterial(
   // neutral packed-earth default (the old 1.20/1.12/0.96 pushed roads orange)
   const roadTint = S.roadTint || [1.08, 1.04, 0.96];
 
-  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0, metalness: 0.0 });
-  if (getPreset().liteMaterials) mat.defines = { TERRAIN_LITE: '' };
+  // Phones (liteMaterials): Lambert base + one-read splat. Pixel 6a Test Lab:
+  // a Lambert override was 44 fps vs ~23 with the PBR terrain/leaf hooks.
+  const liteTerrain = !!getPreset().liteMaterials;
+  const mat = (liteTerrain
+    ? new THREE.MeshLambertMaterial({ color: 0xffffff })
+    : new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0, metalness: 0.0 })) as THREE.MeshStandardMaterial;
+  if (liteTerrain) mat.defines = { TERRAIN_LITE: '' };
   // r3: DoubleSide — at chunk borders where LOD levels disagree on a steep
   // cliff edge, the higher chunk's skirt ribbon can face AWAY from a camera
   // looking across the boundary; the culled backface opened a fog-bright
@@ -2914,13 +2919,16 @@ function createSplatMaterial(
       '#include <common>\n' + SPLAT_COMMON_FRAG);
     shader.fragmentShader = _mustReplace(shader.fragmentShader, '#include <map_fragment>',
       'splatCompute();\ndiffuseColor.rgb *= gSplatAlbedo;');
-    shader.fragmentShader = _mustReplace(shader.fragmentShader, '#include <roughnessmap_fragment>',
-      'float roughnessFactor = roughness * gSplatRough;');
+    // Lambert (phones) has no roughness chunk.
+    if (!liteTerrain) {
+      shader.fragmentShader = _mustReplace(shader.fragmentShader, '#include <roughnessmap_fragment>',
+        'float roughnessFactor = roughness * gSplatRough;');
+    }
     shader.fragmentShader = _mustReplace(shader.fragmentShader, '#include <normal_fragment_maps>',
       SPLAT_NORMAL_FRAG);
   };
   engineCtx.setupShadowMaterial(mat, splatHook);
-  mat.customProgramCacheKey = () => 'world-terrain-splat-v21';
+  mat.customProgramCacheKey = () => liteTerrain ? 'world-terrain-splat-lite-v21' : 'world-terrain-splat-v21';
   mat.userData.sourcedTexturesReady = sourcedTexturesReady;
   return mat;
 }

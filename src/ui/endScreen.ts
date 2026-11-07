@@ -636,6 +636,8 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
      * @param {object} sum shotInfo.buildSummary() bundle (resolved-event sums)
      */
     show(result: EndScreenResult, sum: EndScreenSummary): void {
+      // Logcat proof that a phone round reached its end screen (tools/testlab.mjs gate).
+      console.info(`[round] end ${JSON.stringify(result).slice(0, 120)}`);
       stopCounters();
       seq = 0;
       visible = true;

@@ -144,7 +144,9 @@ for (const ex of m.testExecutions) {
   const p10 = fps[Math.floor(fps.length * 0.1)] ?? 0, minFps = Number(process.env.MIN_FPS || 30);
   const fails = [perf.length < 6 && `only ${perf.length} battle [perf] lines (battle not reached?)`,
     perf.length && perf[0].enemies < 1 && 'no enemies on the first battle line',
-    p10 < minFps && `p10 fps ${p10} < ${minFps}`].filter(Boolean);
+    p10 < minFps && `p10 fps ${p10} < ${minFps}`,
+    // ROUND=1 (long Robo script): the round must reach the end screen (endScreen.ts logs it)
+    process.env.ROUND && !pick(/\[round\] end/).length && 'no [round] end line'].filter(Boolean);
   console.log(`  GATE ${fails.length ? 'FAIL: ' + fails.join('; ') : 'PASS'} (battle lines ${perf.length}, fps p10 ${p10} median ${fps[fps.length >> 1] ?? '-'})`);
   if (fails.length) process.exitCode = 1;
 }

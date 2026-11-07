@@ -2272,7 +2272,8 @@ export function createPost(
           + ` trim=${perfTrim} preset=${preset.label} msaa=${msaaSamples}`
           + ` calls=${frameCalls} tris=${frameTris}`
           + ` progs=${renderer.info.programs?.length ?? '?'} geos=${renderer.info.memory.geometries}`
-          + ` bots=${(globalThis as { __perfBots?: string }).__perfBots ?? '-'}`);
+          + ` bots=${(globalThis as { __perfBots?: string }).__perfBots ?? '-'}`
+          + ` split=${Object.entries((globalThis as { __perfSplit?: Record<string, number> }).__perfSplit || {}).map(([k, v]) => `${k}:${v.toFixed(1)}`).join(',')}`);
       }
     }
     if (dynPin !== null) return; // QA pin owns the scale; telemetry stays live
