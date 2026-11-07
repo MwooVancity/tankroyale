@@ -258,9 +258,9 @@ export function createMainFrameRuntime({
     lighting.update(false, dtR);
     splitAt = perfSplit('light', splitAt);
     post.render(dtR);
-    perfSplit('render', splitAt);
     if (game.phase === 'garage') clearGaragePresentationDirty();
     if (game.phase === 'battle') battleEntryLifecycle.noteBattleFrame();
+    perfSplit('render', splitAt);
     perfHud.update(dtR * 1000);
   };
 

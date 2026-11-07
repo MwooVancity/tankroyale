@@ -4,6 +4,7 @@
 **Reader:** a phone player starting a Bots battle.
 
 ## Numbers (dated)
+- 2026-11-07: lab #4 (vc880, commit 1d5f9dc3 + VITE_PERF_LAB, Pixel 6a Android 12, 0 crashes, mixed A/B configs so not a release number): fps p10 28.6 / p50 33.6. A/B inside one run: ship-again 32.6; reticle hidden 35.9; whole HUD hidden 39.7; shadows off 35.8; 1.0x output 35.0; vegetation hidden 32.8; full terrain shader 24.4. Main-thread split (ms): render JS 15-19 (500 draw calls), sim 1-4 (one 11 ms spike), hud 2-3, other parts under 1. Programs grew 423 to 578 during the battle (B2). The HUD overlay is the biggest single lever: the full-screen sight canvas plus drop-shadow filters on text that changes.
 - 2026-11-07: PRODUCTION = 1.87.0 [87] (promoted via tools/play.mjs, notes "smoother and sharper", sent for Google review). Evidence: vc874 (87's code, Pixel 6a Android 12) fps p10 20.6 / p50 26.9 / p90 29.9, bots 7/7, 0 crashes; end screen proven on vc878 (same end-screen code, 4-min QA round).
 - 2026-11-07: vc878 (commit 92ee4b8c code: + Lambert terrain and leaves, Pixel 6a): fps p10 14.6 / p50 20.2 / p90 27.3; 25-30 fps for the first ~2 min, 17-20 in heavy combat with the main thread at 40-50 ms. The combat frame is now main-thread bound. [round] end "defeat", 0 crashes. Not clearly better than vc874 (different battle each run).
 - 2026-11-07: FINAL clean build (commit 9e3838ab, debug APK, Test Lab vc874, Pixel 6a Android 12, Bots battle, 102 [perf] samples): fps p10 20.6 / p50 26.9 / p90 29.9 (build-86 equivalent vc871: 10.1 / 10.5 / 12.3). Canvas 1372x618 (1.5x), HUD 'ALLIES 6 / ENEMY 6', bots=7/7 at start, 0 crashes. Release gate FAILS the 30 fps bar: pushed to alpha only, NOT promoted to production. Round end not reached (the Robo player sits idle). Online two-phone test NOT done on Android.
@@ -32,6 +33,58 @@ GPU still sets the pace at the start of a battle (frame ~42 ms, main thread ~21 
 - H. Seat takeover by a known player id: the guard must still let the real player reconnect after a drop (same device, new socket). Needs a per-seat secret, not just the id.
 - I. Bundle prune: deleting a file the app loads gives a missing texture or sound at runtime. Guard: build the list of files the app references, and delete only files nobody references.
 - J. Budget phones (Galaxy A13 class): may not be in the Test Lab catalog; check the catalog before planning around it.
+
+### Audit list (folded 2026-11-07 from the audit session's EDGE-CASES-2026-11-07.md, 47 cases; ID | breaks at | status)
+Status: FIXED = in code with a check; OPEN = not started; DEFER = reason given.
+- A1 213 MB download (Play base limit 200 MB) | OPEN, prune step written (website-only media, about 17 MB); the 80 MB target needs a per-file audit of icons (56 MB) and textures (44 MB)
+- A2 minSdk 24 allows old WebViews | OPEN: log webgl2 and the WebView version at boot; show a "phone not supported" screen
+- B1 about 43 s from tap to battle | OPEN: gate at 30 s on a Pixel 6a
+- B2 shaders compile mid-battle (171 to 300 programs) | OPEN: progs on the first battle line equals progs on the last, ±5
+- B4 large system font | OPEN (guess)
+- B5 safe-area injection errors | OPEN
+- C1 loading screen shows 0/0 | FIXED (build 87)
+- C2 load hangs forever | FIXED (unverified on Android): no loader progress for 60 s logs `[battle-load] failed stalled <stage>`, tells the player and restarts the app (a stuck step cannot be cancelled). Breaks if one honest step takes over 60 s on a weak phone. Check: loadStallWatchdog selftest.
+- C3 a failed load drops silently to the garage | FIXED (unverified on Android): message plus `[battle-load] failed <stage>`
+- C4 countdown stuck at "1" | FIXED: hold at most 6 s (preBattleCountdown selftest)
+- C5 one bot model failing hides every later bot | FIXED: a failed build is skipped and logged; later bots still build (rosterVisualFailure selftest, fails on the old code)
+- C6 HUD numbers were kills | FIXED (build 87, shows alive per team)
+- C7 fps | PARTLY: p50 26.9 / p90 29.9 (vc874); target p90 30
+- C8 heat slowdown by round 3 | OPEN, needs a 3-round Test Lab run
+- C9 no frame cap on 120 Hz | OPEN
+- C10 battery saver at 30 Hz | OPEN (guess)
+- C11 slow motion below 10 fps | OPEN: log simLag
+- C12 no pause when the app goes to the background | OPEN
+- C13 WebGL context lost | handled (reload fallback)
+- C14 15-min rounds too long for phones | OPEN: phone round 5-7 min
+- C15 killcam never finishes | OPEN (guess): 10 s timeout
+- C16 enemies grey at range | OPEN
+- C17 HUD text 6.5-9 px | OPEN: minimum 11 px
+- D1 relay drops control messages | FIXED (signalRelayRate selftest)
+- D2 relay reported a 0 send queue | FIXED (reports the socket bufferedAmount)
+- D3 relay/direct race near 15 s | OPEN
+- D4 no relay fallback mid-match | DEFER: changes the live transport; needs a two-phone Android test
+- D5 seat takeover | OPEN: secret rejoin token (old build 77 clients must still join)
+- D6 cold start 30-60 s against a ~30 s client give-up | PARTLY: menu wake ping plus 15 s connect; needs a 90 s retry with "server waking up"
+- D7 Render deploy kills live rooms | OPEN: deploy only from tagged releases or drain
+- D8 a backgrounded host freezes everyone | OPEN
+- D9 a slow host phone puts everyone in slow motion | OPEN
+- D10 rooms kept 24 h, no cap | OPEN
+- D11 rate-limit loophole via kind:data | OPEN
+- D12 Oregon-only server | DEFER (no user numbers yet)
+- D13 browser and app on different servers | OPEN: fix the listing text
+- D14 api/ice.ts accepts no Origin | DEFER (no TURN keys)
+- E1 optional Robo taps | OPEN
+- E2 CI uploads with no tests | FIXED: CI runs `tools/release-tests.mjs` before upload (all 385 selftests; fails on any new failure; 9 known failures may only shrink; ~6 min). `play.mjs promote` refuses unless the vc is above production, its CI run succeeded, and `tools/testlab.mjs` recorded a PASS for that commit (docs-only commits on top carry over). The gate now also fails on crashes and on perf-lab builds (releaseGate selftest).
+- E3 emulator smoke blocks nothing | OPEN
+- E4 [perf] showed calls=1 | FIXED (autoReset, bots=, split=)
+- E5 one strong test phone | OPEN: add a Mali/A-series model
+- E6 5 Test Lab runs a day | known
+- F1-F4 store and retention | OPEN, after fps
+Parent-session additions:
+- Bot merge: turret and barrel motion, damage hiding parts, tint and hit flash leaking through the shared botPaint material, hit raycasts, cull bounds, cache per model, dispose over 20 battles, garage unbroken.
+- JS cuts: keep the sim dt-based; WebView 94 must still work.
+- Relay: drop stale ordered state, mixed direct/relayed peers, own room only, the room count at which the Render plan breaks, a clear restart message.
+- Play: versionCode above production; staged rollout 20%, then 100% after a crash-free day.
 
 ## Next
 0. Lab #4 is built and waiting (Test Lab quota exceeded 2026-11-07): `VITE_PERF_LAB=1` build. It reads the new `[perf] split=sim,cam,world,fx,hud,light,render` and tests hiding the reticle or the whole HUD, shadows off, and 1.0x output. Fix the biggest main-thread part next.

@@ -37,7 +37,8 @@ while (Date.now() < until) {
   for (const g of guests) for (let k = 0; k < 3; k++) { g.sig.sendSignal(room.peerId, { kind: 'data', ch: 'c', d: INPUT }, g.hostSession); sent++; }
   await new Promise((r) => setTimeout(r, STEP_MS));
 }
-await new Promise((r) => setTimeout(r, 1000));
+// Drain: wait until deliveries stop growing (a busy CI box delivers late, not never).
+for (let last = -1, t = 0; got !== last && t < 10; t++) { last = got; await new Promise((r) => setTimeout(r, 500)); }
 const loss = 1 - got / sent;
 console.log(`signalRelayRate: sent ${sent}, delivered ${got}, loss ${(loss * 100).toFixed(1)}%`);
 assert(loss < 0.005, `relay drops match traffic at real rates: ${(loss * 100).toFixed(1)}% lost`);

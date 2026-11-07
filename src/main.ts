@@ -173,6 +173,7 @@ import { createFxRuntimeAccess } from './fx/fxRuntimeAccess.ts';
 // paint never waits on this module graph) and the pre-battle roster screen.
 import { createBootScreen } from './ui/bootScreen.ts';
 import { createBattleLoadScreen } from './ui/battleLoad.ts';
+import { watchLoadStall } from './game/loadStallWatchdog.ts';
 import { createEndOverlayRuntime } from './ui/endOverlayRuntime.ts';
 import { createStartupIntent } from './game/startupIntent.ts';
 import { createSelectedVehicleSelection } from './game/selectedVehicleSelection.ts';
@@ -1891,11 +1892,20 @@ async function beginBattleEntry(
   options: unknown = undefined,
 ) {
   return battleEntryLifecycle.run(async () => {
+    // A load step that never resolves used to leave the loader up forever.
+    // The pending load cannot be cancelled mid-step, so a stall reloads the
+    // app after telling the player (a reload is the only state-safe exit).
+    const stopWatchdog = watchLoadStall(() => battleLoad.lastProgress, (stage, ms) => {
+      console.error(`[battle-load] failed stalled ${stage} ${ms}ms`);
+      window.alert('The battle did not finish loading. The game will restart.');
+      window.location.reload();
+    });
     try {
       battleEntryLifecycle.coverRendering();
       await soloBattleLoading.begin(specId, mapId, legacyPort(options));
     } catch (error) {
-      console.error('[battle] entry failed', error);
+      console.error(`[battle-load] failed ${battleLoad.lastProgress.stage}`, error);
+      window.setTimeout(() => window.alert('The battle could not load. Please try again.'), 0);
       audio.loadingOn(false);
       // Failure exits obey the same covered-frame rule in the opposite
       // direction: restore and paint the Garage while the loader is opaque,
@@ -1905,6 +1915,8 @@ async function beginBattleEntry(
       battleEntryLifecycle.uncoverRendering();
       await nextFrame();
       await battleLoad?.hide?.();
+    } finally {
+      stopWatchdog();
     }
   }, undefined);
 }

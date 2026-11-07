@@ -2,7 +2,22 @@ import assert from 'node:assert/strict';
 import {
   advancePreBattleCountdown,
   resolveVisiblePreBattleSeconds,
+  MAX_COUNTDOWN_HOLD_S,
+  nextCountdownHold,
 } from './preBattleCountdown.ts';
+
+// Warmup that never finishes must not hold "1" forever: countdown hits 0 by 6 s.
+{
+  let s = 5; let hold = 0; let t = 0;
+  while (s > 0 && t < 60) {
+    hold = nextCountdownHold(hold, s, 0.05);
+    s = advancePreBattleCountdown(s, 0.05, hold < MAX_COUNTDOWN_HOLD_S);
+    t += 0.05;
+  }
+  assert.equal(s, 0, 'countdown reaches 0 with warmup stuck');
+  assert.ok(t <= 4 + MAX_COUNTDOWN_HOLD_S + 1.2, `hold capped (took ${t.toFixed(2)} s)`);
+  assert.equal(nextCountdownHold(3, 4, 0.1), 0, 'hold resets while counting');
+}
 
 assert.equal(advancePreBattleCountdown(5, 0.25, false), 4.75);
 assert.equal(advancePreBattleCountdown(1.1, 0.25, true), 1);

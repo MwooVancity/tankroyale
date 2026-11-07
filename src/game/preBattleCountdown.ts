@@ -16,6 +16,16 @@ export function advancePreBattleCountdown(
   return Math.max(floor, seconds - dt);
 }
 
+/** Longest the countdown may sit on its hold value waiting for warmup. Below
+ * 20 fps the 7 bot visuals took 5-30 s, so "1" stuck on screen. */
+export const MAX_COUNTDOWN_HOLD_S = 6;
+
+/** Seconds spent on the hold value so far; resets while counting above it. */
+export function nextCountdownHold(holdS: number, seconds: number, dtS: number, holdAtS = 1): number {
+  if (!(seconds <= holdAtS)) return 0;
+  return holdS + (Number.isFinite(dtS) ? Math.max(0, dtS) : 0);
+}
+
 /**
  * Convert time already spent behind the battle loader into countdown credit.
  * A short visible deployment cue remains so the camera handoff is readable,

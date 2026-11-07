@@ -1,5 +1,6 @@
 import type { PlayerFrameInput, PlayerFrameSample } from './playerFrameInput.ts';
 import type { GameState } from './stateCore.ts';
+import { MAX_COUNTDOWN_HOLD_S, nextCountdownHold } from './preBattleCountdown.ts';
 
 export interface BattlePauseInfo {
   paused: boolean;
@@ -106,6 +107,7 @@ export function createBattleFrameRuntime({
   }
 
   let simulationAccumulator = 0;
+  let countdownHoldS = 0;
   const pauseInfo: BattlePauseInfo = {
     paused: false,
     resumes: 0,
@@ -179,10 +181,11 @@ export function createBattleFrameRuntime({
       } else if (game.preBattleS > 0) {
         if (game.preBattleS !== Infinity) {
           const heldSeconds = game.preBattleS;
+          countdownHoldS = nextCountdownHold(countdownHoldS, game.preBattleS, wallDtSeconds);
           game.preBattleS = countdown.advance(
             game.preBattleS,
             wallDtSeconds,
-            countdown.isWarmPending(),
+            countdown.isWarmPending() && countdownHoldS < MAX_COUNTDOWN_HOLD_S,
           );
           countdown.show(game.preBattleS);
           if (heldSeconds > 0 && game.preBattleS === 0) countdown.rollout();

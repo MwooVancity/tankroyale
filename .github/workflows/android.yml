@@ -28,6 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Release gate (E2): a build that breaks a passing selftest never uploads.
+      - name: Release tests
+        run: node tools/release-tests.mjs
+
       - name: Build web assets
         env:
           VITE_SIGNAL_URL: ${{ secrets.VITE_SIGNAL_URL }}
@@ -44,6 +48,7 @@ jobs:
         # ponytail: promo/docs videos stay on the website; the app bundle must fit Play's 200 MB limit
         run: |
           find dist/media -type f \( -name '*.mp4' -o -name '*.webm' \) -delete || true
+          node tools/prune-native-media.mjs dist
           du -sh dist
           npx cap sync android
 

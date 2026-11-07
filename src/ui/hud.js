@@ -9,7 +9,7 @@ import { createElement as el, ensureStyle } from './dom.ts';
 import { spectatorCardModel, spectatorSwitcherMarkup } from './spectatorSwitcher.ts';
 import { fillDriveTelemetry, isDriveSampleDue } from './driveTelemetry.ts';
 import { uiPixelRatio } from '../engine/resolutionPolicy.ts';
-import { getDeviceTier } from '../engine/quality.ts';
+import { getDeviceTier, getPreset } from '../engine/quality.ts';
 import {
   MINIMAP_NORTH_UP,
   minimapRotationForSpawnYaw,
@@ -437,6 +437,7 @@ const HUD_CSS = `
   -webkit-user-select:none;user-select:none;color:var(--hud-text);overflow:hidden;}
 .cot-hud *{box-sizing:border-box;margin:0;padding:0;}
 .cot-ret{position:absolute;z-index:var(--hud-layer-sight);inset:0;width:100%;height:100%;display:block;}
+.cot-hud.cot-hud-lite,.cot-hud.cot-hud-lite *{filter:none !important;}
 .cot-top{position:absolute;z-index:var(--hud-layer-score);top:0;left:50%;transform:translateX(-50%);width:min(344px,calc(100vw - 24px));
   min-height:62px;display:grid;grid-template-columns:minmax(78px,1fr) 86px minmax(78px,1fr);
   align-items:stretch;padding:0 25px 8px;isolation:isolate;overflow:hidden;
@@ -1633,6 +1634,13 @@ export function initHud(bus) {
     // Lines are positioned in CSS space and composite over the native 3D
     // canvas without forcing a 3.3 MP 2D clear/upload on every mobile frame.
     dpr = uiPixelRatio(w, h, window.devicePixelRatio || 1, false);
+    // Performance preset (phones): Pixel 6a lab vc880 measured the full-screen
+    // sight at ~3 fps and HUD drop-shadow filters (re-rastered as text ticks)
+    // at ~4 more. Draw the sight at the 3D output ratio and drop HUD filters.
+    // ponytail: read at resize; a quality change mid-session applies on the next resize.
+    const lite = !!getPreset().liteMaterials;
+    if (lite) dpr = Math.min(dpr, getPreset().maxOutputPixelRatio ?? 1.5);
+    root.classList.toggle('cot-hud-lite', lite);
     retCanvas.width = Math.round(w * dpr);
     retCanvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

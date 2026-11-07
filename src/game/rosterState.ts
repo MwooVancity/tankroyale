@@ -177,13 +177,23 @@ export function ensureStagedVisuals(
 ) {
   let built = 0;
   for (const ent of game.tanks) {
-    if (ent.visual || (predicate && !predicate(ent))) continue;
+    if (ent.visual || failedVisuals.has(ent) || (predicate && !predicate(ent))) continue;
     if (built >= limit) return false;
-    ensureTankVisual(game, ent);
+    // One bot's model failing (WebGL memory on 3-4 GB phones) used to throw
+    // out of the loop, so every later bot stayed invisible but kept shooting.
+    try {
+      ensureTankVisual(game, ent);
+    } catch (error) {
+      failedVisuals.add(ent);
+      console.warn(`[battle-load] visual failed ${ent.specId}: ${(error as Error)?.message || error}`);
+    }
     built++;
   }
   return true;
 }
+
+// Entities whose visual build threw; skipped so the stream cannot spin on them.
+const failedVisuals = new WeakSet<object>();
 
 /** perf-r4b: the next entity ensureStagedVisuals(game, 1) would build, plus
  * the texture tier ensureTankVisual will bake it at — the pre-battle loading
@@ -194,7 +204,7 @@ export function nextStagedBake(
   game: RosterGameState,
   predicate: RosterPredicate | null = null,
 ) {
-  const ent = game.tanks.find((e) => !e.visual && (!predicate || predicate(e)));
+  const ent = game.tanks.find((e) => !e.visual && !failedVisuals.has(e) && (!predicate || predicate(e)));
   if (!ent) return null;
   return { ent, quality: textureQualityFor(game, ent) };
 }

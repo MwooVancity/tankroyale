@@ -3,7 +3,8 @@
 // Promote = edits.insert, tracks.update production (status completed), commit.
 // Play sends the change for review itself; never set changesNotSentForReview.
 // Never run while CI's upload edit is in flight (a second edit expires it).
-import fs from 'node:fs'; import crypto from 'node:crypto';
+import fs from 'node:fs'; import crypto from 'node:crypto'; import { execFileSync } from 'node:child_process';
+import { findGatePass, promoteRefusal } from './releaseGate.mjs';
 
 const [keyPath, cmd = 'tracks', vc, notes = ''] = process.argv.slice(2);
 const PKG = 'app.tankroyale';
@@ -26,6 +27,17 @@ if (cmd === 'tracks') {
   await api(`/${edit.id}`, 'DELETE');
 } else if (cmd === 'promote') {
   if (!/^\d+$/.test(String(vc))) throw new Error('versionCode required');
+  // Release gate: vc must be newer than production, and its CI commit must
+  // have a real-phone Test Lab PASS (tools/releaseGate.mjs). No override flag.
+  const { tracks } = await api(`/${edit.id}/tracks`);
+  const prodMax = Math.max(0, ...(tracks.find((t) => t.track === 'production')?.releases || []).flatMap((r) => (r.versionCodes || []).map(Number)));
+  const runs = JSON.parse(execFileSync('gh', ['run', 'list', '--workflow', 'android.yml', '--limit', '200', '--json', 'number,headSha,conclusion'], { encoding: 'utf8' }));
+  const refusal = promoteRefusal(Number(vc), prodMax, runs, findGatePass);
+  if (refusal) {
+    await api(`/${edit.id}`, 'DELETE');
+    console.error(`promote refused: ${refusal}`);
+    process.exit(1);
+  }
   const release = { versionCodes: [String(vc)], status: 'completed' };
   if (notes) release.releaseNotes = [{ language: 'en-US', text: notes.slice(0, 500) }];
   await api(`/${edit.id}/tracks/production`, 'PUT', { track: 'production', releases: [release] });

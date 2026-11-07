@@ -158,6 +158,8 @@ export interface BattleLoadScreen {
     enemies: readonly BattleLoadRosterRow[],
   ): void;
   progress(fraction: number, label?: string): void;
+  /** Last time and stage the bar moved (load stall watchdog). */
+  readonly lastProgress: { at: number; stage: string };
   countdown(seconds: number): void;
   hide(): Promise<void>;
 }
@@ -299,7 +301,10 @@ export function createBattleLoadScreen(): BattleLoadScreen {
       pctEl.textContent = `${Math.round(v * 100)}%`;
       progressEl.setAttribute('aria-valuenow', String(Math.round(v * 100)));
       if (label) stageEl.textContent = label;
+      api.lastProgress.at = performance.now();
+      if (label) api.lastProgress.stage = label;
     },
+    lastProgress: { at: performance.now(), stage: '' },
 
     /** Countdown line. @param {number} n seconds left (0 clears to "GO") */
     countdown(n: number) {
