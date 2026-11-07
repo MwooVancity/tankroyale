@@ -69,6 +69,10 @@ export interface QualityPreset {
   readonly bloomScale: number;
   readonly shadowMapSizes: readonly [number, number, number, number];
   readonly shadowMaxFar: number;
+  /** CSM split count, read once at boot (live preset switches keep it); unset = 3 phone / 4 desktop */
+  readonly shadowCascades?: number;
+  /** false skips the SMAA passes (post.ts); unset = on */
+  readonly smaa?: boolean;
   readonly textureScale?: number;
   readonly vehicleTextureScale?: number;
   readonly textureCap?: number;
@@ -272,9 +276,14 @@ export const PRESETS: Readonly<Record<PresetName, QualityPreset>> = {
     // the whole chain at CSS pixels; the WebView stretches the final image.
     maxOutputPixelRatio: 1.0,
     aoScale: 0,
-    bloomScale: 0.35,
-    shadowMapSizes: [768, 768, 512, 512],
-    shadowMaxFar: 260,
+    bloomScale: 0,
+    smaa: false,
+    // Pixel 6a build 86: frame ~70 ms vs main thread ~32 ms. Each cascade is a
+    // full scene depth pass (draw submission + GPU) plus a per-pixel sample, so
+    // Performance keeps one near cascade; far objects sit in fog unshadowed.
+    shadowCascades: 1,
+    shadowMapSizes: [1024, 1024, 1024, 1024],
+    shadowMaxFar: 140,
     textureScale: 0.5,
     vehicleTextureScale: 0.75,
     textureCap: 2048,

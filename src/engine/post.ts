@@ -2026,6 +2026,13 @@ export function createPost(
     smaa._materialWeights.defines.SMAA_MAX_SEARCH_STEPS = '16';
   }
   composer.addPass(smaa); // 5. edge-pattern AA (geometric silhouettes)
+  // Performance preset: bloom (~10 mip passes) and SMAA (3 full-screen
+  // passes) are off; each is GPU fill + draw submission on a phone.
+  function applyOptionalPasses(): void {
+    bloom.enabled = preset.bloomScale > 0;
+    smaa.enabled = preset.smaa !== false;
+  }
+  applyOptionalPasses();
 
   // 6. Native-output spatial reconstruction. SMAA first resolves the geometric
   // pattern at internal resolution. The reconstruction ladder then chooses
@@ -2414,6 +2421,7 @@ export function createPost(
     trimUpBackoffS = TRIM_UP_BACKOFF_S;
     renderer.domElement.dataset.perfTrim = '0';
     applyAoEnabled();
+    applyOptionalPasses();
     resetGovernorState();
     // the preset may cap the canvas density: re-run the viewport resize path
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('resize'));

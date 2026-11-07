@@ -896,7 +896,7 @@ export function createLighting(
   // refreshed every other frame, matching the existing cadence of each far
   // desktop split while removing one full CSM sampler and allocation.
   const mobileTier = getDeviceTier() === 'mobile';
-  const cascadeCount = mobileTier ? 3 : CASCADES;
+  const cascadeCount = preset.shadowCascades ?? (mobileTier ? 3 : CASCADES);
   const csm = new CSM({
     camera,
     parent: scene,
