@@ -14,7 +14,7 @@ import { SimplexNoise } from '../engine/simplexFast.ts';
 import { applySourcedTerrain } from './sourcedTextures.ts';
 import { buildHorizonRing, type HorizonMapConfig } from './maps/horizon.ts';
 // MOBILE r1: central tier texture scale (desktop returns sizes unchanged)
-import { texSize } from '../engine/quality.ts';
+import { getPreset, texSize } from '../engine/quality.ts';
 import { registerRetainedObject3DResources } from '../engine/resourceLifetime.ts';
 
 type GroundType = 'hard' | 'medium' | 'soft';
@@ -1888,6 +1888,11 @@ float gTileMix; // r8 anti-tiling: stochastic rotation-blend weight (set in spla
 float gCliffJ;  // r8: per-cliff jitter field (set with the wall basis)
 vec4 splatSamp(sampler2D t, vec2 uv, float df, float mb) {
   vec4 nearS = texture2D(t, uv, mb);
+#ifdef TERRAIN_LITE
+  // Phones: one read per layer (Pixel 6a Test Lab: the full terrain shader
+  // held the frame at ~12 fps; per-pixel material cost was the whole GPU bill).
+  return nearS;
+#endif
   if (df < 0.004) return nearS;
   // r5 terrain_environment: the far variant re-samples the SAME hand-painted
   // blade-stroke sheet at 0.2317x scale — its 7-12 px curved strokes became
@@ -1918,6 +1923,9 @@ vec4 splatSamp(sampler2D t, vec2 uv, float df, float mb) {
 const mat2 TILEROT = mat2(0.7431, 0.6691, -0.6691, 0.7431);
 vec4 groundSamp(sampler2D t, vec2 uv, float df, float mb) {
   vec4 sA = splatSamp(t, uv, df, mb);
+#ifdef TERRAIN_LITE
+  return sA; // phones: no anti-tiling second sample
+#endif
   vec4 sB = splatSamp(t, TILEROT * uv * 1.16 + vec2(0.37, 0.61), df, mb);
   return mix(sA, sB, gTileMix);
 }
@@ -1925,6 +1933,9 @@ vec4 groundSamp(sampler2D t, vec2 uv, float df, float mb) {
 // rotated back into the world frame or its bump lighting points 42 deg off
 vec4 groundNrm(sampler2D t, vec2 uv, float df, float mb) {
   vec4 sA = splatSamp(t, uv, df, mb);
+#ifdef TERRAIN_LITE
+  return sA;
+#endif
   vec4 sB = splatSamp(t, TILEROT * uv * 1.16 + vec2(0.37, 0.61), df, mb);
   vec2 nB = sB.xy * 2.0 - 1.0;
   sB.xy = vec2(0.7431 * nB.x + 0.6691 * nB.y, -0.6691 * nB.x + 0.7431 * nB.y) * 0.5 + 0.5;
@@ -2811,7 +2822,8 @@ function createSplatMaterial(
   // default — the 4x cap was the root of the long "rain streak" smears down
   // every steep face seen at grazing angles (mesa flanks, cut banks): past a
   // 4:1 footprint the sampler can only blur along the compressed axis.
-  const aniso = Math.max(16, engineCtx.anisotropy ?? 4);
+  // Phones (liteMaterials): 4x — 16x on every terrain read was GPU fill they lack.
+  const aniso = getPreset().liteMaterials ? 4 : Math.max(16, engineCtx.anisotropy ?? 4);
   const layers = {
     G: makeGrassLayer(3000, aniso, S.grassTone || null),
     D: makeDirtLayer(3001, aniso, S.dirtTone || null),
@@ -2843,6 +2855,7 @@ function createSplatMaterial(
   const roadTint = S.roadTint || [1.08, 1.04, 0.96];
 
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1.0, metalness: 0.0 });
+  if (getPreset().liteMaterials) mat.defines = { TERRAIN_LITE: '' };
   // r3: DoubleSide — at chunk borders where LOD levels disagree on a steep
   // cliff edge, the higher chunk's skirt ribbon can face AWAY from a camera
   // looking across the boundary; the culled backface opened a fog-bright

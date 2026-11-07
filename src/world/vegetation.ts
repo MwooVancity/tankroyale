@@ -12,7 +12,7 @@ import { setToppleAxis, settledToppleAngle } from './topple.ts';
 import { setCircleShape, type CollisionRecord } from './collision.ts';
 import { treeRootDecalAreaM2, treeRootDecalRadius } from './treeGrounding.ts';
 // MOBILE r1: central tier texture scale (desktop returns sizes unchanged)
-import { getDeviceTier, texSize } from '../engine/quality.ts';
+import { getDeviceTier, getPreset, texSize } from '../engine/quality.ts';
 import { markShadowOnly } from '../engine/renderLayers.ts';
 
 type RandomSource = () => number;
@@ -1817,8 +1817,12 @@ function* vegetationBuildSteps(
   // vertices. Hand off earlier to the terrain meadow and the opaque far-tree
   // silhouettes. Both transitions already use continuous density/LOD fades,
   // so this removes sub-pixel noise without introducing a distance pop.
-  const grassFadeEnd = mobileTier ? 132 : GRASS_FADE_END;
-  const grassTaperEnd = mobileTier ? 112 : 155;
+  // Performance preset (liteMaterials): alpha-tested grass cards were ~6 fps of
+  // the Pixel 6a frame (Test Lab, hiding vegetation 18 -> 24 fps); keep the
+  // carpet near the tank and let the terrain meadow carry the midfield.
+  const liteGrass = !!getPreset().liteMaterials;
+  const grassFadeEnd = liteGrass ? 70 : mobileTier ? 132 : GRASS_FADE_END;
+  const grassTaperEnd = liteGrass ? 58 : mobileTier ? 112 : 155;
   const treeNearIn = mobileTier ? 200 : TREE_NEAR_IN;
   const treeNearOut = mobileTier ? 225 : TREE_NEAR_OUT;
   const veg: VegetationConfig = {
@@ -1839,9 +1843,9 @@ function* vegetationBuildSteps(
   const v = L.village;
   const noVeg = heightField._noVeg || (() => false);
   const grassPerChunk = Math.round(GRASS_PER_CHUNK * veg.grassDensity
-    * (mobileTier ? 0.62 : 1));
+    * (liteGrass ? 0.3 : mobileTier ? 0.62 : 1));
   const carpetPerCell = Math.round(CARPET_PER_CELL * veg.grassDensity
-    * (mobileTier ? 0.72 : 1));
+    * (liteGrass ? 0.5 : mobileTier ? 0.72 : 1));
 
   const uWindTime = { value: 0 };
   const uCamPos = { value: new THREE.Vector3(0, 0, 0) };

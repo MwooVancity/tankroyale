@@ -73,6 +73,8 @@ export interface QualityPreset {
   readonly shadowCascades?: number;
   /** false skips the SMAA passes (post.ts); unset = on */
   readonly smaa?: boolean;
+  /** phones: Lambert instead of PBR surfaces + one-read terrain (read at world build) */
+  readonly liteMaterials?: boolean;
   readonly textureScale?: number;
   readonly vehicleTextureScale?: number;
   readonly textureCap?: number;
@@ -272,12 +274,15 @@ export const PRESETS: Readonly<Record<PresetName, QualityPreset>> = {
     adaptiveBasePixelRatio: 1.0,
     // Pixel 6a (Test Lab, Android 12, build 85): canvas at native 2401x1081
     // while the scene renders at 915x412 -> frame 85 ms, main thread 43 ms,
-    // i.e. GPU-bound on full-screen native-res passes. Performance keeps
-    // the whole chain at CSS pixels; the WebView stretches the final image.
-    maxOutputPixelRatio: 1.0,
+    // i.e. GPU-bound on full-screen native-res passes. Build 86 capped the
+    // canvas at CSS pixels: blurry. Test Lab vc873 (lite materials): FSR
+    // output at 1.5x = 24.8 fps vs 23.5 at 1.0 (free), 2.0x = 20.7, native
+    // 19.7. The 3D scene stays at CSS pixels; only the upscale lands at 1.5x.
+    maxOutputPixelRatio: 1.5,
     aoScale: 0,
     bloomScale: 0,
     smaa: false,
+    liteMaterials: true,
     // Pixel 6a build 86: frame ~70 ms vs main thread ~32 ms. Each cascade is a
     // full scene depth pass (draw submission + GPU) plus a per-pixel sample, so
     // Performance keeps one near cascade; far objects sit in fog unshadowed.

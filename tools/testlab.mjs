@@ -96,7 +96,7 @@ await refresh();
 matrix = await api(`https://testing.googleapis.com/v1/projects/${PROJECT}/testMatrices`, {
   method: 'POST',
   body: JSON.stringify({
-    testSpecification: { testTimeout: '420s', androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, roboScript } },
+    testSpecification: { testTimeout: process.env.TIMEOUT || '420s', androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, roboScript } },
     environmentMatrix: { androidDeviceList: { androidDevices: picked.map(({ name, ...d }) => d) } },
     resultStorage: { googleCloudStorage: { gcsPath: `gs://${BUCKET}/vc${VC}/results/${Date.now()}` } },
   }),
@@ -136,4 +136,15 @@ for (const ex of m.testExecutions) {
   console.log(`  WebView console errors: ${consoleErr.length}`); [...new Set(consoleErr.map((l) => l.replace(/^.*CONSOLE/, '').slice(0, 200)))].slice(0, 12).forEach((l) => console.log('   ', l));
   console.log(`  boot markers: ${boot.length}`); boot.slice(0, 5).forEach((l) => console.log('   ', l.slice(0, 200)));
   console.log(`  saved: ${local}`);
+  // Release gate: a run where nobody reached a battle must not pass. Needs >= 6
+  // [perf] lines inside a battle (bots=allies/enemies, written by hud.js),
+  // enemies on the first one, and the 10th-percentile fps >= MIN_FPS (default 30).
+  const perf = pick(/\[perf\] .*bots=\d+\/\d+/).map((l) => ({ fps: Number(/fps=([\d.]+)/.exec(l)?.[1]), enemies: Number(/bots=\d+\/(\d+)/.exec(l)[1]) }));
+  const fps = perf.map((p) => p.fps).filter(Number.isFinite).sort((a, b) => a - b);
+  const p10 = fps[Math.floor(fps.length * 0.1)] ?? 0, minFps = Number(process.env.MIN_FPS || 30);
+  const fails = [perf.length < 6 && `only ${perf.length} battle [perf] lines (battle not reached?)`,
+    perf.length && perf[0].enemies < 1 && 'no enemies on the first battle line',
+    p10 < minFps && `p10 fps ${p10} < ${minFps}`].filter(Boolean);
+  console.log(`  GATE ${fails.length ? 'FAIL: ' + fails.join('; ') : 'PASS'} (battle lines ${perf.length}, fps p10 ${p10} median ${fps[fps.length >> 1] ?? '-'})`);
+  if (fails.length) process.exitCode = 1;
 }

@@ -35,6 +35,8 @@
  *     passes through the composer, so UI text keeps full sharpness.
  */
 import * as THREE from 'three';
+import { createPerfLab } from './perfLab.ts';
+import { applyLiteMaterials } from './liteMaterials.ts';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
@@ -2268,8 +2270,9 @@ export function createPost(
           + ` mainThreadMs=${cpuMs == null ? '?' : cpuMs.toFixed(1)}`
           + ` scale=${dynScale.toFixed(2)} dpr=${renderer.getPixelRatio().toFixed(2)} buf=${buf.x}x${buf.y}`
           + ` trim=${perfTrim} preset=${preset.label} msaa=${msaaSamples}`
-          + ` lastPassCalls=${renderer.info.render.calls} tris=${renderer.info.render.triangles}`
-          + ` progs=${renderer.info.programs?.length ?? '?'} geos=${renderer.info.memory.geometries}`);
+          + ` calls=${frameCalls} tris=${frameTris}`
+          + ` progs=${renderer.info.programs?.length ?? '?'} geos=${renderer.info.memory.geometries}`
+          + ` bots=${(globalThis as { __perfBots?: string }).__perfBots ?? '-'}`);
       }
     }
     if (dynPin !== null) return; // QA pin owns the scale; telemetry stays live
@@ -2427,6 +2430,24 @@ export function createPost(
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('resize'));
   });
 
+  // Test-build-only phone A/B lab (VITE_PERF_LAB=1); dead code in Play builds.
+  const lab = import.meta.env.VITE_PERF_LAB ? createPerfLab(renderer, scene, camera, (ratio) => {
+    if (ratio == null) { renderer.setPixelRatio(labRatio0); renderer.setSize(cssW, cssH, false); applySize(cssW, cssH); return; }
+    labRatio0 = renderer.getPixelRatio();
+    // negative = output only: canvas at -ratio, composer stays at its preset cap (FSR upscales)
+    if (ratio < 0) { renderer.setPixelRatio(-ratio); renderer.setSize(cssW, cssH, false); applySize(cssW, cssH); return; }
+    renderer.setPixelRatio(ratio);
+    renderer.setSize(cssW, cssH, false);
+    composer.setPixelRatio(ratio);
+    composer.setSize(cssW, cssH);
+    upscaler.setOutputSize(renderer.getDrawingBufferSize(_nativeSize).x, _nativeSize.y);
+  }) : null;
+  let labRatio0 = 1;
+  let frameCalls = 0;
+  let frameTris = 0;
+  // Phones: new PBR surfaces (world chunks, late-built tanks) turn Lambert;
+  // a scene walk once a second is ~1 ms of JS.
+  let liteScanAt = 0;
   return {
     composer,
 
@@ -2483,6 +2504,17 @@ export function createPost(
       // dynamic resolution governor (see the DYN_* block above): may step the
       // composer's internal pixel ratio and resize the chain — run it FIRST
       // so a resize never lands between the passes below and their uniforms.
+      // Whole-frame draw counts for the [perf] line (autoReset would keep only
+      // the last fullscreen pass: the old "calls=1 tris=1").
+      renderer.info.autoReset = false;
+      frameCalls = renderer.info.render.calls;
+      frameTris = renderer.info.render.triangles;
+      renderer.info.reset();
+      lab?.begin(performance.now());
+      if (preset.liteMaterials && performance.now() - liteScanAt > 1000) {
+        liteScanAt = performance.now();
+        applyLiteMaterials(scene);
+      }
       dynGovern(dt);
       // sniper zoom / rig changes can retune the camera planes — keep the
       // aerial distance reconstruction exact
@@ -2564,7 +2596,9 @@ export function createPost(
         const sd = scene.userData.sunDirWorld;
         if (sd) aerial.uniforms.uSunDir.value.copy(sd).normalize();
       }
-      composer.render(dt);
+      const labT0 = performance.now();
+      if (lab?.direct) { renderer.setRenderTarget(null); renderer.render(scene, camera); } else composer.render(dt);
+      lab?.end(performance.now() - labT0);
     },
 
     /**
