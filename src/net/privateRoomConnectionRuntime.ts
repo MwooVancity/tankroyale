@@ -120,7 +120,18 @@ export interface PrivateRoomConnectionRuntime {
 
 const DEFAULT_ADAPTERS: ConnectionAdapters = {
   // 15 s connect: a sleeping Render server needs ~10-20 s to wake.
-  createSignaling: (url) => new RoomSignalingClient({ url, connectTimeoutMs: 15_000 }),
+  // Render free tier sleeps after 15 min idle and takes 30-60 s to wake:
+  // retry for 90 s and tell the menu (playMenu listens for the event).
+  createSignaling: (url) => new RoomSignalingClient({
+    url,
+    connectTimeoutMs: 15_000,
+    wakeBudgetMs: 90_000,
+    onWaking: (elapsedMs) => {
+      if (typeof CustomEvent === 'function' && typeof globalThis.dispatchEvent === 'function') {
+        globalThis.dispatchEvent(new CustomEvent('tr-signal-waking', { detail: elapsedMs }));
+      }
+    },
+  }),
   createHostSession: (options) =>
     new PrivateRoomHostSession(options) as unknown as HostSessionLike,
   createClientSession: (options) =>

@@ -452,7 +452,7 @@ const HUD_CSS = `
 .cot-top .sc,.cot-top .tm-block{position:relative;z-index:1;}
 .cot-top .sc{display:grid;grid-template-rows:10px 1fr 7px;place-items:center;gap:1px;
   min-width:0;padding:6px 7px 5px;}
-.cot-top .team-label,.cot-top .tm-label{font-family:${FONT_COND};font-size:7.5px;font-weight:800;
+.cot-top .team-label,.cot-top .tm-label{font-family:${FONT_COND};font-size:11px;font-weight:800;
   line-height:1;letter-spacing:.2em;text-transform:uppercase;color:#8f9eaa;white-space:nowrap;}
 .cot-top .sc.ally .team-label{color:rgba(161,225,170,.76);}
 .cot-top .sc.enemy .team-label{color:rgba(241,148,140,.76);}
@@ -482,7 +482,7 @@ const HUD_CSS = `
 .cot-mode-status{position:absolute;z-index:var(--hud-layer-score);top:66px;left:50%;transform:translateX(-50%);
   min-height:28px;display:none;align-items:center;gap:8px;padding:5px 11px;color:#e8f0f5;
   background:rgba(7,11,15,.88);border:1px solid rgba(176,194,208,.28);box-shadow:0 5px 14px rgba(0,0,0,.38);
-  font:800 8px ${FONT_COND};letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;}
+  font:800 11px ${FONT_COND};letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;}
 .cot-mode-status.show{display:flex}.cot-mode-status .mi,.cot-mode-status .mi svg{display:block;width:15px;height:15px}
 .cot-mode-status .mi{color:#f0a030}.cot-mode-status .mv{color:#fff1d6;font-variant-numeric:tabular-nums}
 @keyframes cotChipIn{from{opacity:0}to{opacity:1}}
@@ -497,9 +497,9 @@ const HUD_CSS = `
   justify-content:center;column-gap:4px;color:#dce6ed;}
 .cot-net-unit+.cot-net-unit{margin-left:7px;padding-left:8px;border-left:1px solid rgba(171,190,204,.2);}
 .cot-net .metric{font-size:11px;font-weight:800;line-height:1;letter-spacing:.02em;}
-.cot-net .label{font-size:6.5px;font-weight:800;line-height:1;letter-spacing:.13em;color:#8494a0;}
+.cot-net .label{font-size:11px;font-weight:800;line-height:1;letter-spacing:.13em;color:#8494a0;}
 .cot-net-unit.good .metric{color:#b9e7c0}.cot-net-unit.warn .metric{color:#ffd27a}
-.cot-net-unit.bad .metric{color:#ff8c82}.cot-net-unit.local .metric{color:#b9c7d1;font-size:8px;letter-spacing:.08em}
+.cot-net-unit.bad .metric{color:#ff8c82}.cot-net-unit.local .metric{color:#b9c7d1;font-size:11px;letter-spacing:.08em}
 body.cot-debug-hud .cot-net{display:none!important;}
 /* Circular analog speedometer beside the damage schematic. The 270° sweep
    leaves a quiet lower gap for the numeric speed and physical limit. */
@@ -537,8 +537,8 @@ body.cot-debug-hud .cot-net{display:none!important;}
 .cot-drive .speed{position:absolute;z-index:3;left:0;right:0;top:58px;text-align:center;
   font-size:26px;line-height:1;font-weight:780;letter-spacing:-.04em;}
 .cot-drive .unit{position:absolute;z-index:3;left:0;right:0;top:84px;text-align:center;
-  font-size:7px;font-weight:800;letter-spacing:.14em;color:#c1ccd4;}
-.cot-drive .zero,.cot-drive .limit{position:absolute;z-index:3;bottom:17px;font-size:6.5px;
+  font-size:11px;font-weight:800;letter-spacing:.14em;color:#c1ccd4;}
+.cot-drive .zero,.cot-drive .limit{position:absolute;z-index:3;bottom:17px;font-size:11px;
   line-height:1;}.cot-drive .zero{left:15px;color:#d8e1e7}.cot-drive .limit{right:13px;color:#ed6262}
 @media (prefers-reduced-motion:reduce){
   .cot-drive .arc-value,.cot-drive .needle{transition:none;}
@@ -546,7 +546,7 @@ body.cot-debug-hud .cot-net{display:none!important;}
 .cot-ear{position:absolute;z-index:var(--hud-layer-status);top:52px;width:194px;display:flex;flex-direction:column;gap:1px;}
 .cot-ear.l{left:0;}
 .cot-ear.r{right:0;}
-.cot-ear .hd{font-size:9px;font-weight:800;letter-spacing:.22em;color:#95a4af;
+.cot-ear .hd{font-size:11px;font-weight:800;letter-spacing:.22em;color:#95a4af;
   font-family:${FONT_COND};
   text-transform:uppercase;padding:4px 10px;display:flex;justify-content:space-between;
   background:linear-gradient(180deg,rgba(13,19,24,.82),rgba(6,10,14,.68));}
@@ -575,9 +575,9 @@ body.cot-debug-hud .cot-net{display:none!important;}
 .cot-er .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;
   display:flex;flex-direction:column;gap:0;line-height:1.15;}
 .cot-ear.r .cot-er .n{text-align:right;align-items:flex-end;}
-.cot-er .n .nick{font-size:10.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;
+.cot-er .n .nick{font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;max-width:100%;}
-.cot-er .n .veh{font-size:8.5px;font-weight:600;color:#8a97a3;letter-spacing:.05em;
+.cot-er .n .veh{font-size:11px;font-weight:600;color:#8a97a3;letter-spacing:.05em;
   font-family:${FONT_COND};text-transform:uppercase;
   max-width:100%;display:flex;gap:4px;align-items:baseline;}
 .cot-ear.r .cot-er .n .veh{justify-content:flex-end;}
@@ -625,7 +625,7 @@ body.cot-debug-hud .cot-net{display:none!important;}
 .cot-kf .k{color:#cfe3f4;font-weight:600;}
 .cot-kf .v{color:#f28f8f;font-weight:600;}
 .cot-kf .d{color:#8a97a3;font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;}
-.cot-kf .c{color:#f0b04a;font-size:10px;letter-spacing:.1em;font-weight:700;}
+.cot-kf .c{color:#f0b04a;font-size:11px;letter-spacing:.1em;font-weight:700;}
 .cot-kf .si{width:30px;height:12px;flex:0 0 auto;align-self:center;display:inline-block;}
 .cot-dmglayer{position:absolute;z-index:calc(var(--hud-layer-world) + 1);inset:0;}
 /* Spectator command strip: battle-HUD steel, amber acquisition marks, and the
@@ -650,15 +650,15 @@ body.cot-debug-hud .cot-net{display:none!important;}
   filter:drop-shadow(0 6px 7px rgba(0,0,0,.68));}
 .cot-spec .identity{display:flex;min-width:0;flex-direction:column;justify-content:center;padding:7px 15px;}
 .cot-spec .spec-status{display:flex;align-items:center;gap:6px;margin-bottom:7px;font-family:${FONT_COND};
-  font-size:8px;font-weight:800;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#f0b04a;}
+  font-size:11px;font-weight:800;line-height:1;letter-spacing:.18em;text-transform:uppercase;color:#f0b04a;}
 .cot-spec .spec-status svg{width:13px;height:13px;display:block;flex:0 0 auto;}
 .cot-spec .spec-status::after{content:"";width:18px;height:1px;background:rgba(240,176,74,.55);}
-.cot-spec .spec-status .idx{margin-left:1px;color:#8998a4;font-size:8px;font-weight:800;
+.cot-spec .spec-status .idx{margin-left:1px;color:#8998a4;font-size:11px;font-weight:800;
   letter-spacing:.12em;font-variant-numeric:tabular-nums;}
 .cot-spec .who{display:flex;width:100%;min-width:0;flex-direction:column;}
 .cot-spec .who b{font-size:18px;line-height:1.05;font-weight:800;color:#f2f7fb;letter-spacing:.01em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cot-spec .who span{margin-top:6px;font-family:${FONT_COND};font-weight:700;font-size:9px;line-height:1;
+.cot-spec .who span{margin-top:6px;font-family:${FONT_COND};font-weight:700;font-size:11px;line-height:1;
   letter-spacing:.14em;color:#aab8c2;text-transform:uppercase;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
 @keyframes cotSpecSw{0%{opacity:.2;transform:translateY(4px);}100%{opacity:1;transform:none;}}
@@ -680,7 +680,7 @@ body.cot-debug-hud .cot-net{display:none!important;}
     color var(--cot-motion-fast) ease,opacity var(--cot-motion-fast) ease;}
 .cot-spec .cycle-icon svg{display:block;width:12px;height:12px;}
 .cot-spec .cycle kbd{width:24px;height:24px;display:grid;place-items:center;padding:0;
-  font:800 10px/1 ui-monospace,SFMono-Regular,monospace;color:#ffc76b;
+  font:800 11px/1 ui-monospace,SFMono-Regular,monospace;color:#ffc76b;
   border:1px solid rgba(240,176,74,.38);border-bottom-color:rgba(240,176,74,.6);border-radius:2px;
   background:linear-gradient(180deg,rgba(240,176,74,.15),rgba(240,160,48,.055));
   box-shadow:inset 0 1px rgba(255,229,182,.1),0 2px 0 rgba(3,6,9,.78);
@@ -689,7 +689,7 @@ body.cot-debug-hud .cot-net{display:none!important;}
 .cot-spec .cycle:focus-visible,.cot-spec .gar:focus-visible{outline:2px solid #d9e4eb;
   outline-offset:2px;}
 .cot-spec .gar{align-self:center;height:48px;display:flex;align-items:center;justify-content:center;gap:8px;margin:0 8px 0 0;
-  padding:0 10px;font-family:${FONT_COND};font-weight:800;font-size:9px;letter-spacing:.13em;
+  padding:0 10px;font-family:${FONT_COND};font-weight:800;font-size:11px;letter-spacing:.13em;
   text-transform:uppercase;color:#f0b04a;cursor:pointer;border:1px solid rgba(240,176,74,.48);border-radius:2px;
   background:linear-gradient(180deg,rgba(240,160,48,.16),rgba(240,160,48,.06));white-space:nowrap;
   box-shadow:inset 0 1px rgba(255,224,166,.06),0 5px 18px rgba(0,0,0,.16);
@@ -723,7 +723,7 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
   text-shadow:0 1px 1px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.5);
   animation:cotFloat 1.7s cubic-bezier(.2,.6,.3,1) forwards;will-change:transform,opacity;}
 .cot-dmgnum.miss{color:#bcc8d2;font-size:13px;font-weight:600;letter-spacing:.12em;}
-.cot-dmgnum .crit{font-size:10px;letter-spacing:.14em;color:#ff8a5c;vertical-align:super;margin-left:4px;}
+.cot-dmgnum .crit{font-size:11px;letter-spacing:.14em;color:#ff8a5c;vertical-align:super;margin-left:4px;}
 @keyframes cotFloat{0%{opacity:0;transform:translate(-50%,-30%)}10%{opacity:1}
   70%{opacity:.95}100%{opacity:0;transform:translate(-50%,-190%)}}
 .cot-alert{position:absolute;z-index:var(--hud-layer-controls);left:50%;bottom:23%;max-width:calc(100vw - 32px);min-height:38px;
@@ -790,8 +790,8 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
 .cot-special.pending .si{animation:cotSpecialPulse .8s ease-in-out infinite alternate;}
 .cot-special .si{display:flex;align-items:center;justify-content:center;}
 .cot-special .si svg{width:22px;height:22px;display:block;}
-.cot-special .sl{font-size:9px;font-weight:800;letter-spacing:.13em;white-space:nowrap;text-align:left;}
-.cot-special .sk{font-size:9px;font-weight:800;color:#9fb0bf;border:1px solid rgba(146,164,180,.42);
+.cot-special .sl{font-size:11px;font-weight:800;letter-spacing:.13em;white-space:nowrap;text-align:left;}
+.cot-special .sk{font-size:11px;font-weight:800;color:#9fb0bf;border:1px solid rgba(146,164,180,.42);
   padding:1px 4px;line-height:13px;}
 .cot-special.active .sk{color:#ffd27a;border-color:rgba(240,176,74,.6);}
 .cot-special:focus-visible,.cot-shell:focus-visible,.cot-con:focus-visible{outline:2px solid #f5c36d;outline-offset:2px;}
@@ -813,7 +813,7 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
   background:rgba(146,164,180,.4);}
 .cot-shell.sel .clr{bottom:0;}
 .cot-shell canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);}
-.cot-shell .key{position:absolute;top:2px;left:3px;font-size:9.5px;font-weight:700;color:#8a97a3;
+.cot-shell .key{position:absolute;top:2px;left:3px;font-size:11px;font-weight:700;color:#8a97a3;
   font-family:${FONT_COND};letter-spacing:-.01em;
   border:1px solid rgba(146,164,180,.4);padding:0 3.5px;line-height:13px;z-index:2;}
 .cot-shell.sel .key{color:#f0b04a;border-color:rgba(240,176,74,.6);}
@@ -821,14 +821,14 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
   font-family:${FONT_COND};
   color:#e6edf3;font-variant-numeric:tabular-nums;letter-spacing:.02em;z-index:2;
   text-shadow:0 1px 2px rgba(0,0,0,.9);}
-.cot-shell .ty{position:absolute;bottom:2px;left:4px;font-size:8px;font-weight:800;
+.cot-shell .ty{position:absolute;bottom:2px;left:4px;font-size:11px;font-weight:800;
   font-family:${FONT_COND};
   letter-spacing:.08em;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.9);}
 .cot-shell .cool{position:absolute;left:0;right:0;top:0;height:0;
   background:rgba(4,6,9,.72);pointer-events:none;z-index:3;}
 .cot-shell .tip{display:none;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
   white-space:nowrap;background:rgba(7,10,14,.94);border:1px solid rgba(146,164,180,.4);
-  padding:5px 9px 6px;font-size:10.5px;color:#c6d2dc;letter-spacing:.04em;z-index:5;
+  padding:5px 9px 6px;font-size:11px;color:#c6d2dc;letter-spacing:.04em;z-index:5;
   box-shadow:0 4px 14px rgba(0,0,0,.5);text-align:center;}
 .cot-shell .tip b{color:#e6edf3;font-weight:600;}
 .cot-shell .tip .tnm{font-size:11px;font-weight:600;color:#eef4f9;margin-bottom:2px;}
@@ -854,7 +854,7 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
 .cot-con svg{width:26px;height:26px;display:block;}
 .cot-con:active{transform:scale(.97);}
 @media (hover:hover) and (pointer:fine){.cot-con:hover{border-color:rgba(210,225,240,.5);}}
-.cot-con .key{position:absolute;top:3px;left:4px;font-size:9px;font-weight:700;color:#8a97a3;
+.cot-con .key{position:absolute;top:3px;left:4px;font-size:11px;font-weight:700;color:#8a97a3;
   font-family:${FONT_COND};letter-spacing:-.01em;
   border:1px solid rgba(146,164,180,.4);padding:0 3px;line-height:12px;z-index:2;}
 .cot-con .cnt{position:absolute;bottom:2px;right:4px;font-size:11px;font-weight:700;
@@ -903,10 +903,10 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
 .cot-tgt .cg{display:inline-flex;align-items:center;
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.7));}
 .cot-tgt .cg{justify-content:flex-end;}.cot-tgt .cg svg{display:block;}
-.cot-tgt .tier{font-size:9px;font-weight:800;line-height:1;color:#e8bcb5;
+.cot-tgt .tier{font-size:11px;font-weight:800;line-height:1;color:#e8bcb5;
   font-family:${FONT_COND};letter-spacing:.04em;
   text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 6px rgba(0,0,0,.5);}
-.cot-tgt .veh{font-size:10px;font-weight:750;color:#f0d4ce;letter-spacing:.075em;text-align:left;
+.cot-tgt .veh{font-size:11px;font-weight:750;color:#f0d4ce;letter-spacing:.075em;text-align:left;
   font-family:${FONT_COND};text-transform:uppercase;
   white-space:nowrap;overflow:visible;text-overflow:clip;
   text-shadow:0 1px 2px rgba(0,0,0,.86),0 0 3px rgba(0,0,0,.58);}
@@ -919,7 +919,7 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
 .cot-tgt .tr{height:6px;width:104px;background:rgba(4,6,8,.92);
   border:1px solid rgba(0,0,0,.9);box-shadow:0 1px 3px rgba(0,0,0,.7);}
 .cot-tgt .fl{height:100%;background:linear-gradient(180deg,#ff7a6e,#d63a30);}
-.cot-tgt .hp{width:44px;font-size:9.5px;font-weight:700;color:rgba(255,255,255,.92);line-height:1;
+.cot-tgt .hp{width:44px;font-size:11px;font-weight:700;color:rgba(255,255,255,.92);line-height:1;
   font-family:${FONT_COND};font-variant-numeric:tabular-nums;
   letter-spacing:.04em;
   text-shadow:0 1px 2px rgba(0,0,0,.75),0 0 6px rgba(0,0,0,.5);}
@@ -951,7 +951,7 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
 .cot-sixth .sig svg{width:24px;height:24px;display:block;filter:drop-shadow(0 0 7px rgba(255,202,72,.46));}
 .cot-sixth .copy{min-width:0;padding:7px 12px 8px;display:flex;flex-direction:column;gap:3px;}
 .cot-sixth .lb{font:850 12px/1 ${FONT_COND};letter-spacing:.23em;text-transform:uppercase;color:#ffd46f;}
-.cot-sixth .sub{font:700 8px/1 ${FONT_COND};letter-spacing:.16em;text-transform:uppercase;color:#aebbc5;}
+.cot-sixth .sub{font:700 11px/1 ${FONT_COND};letter-spacing:.16em;text-transform:uppercase;color:#aebbc5;}
 @keyframes cotDetectedIn{0%{clip-path:inset(0 50% 0 50%)}100%{clip-path:inset(0)}}
 /* Concealment is a quiet positive-state chip on the damage panel. Detection
    belongs exclusively to the authoritative sixth-sense instrument above, so
@@ -2579,7 +2579,7 @@ export function initHud(bus) {
       }
       if (magazineHud.overflow > 0) {
         ctx.fillStyle = shellInk;
-        ctx.font = `700 9px ${FONT_COND}`;
+        ctx.font = `700 11px ${FONT_COND}`;
         ctx.textAlign = 'left';
         ctx.fillText(`+${magazineHud.overflow}`, cx + totalW * 0.5 + 3, y0 + shellH);
         ctx.textAlign = 'center';
@@ -2668,12 +2668,12 @@ export function initHud(bus) {
         : cy + centerClearanceR + 15; // below center marker / magazine
       ctx.font = `700 16px ${FONT_COND}`;
       const cdW = ctx.measureText(cdTxt).width;
-      ctx.font = `500 10.5px ${FONT_COND}`;
+      ctx.font = `500 11px ${FONT_COND}`;
       const unitW = ctx.measureText(' s').width;
       ctx.textAlign = 'left';
       ctx.font = `700 16px ${FONT_COND}`;
       ctx.fillText(cdTxt, cx - (cdW + unitW) / 2, cdY);
-      ctx.font = `500 10.5px ${FONT_COND}`;
+      ctx.font = `500 11px ${FONT_COND}`;
       ctx.fillText(' s', cx - (cdW + unitW) / 2 + cdW, cdY);
       ctx.textAlign = 'center';
     }
@@ -2696,14 +2696,14 @@ export function initHud(bus) {
           cy + Math.max(r * 1.02 + 24, r * 1.55 + 18, 96), h - 150);
         ctx.font = `700 13.5px ${FONT_COND}`;
         const wN = ctx.measureText(`${n} `).width;
-        ctx.font = `800 9px ${FONT_COND}`;
+        ctx.font = `800 11px ${FONT_COND}`;
         const wT = ctx.measureText(tType).width;
         const x0 = cx - (wN + wT) / 2;
         ctx.textAlign = 'left';
         ctx.font = `700 13.5px ${FONT_COND}`;
         ctx.fillStyle = 'rgba(226,236,244,0.92)';
         ctx.fillText(`${n} `, x0, yInfo);
-        ctx.font = `800 9px ${FONT_COND}`;
+        ctx.font = `800 11px ${FONT_COND}`;
         ctx.fillStyle = SHELL_TYPE_COLOR[tType] || 'rgba(159,176,191,0.9)';
         ctx.fillText(tType, x0 + wN, yInfo);
         ctx.textAlign = 'center';
@@ -2736,7 +2736,7 @@ export function initHud(bus) {
     if (warning.visible) {
       const y = cy + Math.max(62, r + 24);
       const danger = warning.kind === 'blocked';
-      ctx.font = `800 10.5px ${FONT_COND}`;
+      ctx.font = `800 11px ${FONT_COND}`;
       const textW = ctx.measureText(warning.text).width;
       const chipW = textW + 32;
       const chipX = cx - chipW * 0.5;
@@ -3372,7 +3372,7 @@ export function initHud(bus) {
     // down the left edge), NUMBERS are the COLUMNS (1 west → 0 east, along
     // the top). Labels render as translucent shadowed text INSIDE the edge
     // cells — the old solid dark gutter strips ate map area.
-    octx.font = `700 7.5px ${FONT_COND}`;
+    octx.font = `700 11px ${FONT_COND}`;
     octx.textAlign = 'center';
     octx.textBaseline = 'middle';
     octx.save();

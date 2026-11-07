@@ -55,6 +55,10 @@ export interface RoomSignalingClientOptions {
   eventPollTimeoutMs?: number;
   reconnectDelaysMs?: number[];
   sessionId?: unknown;
+  /** Keep retrying a room create/join this long (server cold start). */
+  wakeBudgetMs?: number;
+  /** Called while retrying inside the wake budget (elapsed ms). */
+  onWaking?: ((elapsedMs: number) => void) | null;
 }
 
 export interface CreateSignalingRoomOptions {
@@ -83,6 +87,8 @@ const MAX_QUEUED_EVENTS = 64;
 const MAX_QUEUED_SIGNALS = 256;
 const STORE_RETRY_DELAYS_MS = [250, 750];
 const ROOM_REQUEST_RETRY_DELAYS_MS = [250, 750, 1_500, 3_000];
+const WAKE_RETRY_DELAY_MS = 3_000;
+const SEAT_STORAGE_KEY = 'tr-signal-seat';
 const DEFAULT_RECONNECT_DELAYS_MS = [250, 500, 1_000, 2_000, 4_000, 8_000, 15_000, 30_000];
 const RETRYABLE_STORE_ERRORS = new Set([
   'signaling_store_unavailable',
@@ -218,6 +224,9 @@ export class RoomSignalingClient {
   eventPollIntervalMs: number;
   readonly eventPollTimeoutMs: number;
   readonly reconnectDelaysMs: number[];
+  readonly wakeBudgetMs: number;
+  readonly onWaking: ((elapsedMs: number) => void) | null;
+  seatToken: string | null = null;
   sessionId: string;
   socket: SignalingSocket | null = null;
   requestSeq = 0;
@@ -252,7 +261,11 @@ export class RoomSignalingClient {
     eventPollTimeoutMs = 10_000,
     reconnectDelaysMs = DEFAULT_RECONNECT_DELAYS_MS,
     sessionId = null,
+    wakeBudgetMs = 0,
+    onWaking = null,
   }: RoomSignalingClientOptions = {}) {
+    this.wakeBudgetMs = Number.isFinite(wakeBudgetMs) ? Math.max(0, wakeBudgetMs) : 0;
+    this.onWaking = onWaking;
     const endpoint = String(url || '').trim();
     if (!endpoint) throw new TypeError('signaling URL is required');
     if (!/^wss?:\/\//i.test(endpoint)) throw new TypeError('signaling URL must use ws or wss');
@@ -405,15 +418,21 @@ export class RoomSignalingClient {
   }
 
   async #requestRoom(type: string, payload: unknown): Promise<unknown> {
+    const startedAt = Date.now();
     for (let attempt = 0; ; attempt++) {
       try {
         await this.connect();
         return await this.#requestWithStoreRetry(type, payload);
       } catch (error) {
-        if (!RETRYABLE_CONNECTION_ERRORS.has(errorCode(error, '')) ||
-            attempt >= ROOM_REQUEST_RETRY_DELAYS_MS.length || this.manualClose) throw error;
+        // A sleeping free-tier server takes 30-60 s to wake; the old 4 quick
+        // retries gave up in ~6 s on fast errors. Keep retrying inside the
+        // wake budget and say so, so the player sees why it is slow.
+        const elapsed = Date.now() - startedAt;
+        if (!RETRYABLE_CONNECTION_ERRORS.has(errorCode(error, '')) || this.manualClose ||
+            (attempt >= ROOM_REQUEST_RETRY_DELAYS_MS.length && elapsed >= this.wakeBudgetMs)) throw error;
         this.#discardSocket('room_request_retry');
-        await delay(ROOM_REQUEST_RETRY_DELAYS_MS[attempt]);
+        if (attempt >= 1) this.onWaking?.(elapsed);
+        await delay(ROOM_REQUEST_RETRY_DELAYS_MS[attempt] ?? WAKE_RETRY_DELAY_MS);
       }
     }
   }
@@ -522,6 +541,28 @@ export class RoomSignalingClient {
     unrefTimer(this.reconnectTimer);
   }
 
+  /** Seat secret for this room: in memory, or saved by an earlier app run. */
+  #seatFields(roomCode: string): { seatTokenCapable: true; seatToken?: string } {
+    let token = this.seatToken;
+    if (!token) {
+      try {
+        const saved = JSON.parse(globalThis.localStorage?.getItem(SEAT_STORAGE_KEY) || 'null');
+        if (saved?.roomCode === roomCode && typeof saved.token === 'string') token = saved.token;
+      } catch { /* storage blocked */ }
+    }
+    return token ? { seatTokenCapable: true, seatToken: token } : { seatTokenCapable: true };
+  }
+
+  #keepSeat(result: SignalingRoomInfo): void {
+    const token = (result as { seatToken?: unknown }).seatToken;
+    if (typeof token !== 'string' || !token) return;
+    this.seatToken = token;
+    // ponytail: one saved seat (the latest room) so storage never grows.
+    try {
+      globalThis.localStorage?.setItem(SEAT_STORAGE_KEY, JSON.stringify({ roomCode: result.roomCode, token }));
+    } catch { /* storage blocked */ }
+  }
+
   #resumeRoom(): Promise<boolean> {
     if (this.manualClose || !this.roomCode || !this.player) return Promise.resolve(false);
     if (this.resumePromise) return this.resumePromise;
@@ -535,8 +576,10 @@ export class RoomSignalingClient {
           roomCode,
           player,
           sessionId: this.sessionId,
+          ...this.#seatFields(roomCode),
         });
         const result = readRoomInfo(raw, roomCode, true);
+        this.#keepSeat(result);
         this.roomCode = result.roomCode;
         this.peerId = result.peerId;
         this.hostId = result.hostId;
@@ -567,7 +610,9 @@ export class RoomSignalingClient {
         if (errorCode(error, '') === 'room_not_found') {
           this.#dispatch({
             type: 'room_closed',
-            payload: { roomCode, reason: 'expired' },
+            // The in-memory server forgets rooms when it restarts (deploy,
+            // free-tier sleep); a rejoin that finds no room means exactly that.
+            payload: { roomCode, reason: 'server_restarted' },
           });
           this.roomCode = null;
           this.peerId = null;
@@ -659,13 +704,16 @@ export class RoomSignalingClient {
   }: CreateSignalingRoomOptions = {}): Promise<SignalingRoomInfo> {
     this.manualClose = false;
     const clean = cleanPlayer(player);
+    this.seatToken = null;
     const raw = await this.#requestRoom('room_create', {
       player: clean,
       sessionId: this.sessionId,
       maxPlayers,
       mode,
+      seatTokenCapable: true,
     });
     const result = readRoomInfo(raw);
+    this.#keepSeat(result);
     this.roomCode = result.roomCode;
     this.peerId = result.peerId;
     this.hostId = result.hostId;
@@ -684,12 +732,15 @@ export class RoomSignalingClient {
     const code = normalizeRoomCode(roomCode);
     if (code.length !== 6) throw new TypeError('room code must be 6 characters');
     const clean = cleanPlayer(player);
+    if (this.roomCode !== code) this.seatToken = null;
     const raw = await this.#requestRoom('room_join', {
       roomCode: code,
       player: clean,
       sessionId: this.sessionId,
+      ...this.#seatFields(code),
     });
     const result = readRoomInfo(raw, code, true);
+    this.#keepSeat(result);
     this.roomCode = code;
     this.peerId = result.peerId;
     this.hostId = result.hostId;

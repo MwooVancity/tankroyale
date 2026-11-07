@@ -4,6 +4,7 @@
 **Reader:** a phone player starting a Bots battle.
 
 ## Numbers (dated)
+- 2026-11-07: vc881 (commit 31781792 code: cheaper HUD on Performance, 7 website media folders pruned; debug APK, Pixel 6a Android 12, 0 crashes): fps p10 14.4 / p50 20.6 (85 battle lines). Frame 40-70 ms with the main thread at 30 ms, so the GPU sets the pace again in this battle: the player died early (kill replay on screen) and allies fell to 1/7 against 7 enemies, a heavier fight than the lab run. Not comparable to vc874/vc880 (different battle each run). Screenshot: HUD readable; an enemy at 200 m is clearly visible. App files 240 to 222 MB unpacked; the APK file barely changed (218.1 to 217.9 MB, cause not found).
 - 2026-11-07: lab #4 (vc880, commit 1d5f9dc3 + VITE_PERF_LAB, Pixel 6a Android 12, 0 crashes, mixed A/B configs so not a release number): fps p10 28.6 / p50 33.6. A/B inside one run: ship-again 32.6; reticle hidden 35.9; whole HUD hidden 39.7; shadows off 35.8; 1.0x output 35.0; vegetation hidden 32.8; full terrain shader 24.4. Main-thread split (ms): render JS 15-19 (500 draw calls), sim 1-4 (one 11 ms spike), hud 2-3, other parts under 1. Programs grew 423 to 578 during the battle (B2). The HUD overlay is the biggest single lever: the full-screen sight canvas plus drop-shadow filters on text that changes.
 - 2026-11-07: PRODUCTION = 1.87.0 [87] (promoted via tools/play.mjs, notes "smoother and sharper", sent for Google review). Evidence: vc874 (87's code, Pixel 6a Android 12) fps p10 20.6 / p50 26.9 / p90 29.9, bots 7/7, 0 crashes; end screen proven on vc878 (same end-screen code, 4-min QA round).
 - 2026-11-07: vc878 (commit 92ee4b8c code: + Lambert terrain and leaves, Pixel 6a): fps p10 14.6 / p50 20.2 / p90 27.3; 25-30 fps for the first ~2 min, 17-20 in heavy combat with the main thread at 40-50 ms. The combat frame is now main-thread bound. [round] end "defeat", 0 crashes. Not clearly better than vc874 (different battle each run).
@@ -36,7 +37,7 @@ GPU still sets the pace at the start of a battle (frame ~42 ms, main thread ~21 
 
 ### Audit list (folded 2026-11-07 from the audit session's EDGE-CASES-2026-11-07.md, 47 cases; ID | breaks at | status)
 Status: FIXED = in code with a check; OPEN = not started; DEFER = reason given.
-- A1 213 MB download (Play base limit 200 MB) | OPEN, prune step written (website-only media, about 17 MB); the 80 MB target needs a per-file audit of icons (56 MB) and textures (44 MB)
+- A1 213 MB download (Play base limit 200 MB) | PARTLY: CI prunes 7 media folders no game file names (17 MB unpacked; a vc881 battle ran fine without them). The APK file barely shrank (cause unknown). For 80 MB: icons 51, media 47, textures 43, maps 34 MB need a per-file use audit.
 - A2 minSdk 24 allows old WebViews | OPEN: log webgl2 and the WebView version at boot; show a "phone not supported" screen
 - B1 about 43 s from tap to battle | OPEN: gate at 30 s on a Pixel 6a
 - B2 shaders compile mid-battle (171 to 300 programs) | OPEN: progs on the first battle line equals progs on the last, ±5
@@ -57,15 +58,15 @@ Status: FIXED = in code with a check; OPEN = not started; DEFER = reason given.
 - C13 WebGL context lost | handled (reload fallback)
 - C14 15-min rounds too long for phones | OPEN: phone round 5-7 min
 - C15 killcam never finishes | OPEN (guess): 10 s timeout
-- C16 enemies grey at range | OPEN
-- C17 HUD text 6.5-9 px | OPEN: minimum 11 px
+- C16 enemies grey at range | DEFER: the vc881 screenshot shows an enemy at 200 m clearly; no measurement at 300+ m says it fails. The haze is tuned art (post.ts comments).
+- C17 HUD text 6.5-9 px | FIXED: every HUD/touch font is at least 11 px (43 values raised; hudMinFont selftest). Layout overflow not yet checked on an Android screenshot.
 - D1 relay drops control messages | FIXED (signalRelayRate selftest)
 - D2 relay reported a 0 send queue | FIXED (reports the socket bufferedAmount)
 - D3 relay/direct race near 15 s | OPEN
 - D4 no relay fallback mid-match | DEFER: changes the live transport; needs a two-phone Android test
-- D5 seat takeover | OPEN: secret rejoin token (old build 77 clients must still join)
-- D6 cold start 30-60 s against a ~30 s client give-up | PARTLY: menu wake ping plus 15 s connect; needs a 90 s retry with "server waking up"
-- D7 Render deploy kills live rooms | OPEN: deploy only from tagged releases or drain
+- D5 seat takeover | FIXED (server and client; Render redeploys on this push): token-capable clients get a secret seat token, never shown to other peers. A rejoin needs it; the phone keeps the latest room's token in storage, so an app restart still rejoins. Old clients (build 77) keep id-only seats. In-memory store only; distributedRoomStore.ts is not covered. Check: seatToken selftest (real server).
+- D6 cold start | FIXED: room create/join retries for 90 s; the menu shows "Server waking up (N s)…". Check: signalWake selftest (server down 7 s, then join succeeds).
+- D7 Render deploy kills live rooms | PARTLY: render.yaml buildFilter redeploys only when server files change (unverified: applies only if the Render service syncs from the blueprint). A room lost to a restart now says "The game server restarted" instead of "The host closed this room". No drain.
 - D8 a backgrounded host freezes everyone | OPEN
 - D9 a slow host phone puts everyone in slow motion | OPEN
 - D10 rooms kept 24 h, no cap | OPEN

@@ -865,7 +865,9 @@ export function createPlayMenu({
     },
     onClientClose: (reason) => {
       closeCurrentSession(reason, { skipTransportClose: true });
-      setStatus('The host closed this room.', true);
+      setStatus(reason === 'server_restarted'
+        ? 'The game server restarted, so this room ended. Please create a new room.'
+        : 'The host closed this room.', true);
       onNetworkClose(reason);
     },
     onError: (error) => setStatus(errorMessage(error), true),
@@ -907,6 +909,11 @@ export function createPlayMenu({
     menuLead.textContent = defaultMenuLead;
     if (document.title.startsWith('Join ')) document.title = defaultDocumentTitle;
   }
+
+  window.addEventListener('tr-signal-waking', (event) => {
+    const s = Math.round(Number((event as CustomEvent).detail) / 1000) || 0;
+    setStatus(`Server waking up (${s} s). The free server can take up to a minute; still trying…`);
+  });
 
   function setStatus(message: unknown, error = false): void {
     status.textContent = message == null ? '' : String(message);

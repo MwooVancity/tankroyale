@@ -5,6 +5,16 @@ services:
     plan: free
     buildCommand: npm ci --omit=dev
     startCommand: node --experimental-strip-types server-render.ts
+    # Rooms live in memory, so every redeploy ends live matches. Most pushes
+    # are app-only: redeploy only when the server's own files change.
+    buildFilter:
+      paths:
+        - server/**
+        - server-render.ts
+        - api/ice.ts
+        - package.json
+        - package-lock.json
+        - render.yaml
     envVars:
       - key: NODE_VERSION
         value: "22"

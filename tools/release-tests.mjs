@@ -27,8 +27,13 @@ const run = (f) => new Promise((resolve) => {
   let out = '';
   child.stdout.on('data', (d) => { out += d; });
   child.stderr.on('data', (d) => { out += d; });
-  const timer = setTimeout(() => child.kill(), 300_000);
-  child.on('close', (code) => { clearTimeout(timer); resolve({ f, ok: code === 0, out }); });
+  // 10 min: tankAssets alone runs past 5 min when every test runs at once.
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; child.kill(); }, 600_000);
+  child.on('close', (code) => {
+    clearTimeout(timer);
+    resolve({ f, ok: code === 0, out: timedOut ? `TIMED OUT after 600 s\n${out}` : out });
+  });
 });
 
 const started = Date.now();

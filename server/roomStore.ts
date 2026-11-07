@@ -38,6 +38,7 @@ export interface SignalingJoinResult {
   roomCode: string;
   peerId: string;
   sessionId: string;
+  seatToken?: string;
   hostId: string;
   hostName: string;
   mode: string;
@@ -61,12 +62,15 @@ export interface CreateRoomOptions {
   sessionId?: unknown;
   maxPlayers?: number;
   mode?: unknown;
+  seatTokenCapable?: unknown;
 }
 
 export interface JoinRoomOptions {
   roomCode?: unknown;
   player?: unknown;
   sessionId?: unknown;
+  seatToken?: unknown;
+  seatTokenCapable?: unknown;
 }
 
 export interface RelaySignalOptions {
@@ -82,6 +86,14 @@ interface SignalingMember {
   player: SignalingPlayer;
   sessionId: string;
   disconnectedAt?: number;
+  /** Secret proving seat ownership; only for clients that send seatTokenCapable. */
+  seatToken?: string;
+}
+
+function newSeatToken(): string {
+  const bytes = new Uint8Array(18);
+  globalThis.crypto.getRandomValues(bytes);
+  return Buffer.from(bytes).toString('base64url');
 }
 
 interface SignalingRoom {
@@ -158,7 +170,7 @@ export class SignalingRoomStore {
 
   create(
     connection: SignalingConnection,
-    { player, sessionId, maxPlayers = 14, mode = 'private' }: CreateRoomOptions = {},
+    { player, sessionId, maxPlayers = 14, mode = 'private', seatTokenCapable }: CreateRoomOptions = {},
   ): SignalingJoinResult {
     if (this.membership.has(connection)) {
       throw Object.assign(new Error('connection already joined'), { code: 'already_joined' });
@@ -179,8 +191,9 @@ export class SignalingRoomStore {
       touchedAt: this.now(),
       peers: new Map<string, SignalingMember>(),
     };
+    const seatToken = seatTokenCapable === true ? newSeatToken() : undefined;
     room.peers.set(peerId, {
-      peerId, connection, player: memberPlayer, sessionId: memberSessionId,
+      peerId, connection, player: memberPlayer, sessionId: memberSessionId, seatToken,
     });
     this.rooms.set(roomCode, room);
     this.membership.set(connection, { roomCode, peerId });
@@ -188,6 +201,7 @@ export class SignalingRoomStore {
       roomCode,
       peerId,
       sessionId: memberSessionId,
+      ...(seatToken ? { seatToken } : {}),
       hostId: peerId,
       hostName: memberPlayer.name,
       mode: room.mode,
@@ -198,7 +212,7 @@ export class SignalingRoomStore {
 
   join(
     connection: SignalingConnection,
-    { roomCode, player, sessionId }: JoinRoomOptions = {},
+    { roomCode, player, sessionId, seatToken, seatTokenCapable }: JoinRoomOptions = {},
   ): SignalingJoinResponse {
     if (this.membership.has(connection)) {
       throw Object.assign(new Error('connection already joined'), { code: 'already_joined' });
@@ -212,9 +226,17 @@ export class SignalingRoomStore {
     if (!previous && room.peers.size >= room.maxPlayers) {
       throw Object.assign(new Error('room is full'), { code: 'room_full' });
     }
+    // Player ids are public (every peer sees them), so an id alone must not
+    // take over a seat. A seat claimed by a token-capable client needs its
+    // token back; seats of older clients (build 77) stay id-only as before.
+    if (previous?.seatToken && String(seatToken || '') !== previous.seatToken) {
+      throw Object.assign(new Error('this seat belongs to another device'), { code: 'seat_taken' });
+    }
     if (previous?.connection) this.membership.delete(previous.connection);
+    const memberSeatToken = previous?.seatToken
+      ?? (seatTokenCapable === true ? newSeatToken() : undefined);
     const member: SignalingMember = {
-      peerId, connection, player: memberPlayer, sessionId: memberSessionId,
+      peerId, connection, player: memberPlayer, sessionId: memberSessionId, seatToken: memberSeatToken,
     };
     const peers = [...room.peers.values()].filter((peer) => peer.peerId !== peerId).map((peer) => ({
       peerId: peer.peerId,
@@ -231,6 +253,7 @@ export class SignalingRoomStore {
         roomCode: room.roomCode,
         peerId,
         sessionId: memberSessionId,
+        ...(memberSeatToken ? { seatToken: memberSeatToken } : {}),
         hostId: room.hostId,
         hostName,
         mode: room.mode,
