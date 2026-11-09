@@ -6,9 +6,10 @@
 //   <id>_side.webp            side view -> detail panes
 //   <id>_top_silhouette.png   flat white -> minimap blips (tinted green/red)
 //   <id>_side_silhouette.png  flat white -> team panels, kill feed, damage panel
-//   <id>_hit_zones_side.png    actual armor collision plate diagram
-//   <id>_armor_side.png        effective-KE / penetration-information diagram
-//   <id>_modules_side.png      actual module + crew damage-volume diagram
+//   <id>_hit_zones_side.webp   actual armor collision plate diagram
+//   <id>_armor_side.webp       effective-KE / penetration-information diagram
+//   <id>_modules_side.webp     actual module + crew damage-volume diagram
+//   (diagrams were PNG until 2026-11-08: 33 MB of the app download)
 // Silhouettes ship as white fills so one file serves every team color.
 // perf-r3c (Lighthouse): shaded views ship as WebP q90 — the PNG set weighed
 // 214-237 KB per 512px icon and dominated page transfer. Silhouettes stay
@@ -17,7 +18,7 @@
 
 /** URL of a generated icon. @param {string} id tank id @param {string} view e.g. 'angle' */
 export const iconUrl = (id: string, view: string): string => `/icons/${id}_${view}.${
-  /(?:silhouette|hit_zones_side|armor_side|modules_side)$/.test(view) ? 'png' : 'webp'}`;
+  /silhouette$/.test(view) ? 'png' : 'webp'}`;
 
 interface TintCacheEntry {
   canvas: HTMLCanvasElement | null;

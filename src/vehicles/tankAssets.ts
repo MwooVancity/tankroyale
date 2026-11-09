@@ -95,9 +95,10 @@ export const TANK_ASSET_VIEWS = Object.freeze({
   side: Object.freeze({ suffix: 'side', ext: 'webp', width: 512, height: 256, role: 'side view' }),
   topSilhouette: Object.freeze({ suffix: 'top_silhouette', ext: 'png', width: 128, height: 128, role: 'top silhouette' }),
   sideSilhouette: Object.freeze({ suffix: 'side_silhouette', ext: 'png', width: 256, height: 128, role: 'side silhouette' }),
-  hitZonesSide: Object.freeze({ suffix: 'hit_zones_side', ext: 'png', width: 512, height: 256, role: 'hit-area diagram' }),
-  armorSide: Object.freeze({ suffix: 'armor_side', ext: 'png', width: 512, height: 256, role: 'penetration/armor diagram' }),
-  modulesSide: Object.freeze({ suffix: 'modules_side', ext: 'png', width: 512, height: 256, role: 'module diagram' }),
+  // WebP since 2026-11-08 (A1 app size): 33.2 -> 5.9 MB for 471 diagrams, same look.
+  hitZonesSide: Object.freeze({ suffix: 'hit_zones_side', ext: 'webp', width: 512, height: 256, role: 'hit-area diagram' }),
+  armorSide: Object.freeze({ suffix: 'armor_side', ext: 'webp', width: 512, height: 256, role: 'penetration/armor diagram' }),
+  modulesSide: Object.freeze({ suffix: 'modules_side', ext: 'webp', width: 512, height: 256, role: 'module diagram' }),
   markings: Object.freeze({ suffix: 'markings', ext: 'png', width: 256, height: 128, role: 'national insignia and tactical designation' }),
 });
 
