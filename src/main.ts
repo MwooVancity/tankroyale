@@ -57,8 +57,10 @@ import {
 import {
   resolveDeviceTier, resolvePresetName, resolveAutoTier,
   reportSustainedOverload, setPresetName, setMobilePresetName,
-  noteGpuRenderer, getDeviceTier,
+  noteGpuRenderer, getDeviceTier, getPreset,
 } from './engine/quality.ts';
+import { applyLiteMaterials } from './engine/liteMaterials.ts';
+import { pauseOnBackground } from './game/backgroundPause.ts';
 import { createSky } from './engine/sky.ts';
 import { createLighting } from './engine/lighting.ts';
 import { createPost } from './engine/post.ts';
@@ -1183,6 +1185,14 @@ const forwardProgramWarm = createForwardProgramWarmOwner({
   scene,
   camera,
   getTarget: () => post?.composer?.renderTarget1 || null,
+  // Performance preset: the post loop's 1 s lite scan swaps PBR for Lambert and
+  // hides idle point lights. Do it before compiling, so warm-up builds the
+  // programs (and light count) the battle actually draws.
+  prepare: (root) => {
+    if (!getPreset().liteMaterials) return;
+    applyLiteMaterials(scene);
+    if (root !== scene) applyLiteMaterials(root as unknown as THREE.Object3D);
+  },
 });
 // Renderer-lifetime warm state is declared before context recovery is armed:
 // a mobile device can lose and restore WebGL while the async boot pipeline is
@@ -1900,9 +1910,12 @@ async function beginBattleEntry(
       window.alert('The battle did not finish loading. The game will restart.');
       window.location.reload();
     });
+    const loadStartMs = performance.now();
     try {
       battleEntryLifecycle.coverRendering();
       await soloBattleLoading.begin(specId, mapId, legacyPort(options));
+      // B1 gate: tools/testlab.mjs fails a release over 30 s on the Pixel 6a.
+      console.info(`[battle-load] done ${Math.round(performance.now() - loadStartMs)}ms`);
     } catch (error) {
       console.error(`[battle-load] failed ${battleLoad.lastProgress.stage}`, error);
       window.setTimeout(() => window.alert('The battle could not load. Please try again.'), 0);
@@ -2256,6 +2269,8 @@ const frameLoop = createFrameLoopScheduler({
     !studio.active && !shotMode && !showroom.moving &&
     !pedestal.switchPending && !networkSession.match,
   idleIntervalMs: 5000,
+  // Phones: 60 fps is the cap; 120 Hz frames only add heat (C9, C8).
+  minFrameMs: () => (getDeviceTier() === 'mobile' ? 1000 / 60 : 0),
 });
 rearmRafAfterContext = frameLoop.restart;
 invalidateGaragePresentation = () => {
@@ -2750,6 +2765,14 @@ window.__GAME_READY = true;
   } catch { /* not in Capacitor context */ }
 })();
 
+// C12: a phone call mid solo battle returns to the pause menu, not to a fight.
+// Online matches keep running on the host, so they are not paused here.
+const pauseForBackground = pauseOnBackground(settings, () =>
+  game.phase === 'battle' && !game.result && !networkSession.match);
+// hasFocus: dev panes report hidden permanently while focused (see frameLoop).
+document.addEventListener('visibilitychange', () => {
+  pauseForBackground(document.hidden && !document.hasFocus());
+});
 // Pause/resume all AudioContexts when app goes to background.
 // Capacitor's appStateChange fires reliably on Android; visibilitychange is
 // the browser-standard fallback (already used by the wake-lock above).
@@ -2757,6 +2780,7 @@ window.__GAME_READY = true;
   try {
     const { App } = await import('@capacitor/app');
     App.addListener('appStateChange', ({ isActive }) => {
+      pauseForBackground(!isActive);
       try {
         // AudioContext instances self-suspend on visibilitychange in modern
         // browsers, but Capacitor's WebView may not fire that event reliably.

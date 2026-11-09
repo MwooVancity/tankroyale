@@ -108,4 +108,27 @@ assert.equal([...forwardOwner.linkerBreathingSlices(3)].length, 3,
   'pending ANGLE links receive a bounded number of scheduler slices');
 forwardOwner.invalidate();
 
+// Warm-up compiles the battle's own state: `prepare` (lite materials, hidden
+// idle lights) runs on the root before the first compile.
+{
+  const order = [];
+  const owner = createForwardProgramWarmOwner({
+    renderer: { ...forwardRenderer, compile() { order.push('compile'); } },
+    scene: warmObject,
+    camera: 'c',
+    getTarget: () => null,
+    prepare: (root) => { order.push(root === warmObject ? 'prepare' : 'wrong-root'); },
+  });
+  [...owner.initializeSteps()];
+  assert.deepEqual(order, ['prepare', 'compile'], 'prepare runs on the root before compiling');
+}
+
+// Performance (phone) preset gives the resolution governor room to step down.
+{
+  const { PRESETS } = await import('./quality.ts');
+  const { dynamicScaleFloor } = await import('./renderScalePolicy.ts');
+  assert.ok(dynamicScaleFloor(1.5, PRESETS['mobile-low']) < 1,
+    'Performance preset lets the governor drop resolution under load');
+}
+
 console.log('programWarm.selftest: target compile, forward owner, and uniform draining passed');

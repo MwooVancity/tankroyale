@@ -89,7 +89,9 @@ export function createBattleFrameRuntime({
   stepSimulation,
   emitPause,
   simulationDt = 1 / 60,
-  maxSimulationSteps = 4,
+  // 6 x 1/60 s: real time down to 10 fps (4 slowed the game below 15 fps;
+  // Pixel 6a heavy fights hit p10 14.4). Sim is ~1 ms a step on that phone.
+  maxSimulationSteps = 6,
 }: BattleFrameRuntimeOptions): BattleFrameRuntime {
   const required = [settings?.isOpen, killcam?.isActive, input?.poll,
     network?.isActive, network?.pump, countdown?.isWarmPending,

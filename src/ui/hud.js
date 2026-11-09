@@ -248,7 +248,13 @@ import { MAX_SPOT_RANGE_M as SPOT_RANGE_M, SPOT_LINGER_S as SPOT_PERSIST_S }
 // SPOTTING SECTION: single source of truth for the sixth-sense timing —
 // the lamp fuse/window MUST match the sim's getConcealment display gate.
 import { SIXTH_SENSE_DELAY_S, SIXTH_SENSE_SHOW_S } from '../sim/spotting.ts';
-const BATTLE_DURATION_S = Number(import.meta.env?.VITE_QA_ROUND_S) || 900; // 15:00 countdown (VITE_QA_ROUND_S: test builds)
+import { BATTLE_TIME_LIMIT_S as BATTLE_DURATION_S } from '../game/roundClock.ts';
+// HUD text runs every frame; an equal write still replaces the text node and
+// re-lays out the HUD (lab #4: whole HUD hidden = +7 fps). Write on change only.
+export function setText(el, value) {
+  const v = value == null ? '' : String(value);
+  if (el.textContent !== v) el.textContent = v;
+}
 
 // Default shell card data (used only when a forced screenshot aim view arrives
 // before any live frame — matches the m1a2 default player loadout).
@@ -1089,10 +1095,10 @@ export function initHud(bus) {
     // Local play has no transport hop and reports 0 ms. Multiplayer forwards
     // the runtime client's measured RTT; never synthesize a decorative ping.
     const ping = Math.max(0, Math.min(999, Math.round(Number(frame?.pingMs) || 0)));
-    netFpsValue.textContent = String(fps);
+    setText(netFpsValue, String(fps));
     netFpsUnit.className = `cot-net-unit fps ${fps >= 50 ? 'good' : fps >= 28 ? 'warn' : 'bad'}`;
-    netPingValue.textContent = ping > 0 ? String(ping) : 'LOCAL';
-    netPingLabel.textContent = ping > 0 ? 'MS' : 'LINK';
+    setText(netPingValue, ping > 0 ? String(ping) : 'LOCAL');
+    setText(netPingLabel, ping > 0 ? 'MS' : 'LINK');
     netPingUnit.className = `cot-net-unit ping ${ping <= 0 ? 'local' : ping < 80 ? 'good' : ping < 160 ? 'warn' : 'bad'}`;
     netEl.setAttribute('aria-label', ping > 0
       ? `${fps} frames per second, ${ping} milliseconds latency`
@@ -1152,11 +1158,11 @@ export function initHud(bus) {
       driveLastTextS = nowS;
       if (driveModel.speedKmh !== driveSpeedKmh) {
         driveSpeedKmh = driveModel.speedKmh;
-        driveSpeedEl.textContent = String(driveSpeedKmh);
+        setText(driveSpeedEl, String(driveSpeedKmh));
       }
       if (driveModel.limitKmh !== driveLimitKmh) {
         driveLimitKmh = driveModel.limitKmh;
-        driveLimitEl.textContent = String(driveLimitKmh);
+        setText(driveLimitEl, String(driveLimitKmh));
       }
     }
     if (arcDue) {
@@ -1232,11 +1238,11 @@ export function initHud(bus) {
     const ent = (lastTanksRef || []).find((t) => t && t.id === p.id) || null;
     const card = spectatorCardModel(p);
     // same nickname the team panels show for this entity (nickById-backed)
-    specNick.textContent = ent ? nickFor(ent) : (p.name || p.vehicle || String(p.id));
+    setText(specNick, ent ? nickFor(ent) : (p.name || p.vehicle || String(p.id)));
     const numeral = p.specId ? tierNumeral(p.specId) : '';
     const tier = numeral ? `${numeral} · ` : '';
-    specVeh.textContent = `${tier}${p.vehicle || 'Unknown vehicle'}`;
-    specIndex.textContent = card.position;
+    setText(specVeh, `${tier}${p.vehicle || 'Unknown vehicle'}`);
+    setText(specIndex, card.position);
     specIndex.hidden = !card.position;
     specPortrait.src = card.icon;
     specPortrait.hidden = !card.icon;
@@ -1276,7 +1282,7 @@ export function initHud(bus) {
   // battle_countdown r1: pre-battle freeze overlay (kicker + numeral)
   const preBattleEl = el('div', 'cot-prebattle', root);
   const pbKick = el('div', 'k', preBattleEl);
-  pbKick.textContent = 'BATTLE BEGINS IN';
+  setText(pbKick, 'BATTLE BEGINS IN');
   const pbNum = el('div', 'n', preBattleEl);
   let pbShownSec = -1;
   let pbHideTimer = 0;
@@ -1416,7 +1422,7 @@ export function initHud(bus) {
         : specialKind === SPECIAL_ACTION_KINDS.HYDROPNEUMATIC_AIM ? 'track'
           : specialKind === SPECIAL_ACTION_KINDS.MAGAZINE_RELOAD ? 'autoloader' : null;
       specialIcon.innerHTML = icon ? uiIconSVG(icon, 22, 'currentColor') : '';
-      specialLabel.textContent = descriptor.label;
+      setText(specialLabel, descriptor.label);
       specialLabel.dataset.short = descriptor.shortLabel;
       specialButton.title = descriptor.label;
       specialButton.setAttribute('aria-label', descriptor.label || 'Special action unavailable');
@@ -1535,12 +1541,12 @@ export function initHud(bus) {
         const pct = Math.max(0, Math.min(100, remaining / conCooldownS[i] * 100));
         cool.style.display = 'block';
         cool.style.setProperty('--cool', `${pct.toFixed(1)}%`);
-        count.textContent = String(Math.ceil(remaining));
+        setText(count, String(Math.ceil(remaining)));
         s.classList.add('cooling');
         s.setAttribute('aria-label', `${CONSUMABLES[i].label}, ready in ${Math.ceil(remaining)} seconds`);
       } else {
         cool.style.display = 'none';
-        count.textContent = CONSUMABLE_READY_MARK;
+        setText(count, CONSUMABLE_READY_MARK);
         s.classList.remove('cooling');
         s.setAttribute('aria-label', `${CONSUMABLES[i].label}, ready`);
       }
@@ -1801,9 +1807,9 @@ export function initHud(bus) {
         // it in CSS so opposing vehicles face inward toward the playfield.
         maskIcon(r.querySelector('.ic'), t.spec.id, 'side_silhouette', color);
         if (t.isPlayer) r.classList.add('me');
-        r.querySelector('.tier').textContent = tierNumeral(t.spec.id) || '–';
-        r.querySelector('.nick').textContent = nickFor(t);
-        r.querySelector('.vn').textContent = t.spec.name;
+        setText(r.querySelector('.tier'), tierNumeral(t.spec.id) || '–');
+        setText(r.querySelector('.nick'), nickFor(t));
+        setText(r.querySelector('.vn'), t.spec.name);
         (ally ? earL : earR).appendChild(r);
         row = {
           root: r, hp: r.querySelector('.hpm i'), ic: r.querySelector('.ic'),
@@ -1843,22 +1849,22 @@ export function initHud(bus) {
         : Math.round(modeState.score?.[enemyTeam] || 0);
       const score = `${modeState.id}|${ownScore}:${enemyScore}|${allyAlive}/${allyTotal}|${enemyAlive}/${enemyTotal}`;
       if (score !== lastScore) {
-        fgEl.textContent = String(ownScore);
-        feEl.textContent = String(enemyScore);
-        allyLabelEl.textContent = horde ? 'Wave' : 'Allies';
-        enemyLabelEl.textContent = horde ? 'Hostiles' : 'Enemy';
+        setText(fgEl, String(ownScore));
+        setText(feEl, String(enemyScore));
+        setText(allyLabelEl, horde ? 'Wave' : 'Allies');
+        setText(enemyLabelEl, horde ? 'Hostiles' : 'Enemy');
         wedgeL.textContent = '';
         wedgeR.textContent = '';
-        earL.querySelector('.al').textContent = `${allyAlive} / ${allyTotal}`;
-        earR.querySelector('.al').textContent = `${enemyAlive} / ${enemyTotal}`;
+        setText(earL.querySelector('.al'), `${allyAlive} / ${allyTotal}`);
+        setText(earR.querySelector('.al'), `${enemyAlive} / ${enemyTotal}`);
         lastScore = score;
       }
       const waitS = horde ? Math.ceil(horde.nextWaveInS || 0) : 0;
       const timer = waitS > 0 ? `${waitS}s` : fmtTimer(BATTLE_DURATION_S - frame.timeS);
-      timerLabelEl.textContent = waitS > 0 ? 'Next wave' :
+      setText(timerLabelEl, waitS > 0 ? 'Next wave' :
         modeState.id === 'capture_the_flag' ? 'Capture 3' :
           modeState.id === 'zone_control' ? 'First 1000' :
-            modeState.id === 'turbo_ball' ? 'First 5' : 'Survive';
+            modeState.id === 'turbo_ball' ? 'First 5' : 'Survive');
       if (timer !== lastTimer) { tmEl.textContent = timer; lastTimer = timer; }
       const modeCopy = modeState.id === 'capture_the_flag'
         ? `FLAGS ${ownScore} / ${modeState.target || 3}`
@@ -1873,8 +1879,8 @@ export function initHud(bus) {
           : modeState.id === 'zone_control' ? 'modeZones'
             : modeState.id === 'turbo_ball' ? 'modeTurbo' : 'modeHorde';
         modeStatusIcon.innerHTML = uiIconSVG(icon, 15, 'currentColor');
-        modeStatusName.textContent = modeState.label || 'Objective';
-        modeStatusValue.textContent = modeCopy;
+        setText(modeStatusName, modeState.label || 'Objective');
+        setText(modeStatusValue, modeCopy);
         modeStatusEl.classList.add('show');
         lastModeStatus = modeStatus;
       }
@@ -1884,21 +1890,21 @@ export function initHud(bus) {
       modeStatusEl.classList.remove('show');
       lastModeStatus = '';
     }
-    allyLabelEl.textContent = 'Allies';
-    enemyLabelEl.textContent = 'Enemy';
-    timerLabelEl.textContent = 'Time';
+    setText(allyLabelEl, 'Allies');
+    setText(enemyLabelEl, 'Enemy');
+    setText(timerLabelEl, 'Time');
     const score = `${enemyTotal - enemyAlive}:${allyTotal - allyAlive}|${allyAlive}/${allyTotal}|${enemyAlive}/${enemyTotal}`;
     if (score !== lastScore) {
       // Big numerals = tanks still alive per team. They used to be kill
       // scores, which start at 0, and phone players read "ALLIES 0 / ENEMY 0"
       // as "no bots spawned" (owner, build 86). Kills stay on the frag chips.
-      fgEl.textContent = String(allyAlive);
-      feEl.textContent = String(enemyAlive);
+      setText(fgEl, String(allyAlive));
+      setText(feEl, String(enemyAlive));
       const slots = Math.max(allyTotal, enemyTotal);
       syncWedge(wedgeL, slots, deadEnemies, false);
       syncWedge(wedgeR, slots, deadAllies, true);
-      earL.querySelector('.al').textContent = `${allyAlive} / ${allyTotal}`;
-      earR.querySelector('.al').textContent = `${enemyAlive} / ${enemyTotal}`;
+      setText(earL.querySelector('.al'), `${allyAlive} / ${allyTotal}`);
+      setText(earR.querySelector('.al'), `${enemyAlive} / ${enemyTotal}`);
       lastScore = score;
     }
     const timer = fmtTimer(BATTLE_DURATION_S - frame.timeS);
@@ -2777,16 +2783,16 @@ export function initHud(bus) {
         s._iconType = sp.type;
       }
       const ty = s.querySelector('.ty');
-      ty.textContent = sp.type || '';
+      setText(ty, sp.type || '');
       ty.style.color = SHELL_TYPE_COLOR[sp.type] || '#9fb0bf';
       // shell-CLASS underline (silver kinetic / orange chemical / olive HE)
       s.querySelector('.clr').style.background =
         SHELL_CLASS_UNDERLINE[sp.type] || 'rgba(146,164,180,.4)';
-      s.querySelector('.tnm').textContent = sp.name || '—';
-      s.querySelector('.p').textContent = sp.penLabel != null ? sp.penLabel : '—';
-      s.querySelector('.d').textContent = sp.dmg != null ? String(sp.dmg) : '—';
+      setText(s.querySelector('.tnm'), sp.name || '—');
+      setText(s.querySelector('.p'), sp.penLabel != null ? sp.penLabel : '—');
+      setText(s.querySelector('.d'), sp.dmg != null ? String(sp.dmg) : '—');
       const n = shellCount(sp);
-      s.querySelector('.cnt').textContent = `${n}`;
+      setText(s.querySelector('.cnt'), `${n}`);
       const selected = i === slot;
       s.classList.toggle('sel', selected);
       s.setAttribute('aria-pressed', selected ? 'true' : 'false');
@@ -2847,7 +2853,7 @@ export function initHud(bus) {
       }
       const nm = t.spec ? t.spec.name : t.id;
       if (bar.lastName !== nm) {
-        bar.nm.textContent = nm;
+        setText(bar.nm, nm);
         bar.lastName = nm;
         // Read only when a label string changes, never in the steady-state
         // render loop. The plate then keeps stable geometry until renamed.
@@ -2942,12 +2948,12 @@ export function initHud(bus) {
     const targetName = best.spec ? best.spec.name : String(best.id);
     let targetCopyChanged = false;
     if (tgtRefs.nick.textContent !== targetNick) {
-      tgtRefs.nick.textContent = targetNick;
+      setText(tgtRefs.nick, targetNick);
       targetCopyChanged = true;
     }
     if (tgtRefs.tier.textContent !== targetTier) tgtRefs.tier.textContent = targetTier;
     if (tgtRefs.veh.textContent !== targetName) {
-      tgtRefs.veh.textContent = targetName;
+      setText(tgtRefs.veh, targetName);
       targetCopyChanged = true;
     }
     if (targetCopyChanged) {
@@ -3788,8 +3794,8 @@ export function initHud(bus) {
       (cause ? `<span class="c">${cause}</span>` : '');
     if (kSpec) maskIcon(item.querySelector('.ksi'), kSpec, 'side_silhouette', '#cfe3f4');
     if (vSpec) maskIcon(item.querySelector('.vsi'), vSpec, 'side_silhouette', '#f28f8f');
-    item.querySelector('.k').textContent = killer;
-    item.querySelector('.v').textContent = victim;
+    setText(item.querySelector('.k'), killer);
+    setText(item.querySelector('.v'), victim);
     killfeed.prepend(item);
     while (killfeed.children.length > 5) killfeed.lastChild.remove();
     setTimeout(() => item.classList.add('out'), 5200);
@@ -3803,10 +3809,10 @@ export function initHud(bus) {
     const d = el('div', 'cot-dmgnum', dmgLayer);
     const outcome = hitOutcomeFor(hit);
     if (hit.damage > 0) {
-      d.textContent = `-${Math.round(hit.damage)}`;
+      setText(d, `-${Math.round(hit.damage)}`);
       if (hit.modulesHit && hit.modulesHit.length) {
         const c = el('span', 'crit', d);
-        c.textContent = 'CRIT';
+        setText(c, 'CRIT');
       }
     } else if (document.body.classList.contains('cot-touch-layout')) {
       // Touch hides the detailed ballistic card, so retain one compact result
@@ -3814,7 +3820,7 @@ export function initHud(bus) {
       d.classList.add('miss');
       d.dataset.outcome = outcome.id;
       d.style.color = outcome.color;
-      d.textContent = outcome.label;
+      setText(d, outcome.label);
     } else { d.remove(); return; }
     // WoT-style stacking: new labels step upward off any live label near the
     // same projected point (slight x-jitter) instead of overlapping.
@@ -3917,7 +3923,7 @@ export function initHud(bus) {
   }
 
   function showAlert(text, { tone = 'warning', icon = 'info' } = {}) {
-    alertCopyEl.textContent = text;
+    setText(alertCopyEl, text);
     alertIconEl.innerHTML = uiIconSVG(icon, 18);
     alertEl.classList.remove('danger', 'warning', 'success', 'info');
     alertEl.classList.add(tone);
@@ -4245,7 +4251,7 @@ export function initHud(bus) {
         if (sec !== pbShownSec) {
           pbShownSec = sec;
           pbNum.classList.remove('go', 'tick');
-          pbNum.textContent = String(sec);
+          setText(pbNum, String(sec));
           void pbNum.offsetWidth; // restart the pop animation per second
           pbNum.classList.add('tick');
         }
@@ -4253,7 +4259,7 @@ export function initHud(bus) {
         pbShownSec = 0;
         preBattleEl.classList.add('rollout');
         pbNum.classList.remove('tick');
-        pbNum.textContent = 'ROLL OUT!';
+        setText(pbNum, 'ROLL OUT!');
         void pbNum.offsetWidth;
         pbNum.classList.add('tick', 'go');
         clearTimeout(pbHideTimer);

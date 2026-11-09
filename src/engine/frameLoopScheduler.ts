@@ -26,6 +26,8 @@ export interface FrameLoopSchedulerOptions {
   shouldUseIdleCadence?(): boolean;
   /** Watchdog cadence for an otherwise event-driven visible phase. */
   idleIntervalMs?: number;
+  /** Skip display frames closer than this (phones: 60 fps cap on 90/120 Hz). */
+  minFrameMs?(): number;
   requestFrame?(callback: FrameCallback): number;
   cancelFrame?(id: number): void;
   now?(): number;
@@ -72,6 +74,7 @@ export function createFrameLoopScheduler({
   isBootComplete,
   shouldUseIdleCadence = () => false,
   idleIntervalMs = 1000,
+  minFrameMs = () => 0,
   requestFrame = (callback) => requestAnimationFrame(callback),
   cancelFrame = (id) => cancelAnimationFrame(id),
   now = () => performance.now(),
@@ -96,6 +99,7 @@ export function createFrameLoopScheduler({
   };
 
   let tickCpuEmaMs = 0;
+  let lastAnimationMs = -Infinity;
   const runTick = (timestampMs: number) => {
     lastTickWallMs = now();
     tick(timestampMs);
@@ -113,6 +117,13 @@ export function createFrameLoopScheduler({
       frameId = null;
       frameQueued = false;
       stats.queued = 'none';
+      // C9: a 120 Hz panel fires twice per 60 Hz frame; skip the early one.
+      // ponytail: 4 ms slack keeps 60 Hz exact; a 90 Hz panel lands at 45 fps.
+      if (timestampMs - lastAnimationMs < minFrameMs() - 4) {
+        scheduleAnimation();
+        return;
+      }
+      lastAnimationMs = timestampMs;
       stats.animationTicks += 1;
       runTick(timestampMs);
     });

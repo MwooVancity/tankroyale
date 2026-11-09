@@ -43,6 +43,7 @@ const SERIAL = new Set([
   'server/signalRelayRate.selftest.mjs',
   'server/signalWake.selftest.mjs',
   'server/seatToken.selftest.mjs',
+  'src/net/relayGrace.selftest.mjs',
 ]);
 const started = Date.now();
 const results = [];

@@ -58,7 +58,29 @@ function applyOutputResolution(
  *   client size (falling back to the window size) drives the initial viewport.
  * @returns {THREE.WebGLRenderer} configured renderer (ACES, sRGB out, PCF soft shadows)
  */
+/**
+ * A2: an old Android System WebView (minSdk 24 allows them) without WebGL 2
+ * used to die on a blank screen. Say what is wrong and how to fix it.
+ */
+export function showUnsupportedPhone(doc: Document, reason: string): void {
+  console.error(`[boot] unsupported ${reason} ua=${navigator.userAgent}`);
+  const box = doc.createElement('div');
+  box.setAttribute('role', 'alert');
+  box.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;'
+    + 'justify-content:center;padding:24px;background:#111;color:#eee;font:16px/1.5 sans-serif;text-align:center';
+  box.textContent = 'This phone cannot run Tank Royale yet: its graphics (WebGL 2) are not available. '
+    + 'Update "Android System WebView" and "Chrome" in the Play Store, then open the game again.';
+  doc.body.appendChild(box);
+}
+
 export function createRenderer(container: HTMLElement): GameRenderer {
+  const probe = document.createElement('canvas').getContext('webgl2');
+  if (!probe) {
+    showUnsupportedPhone(document, 'webgl2=0');
+    throw new Error('WebGL 2 unavailable');
+  }
+  probe.getExtension('WEBGL_lose_context')?.loseContext(); // free the probe's context now
+  console.info(`[boot] webgl2=1 ua=${navigator.userAgent}`);
   const renderer = new THREE.WebGLRenderer({
     antialias: false,
     powerPreference: 'high-performance',

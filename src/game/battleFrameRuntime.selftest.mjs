@@ -87,11 +87,14 @@ assert.equal(simulationSteps, 2, 'fixed-step debt advances at 60 Hz');
 assert.equal(capturedPoses, 2);
 assert.ok(Math.abs(runtime.receipt.presentationAlpha) < 1e-9);
 runtime.advance(0.2, 0.2, 600, false);
-assert.equal(simulationSteps, 6, 'catch-up is bounded to four steps');
+assert.equal(simulationSteps, 8, 'catch-up is bounded to six steps');
+// C11: a 10 fps frame (heavy fight on a weak phone) still runs in real time.
+runtime.advance(0.1, 0.1, 650, false);
+assert.equal(simulationSteps, 14, '10 fps frames are not slow motion');
 
 networkActive = true;
 runtime.advance(0.05, 0.05, 700, false);
-assert.equal(simulationSteps, 6, 'network authority never runs local simulation');
+assert.equal(simulationSteps, 14, 'network authority never runs local simulation');
 assert.equal(runtime.receipt.presentationAlpha, 1);
 assert.equal(countdownFrames.at(-1), game.preBattleS);
 

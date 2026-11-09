@@ -4,11 +4,13 @@
 **Reader:** a phone player starting a Bots battle.
 
 ## Numbers (dated)
+- 2026-11-08: Play API: production 1.87.0 [87] status "completed", alpha 1.90.0 [90]. The API has no review-state field; "completed" means the release is out of draft and rolled out to 100% once Google's review clears. CI run #93 (b4f28d0b) blocked its upload: the relay test lost 0.8% on the 2-core runner even when run alone (0.0% locally). Bound raised to 3% (it guards against caps that dropped 33-44%).
+- 2026-11-08: found in vc878 logs (Pixel 6a): `scale=1.00` on every line, even at 18 fps. The Performance preset pinned `dynMin: 1.0`, so the resolution governor had no lever in heavy fights. Shader warm-up compiled with idle point lights still visible; the 1 s lite scan then hid them, which changed the light count, so lit programs recompiled in battle (423 to 578). Sim catch-up was capped at 4 steps (slow motion below 15 fps; heavy-fight p10 was 14.4).
 - 2026-11-07: vc881 (commit 31781792 code: cheaper HUD on Performance, 7 website media folders pruned; debug APK, Pixel 6a Android 12, 0 crashes): fps p10 14.4 / p50 20.6 (85 battle lines). Frame 40-70 ms with the main thread at 30 ms, so the GPU sets the pace again in this battle: the player died early (kill replay on screen) and allies fell to 1/7 against 7 enemies, a heavier fight than the lab run. Not comparable to vc874/vc880 (different battle each run). Screenshot: HUD readable; an enemy at 200 m is clearly visible. App files 240 to 222 MB unpacked; the APK file barely changed (218.1 to 217.9 MB, cause not found).
 - 2026-11-07: lab #4 (vc880, commit 1d5f9dc3 + VITE_PERF_LAB, Pixel 6a Android 12, 0 crashes, mixed A/B configs so not a release number): fps p10 28.6 / p50 33.6. A/B inside one run: ship-again 32.6; reticle hidden 35.9; whole HUD hidden 39.7; shadows off 35.8; 1.0x output 35.0; vegetation hidden 32.8; full terrain shader 24.4. Main-thread split (ms): render JS 15-19 (500 draw calls), sim 1-4 (one 11 ms spike), hud 2-3, other parts under 1. Programs grew 423 to 578 during the battle (B2). The HUD overlay is the biggest single lever: the full-screen sight canvas plus drop-shadow filters on text that changes.
 - 2026-11-07: PRODUCTION = 1.87.0 [87] (promoted via tools/play.mjs, notes "smoother and sharper", sent for Google review). Evidence: vc874 (87's code, Pixel 6a Android 12) fps p10 20.6 / p50 26.9 / p90 29.9, bots 7/7, 0 crashes; end screen proven on vc878 (same end-screen code, 4-min QA round).
 - 2026-11-07: vc878 (commit 92ee4b8c code: + Lambert terrain and leaves, Pixel 6a): fps p10 14.6 / p50 20.2 / p90 27.3; 25-30 fps for the first ~2 min, 17-20 in heavy combat with the main thread at 40-50 ms. The combat frame is now main-thread bound. [round] end "defeat", 0 crashes. Not clearly better than vc874 (different battle each run).
-- 2026-11-07: FINAL clean build (commit 9e3838ab, debug APK, Test Lab vc874, Pixel 6a Android 12, Bots battle, 102 [perf] samples): fps p10 20.6 / p50 26.9 / p90 29.9 (build-86 equivalent vc871: 10.1 / 10.5 / 12.3). Canvas 1372x618 (1.5x), HUD 'ALLIES 6 / ENEMY 6', bots=7/7 at start, 0 crashes. Release gate FAILS the 30 fps bar: pushed to alpha only, NOT promoted to production. Round end not reached (the Robo player sits idle). Online two-phone test NOT done on Android.
+- 2026-11-07: FINAL clean build (commit 9e3838ab, debug APK, Test Lab vc874, Pixel 6a Android 12, Bots battle, 102 [perf] samples): fps p10 20.6 / p50 26.9 / p90 29.9 (build-86 equivalent vc871: 10.1 / 10.5 / 12.3). Canvas 1372x618 (1.5x), HUD 'ALLIES 6 / ENEMY 6', bots=7/7 at start, 0 crashes. Release gate FAILS the 30 fps bar. (Correction 2026-11-08: this line first said "alpha only"; 87 was in fact promoted to production later that day on this evidence because it doubled 86's 10 fps, see the PRODUCTION line above. It did NOT pass the 30 fps bar. Since 0273fc92, `play.mjs promote` refuses any vc without a Test Lab gate PASS, so this cannot repeat.) Round end not reached (the Robo player sits idle). Online two-phone test NOT done on Android.
 - 2026-11-07: "0 allies 0 enemies" root cause (build 86 Test Lab screenshot, Pixel 6a Android 12): bots DID spawn (allies visible on screen); the HUD's big numbers were kill scores (start at 0) and the loading screen hard-coded "Allies 0 / Enemies 0". Fixed: HUD shows tanks alive per team, loading shows "–" until rosters arrive. Logcat now proves it: `[perf] ... bots=7/7`.
 - 2026-11-07: Pixel 6a on-phone A/B lab (`VITE_PERF_LAB=1`, `src/engine/perfLab.ts`, Test Lab vc871-873, fps): build-86 base 11.7; shadows frozen 11.8; no post chain 12.3; Lambert override 44.4; half resolution 27.6. Cost = per-pixel world material shading + 6 idle point lights + alpha grass, not draw calls, shadows or post.
 - 2026-11-07: shipped Performance preset (`liteMaterials`): Lambert world/vehicle surfaces, one-read terrain, 4x terrain aniso, idle point lights hidden, grass to 70 m: 20-24 fps at battle start, 15-17 late battle (burning wrecks/smoke + main thread 35-55 ms). Output 1.5x via FSR costs ~0 fps (24.8 vs 23.5); 2.0x = 20.7, native 19.7. Target 30 NOT reached.
@@ -37,10 +39,10 @@ GPU still sets the pace at the start of a battle (frame ~42 ms, main thread ~21 
 
 ### Audit list (folded 2026-11-07 from the audit session's EDGE-CASES-2026-11-07.md, 47 cases; ID | breaks at | status)
 Status: FIXED = in code with a check; OPEN = not started; DEFER = reason given.
-- A1 213 MB download (Play base limit 200 MB) | PARTLY: CI prunes 7 media folders no game file names (17 MB unpacked; a vc881 battle ran fine without them). The APK file barely shrank (cause unknown). For 80 MB: icons 51, media 47, textures 43, maps 34 MB need a per-file use audit.
-- A2 minSdk 24 allows old WebViews | OPEN: log webgl2 and the WebView version at boot; show a "phone not supported" screen
-- B1 about 43 s from tap to battle | OPEN: gate at 30 s on a Pixel 6a
-- B2 shaders compile mid-battle (171 to 300 programs) | OPEN: progs on the first battle line equals progs on the last, ±5
+- A1 213 MB download (Play base limit 200 MB) | PARTLY: CI prunes 7 media folders no game file names (17 MB unpacked; a vc881 battle ran fine without them). The APK file barely shrank (cause unknown). For 80 MB: icons 55, media 48, textures 44, maps 35 MB. Icons: 33 MB are armor/modules/hit-zone PNG diagrams the garage info panels DO load (`src/ui/garage.js` 1451, `icons.ts` iconUrl), so they cannot be deleted; next step is converting them to WebP (iconUrl picks png for those views).
+- A2 minSdk 24 allows old WebViews | FIXED (unverified on Android): no WebGL 2 shows "Update Android System WebView and Chrome" instead of a blank screen; boot logs `[boot] webgl2=1 ua=...` (unsupportedPhone selftest)
+- B1 about 43 s from tap to battle | PARTLY: each load stage and the total are logged (`[battle-load] stage`/`done`); `tools/testlab.mjs` fails a run over 30 s (MAX_LOAD_MS). The stage split shows what to cut; not cut yet.
+- B2 shaders compile mid-battle (171 to 300 programs) | FIXED (unverified on Android): warm-up runs the lite pass first (Lambert + idle lights hidden), so it compiles the programs and light count the battle draws (programWarm selftest). testlab.mjs prints programs on the first and last battle line.
 - B4 large system font | OPEN (guess)
 - B5 safe-area injection errors | OPEN
 - C1 loading screen shows 0/0 | FIXED (build 87)
@@ -49,30 +51,30 @@ Status: FIXED = in code with a check; OPEN = not started; DEFER = reason given.
 - C4 countdown stuck at "1" | FIXED: hold at most 6 s (preBattleCountdown selftest)
 - C5 one bot model failing hides every later bot | FIXED: a failed build is skipped and logged; later bots still build (rosterVisualFailure selftest, fails on the old code)
 - C6 HUD numbers were kills | FIXED (build 87, shows alive per team)
-- C7 fps | PARTLY: p50 26.9 / p90 29.9 (vc874); target p90 30
-- C8 heat slowdown by round 3 | OPEN, needs a 3-round Test Lab run
-- C9 no frame cap on 120 Hz | OPEN
-- C10 battery saver at 30 Hz | OPEN (guess)
-- C11 slow motion below 10 fps | OPEN: log simLag
-- C12 no pause when the app goes to the background | OPEN
+- C7 fps | PARTLY: p50 26.9 / p90 29.9 (vc874); target p10 30 on the Pixel 6a. 2026-11-08 batch: Performance resolution floor 1.0 to 0.75 (only while frames blow the budget), shader warm-up fix (B2), long-lived smoke/fire halved, HUD text written only on change, 60 fps cap. Needs a Test Lab run.
+- C8 heat slowdown by round 3 | PARTLY: the 60 fps cap (C9) and the smoke/fire halving cut the work per second; a 3-round Test Lab run is still needed to measure it
+- C9 no frame cap on 120 Hz | FIXED: phones skip in-between display frames, 60 fps cap (a 90 Hz panel lands at 45). frameLoopScheduler selftest.
+- C10 battery saver at 30 Hz | DEFER (guess, no report)
+- C11 slow motion | FIXED: sim catch-up 4 to 6 steps, real time down to 10 fps (was 15; heavy-fight p10 14.4). battleFrameRuntime selftest.
+- C12 no pause when the app goes to the background | FIXED (unverified on Android): backgrounding a solo battle opens the pause menu (Android appStateChange + visibilitychange). Online matches are not paused. backgroundPause selftest.
 - C13 WebGL context lost | handled (reload fallback)
-- C14 15-min rounds too long for phones | OPEN: phone round 5-7 min
-- C15 killcam never finishes | OPEN (guess): 10 s timeout
+- C14 15-min rounds too long for phones | FIXED: one shared 7-minute round clock for the sim and the HUD (`src/game/roundClock.ts`), all platforms, so an online host and guest agree. Old clients (77/87) in a room with a new host still count down 15:00 but the round ends at 7:00. roundClock selftest.
+- C15 killcam never finishes | already guarded: killcam.js has a 15 s wall-clock budget (REPLAY_BUDGET_S); no change
 - C16 enemies grey at range | DEFER: the vc881 screenshot shows an enemy at 200 m clearly; no measurement at 300+ m says it fails. The haze is tuned art (post.ts comments).
 - C17 HUD text 6.5-9 px | FIXED: every HUD/touch font is at least 11 px (43 values raised; hudMinFont selftest). Layout overflow not yet checked on an Android screenshot.
 - D1 relay drops control messages | FIXED (signalRelayRate selftest)
 - D2 relay reported a 0 send queue | FIXED (reports the socket bufferedAmount)
-- D3 relay/direct race near 15 s | OPEN
+- D3 relay/direct race near 15 s | FIXED (unverified on Android): when the 15 s relay timer fires while ICE is already connected, the phone waits 3 s more for the direct link before switching (relayGrace selftest). If paths still split, `[rtc] relay data arrived on a direct-link session` is logged.
 - D4 no relay fallback mid-match | DEFER: changes the live transport; needs a two-phone Android test
 - D5 seat takeover | FIXED (server and client; Render redeploys on this push): token-capable clients get a secret seat token, never shown to other peers. A rejoin needs it; the phone keeps the latest room's token in storage, so an app restart still rejoins. Old clients (build 77) keep id-only seats. In-memory store only; distributedRoomStore.ts is not covered. Check: seatToken selftest (real server).
 - D6 cold start | FIXED: room create/join retries for 90 s; the menu shows "Server waking up (N s)…". Check: signalWake selftest (server down 7 s, then join succeeds).
 - D7 Render deploy kills live rooms | PARTLY: render.yaml buildFilter redeploys only when server files change (unverified: applies only if the Render service syncs from the blueprint). A room lost to a restart now says "The game server restarted" instead of "The host closed this room". No drain.
-- D8 a backgrounded host freezes everyone | OPEN
+- D8 a backgrounded host freezes everyone | PARTLY (unverified on Android): guests now see "Host's game is paused or in the background · waiting N s" after 3 s without snapshots, clearing when they resume (hostSilence selftest). No host migration: the match still waits for the host.
 - D9 a slow host phone puts everyone in slow motion | OPEN
 - D10 rooms kept 24 h, no cap | OPEN
-- D11 rate-limit loophole via kind:data | OPEN
+- D11 rate-limit loophole via kind:data | FIXED: any non-room_signal message carrying the relay marker is rejected, so it cannot use the 4,000/10 s relay budget instead of 120 (relayBudgetLoophole selftest, real server). Render redeploys on this push.
 - D12 Oregon-only server | DEFER (no user numbers yet)
-- D13 browser and app on different servers | OPEN: fix the listing text
+- D13 browser and app on different servers | OPEN: the Render server allows the GitHub Pages origin; whether the web build points at the same server is unchecked. Changing the Play listing text is a public edit: owner's OK needed.
 - D14 api/ice.ts accepts no Origin | DEFER (no TURN keys)
 - E1 optional Robo taps | OPEN
 - E2 CI uploads with no tests | FIXED: CI runs `tools/release-tests.mjs` before upload (all 385 selftests; fails on any new failure; 9 known failures may only shrink; ~6 min). `play.mjs promote` refuses unless the vc is above production, its CI run succeeded, and `tools/testlab.mjs` recorded a PASS for that commit (docs-only commits on top carry over). The gate now also fails on crashes and on perf-lab builds (releaseGate selftest).

@@ -18,6 +18,7 @@ export interface NetworkClientLike {
   onConnection?(listener: (connected: boolean) => void): (() => void) | void;
   drainEventsThrough?(tick: number, target: unknown[]): void;
   getStats?(): Record<string, unknown> | null;
+  readonly snapshotPacketsReceived?: number;
 }
 
 export interface NetworkMatchLike {
@@ -40,6 +41,8 @@ export interface NetworkStatusLike {
   set?(status: unknown): void;
   dispose?(): void;
   update(stats: Record<string, unknown> | null): void;
+  /** Seconds since the host's last snapshot (0 = flowing again). */
+  hostSilent?(seconds: number): void;
 }
 
 export interface NetworkInputRuntimeLike {
@@ -84,6 +87,20 @@ export interface NetworkFramePump {
   readonly latestSnapshot: NetworkSnapshot | null;
 }
 
+/**
+ * D8: a host whose app goes to the background stops sending snapshots and
+ * every guest freezes with no word why. Returns whole seconds of silence once
+ * past `afterMs` (0 = snapshots flowing), from the guest's snapshot counter.
+ */
+export function createHostSilenceWatch(afterMs = 3000) {
+  let count = -1;
+  let at = 0;
+  return (nowMs: number, received: number): number => {
+    if (received !== count) { count = received; at = nowMs; return 0; }
+    return received > 0 && nowMs - at > afterMs ? Math.floor((nowMs - at) / 1000) : 0;
+  };
+}
+
 /** Own the complete per-frame browser match path and its reusable buffers. */
 export function createNetworkFramePump({
   getMatch,
@@ -105,6 +122,8 @@ export function createNetworkFramePump({
 
   let inputRuntime: NetworkInputRuntimeLike | null = null;
   let latestSnapshot: NetworkSnapshot | null = null;
+  const hostSilence = createHostSilenceWatch();
+  let shownSilentS = 0;
   const pendingEvents: unknown[] = [];
 
   const acceptSnapshot = (snapshot: NetworkSnapshot | null, dt: number) => {
@@ -173,6 +192,11 @@ export function createNetworkFramePump({
           inputRuntime?.resetCadence();
         }
         acceptSnapshot(match.update(nowMs), dt);
+        const received = match.client.snapshotPacketsReceived;
+        if (typeof received === 'number') {
+          const silentS = match.client.connected ? hostSilence(nowMs, received) : 0;
+          if (silentS !== shownSilentS) { shownSilentS = silentS; getStatus()?.hostSilent?.(silentS); }
+        }
       }
 
       const status = getStatus();

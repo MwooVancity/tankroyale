@@ -41,7 +41,9 @@ while (Date.now() < until) {
 for (let last = -1, t = 0; got !== last && t < 10; t++) { last = got; await new Promise((r) => setTimeout(r, 500)); }
 const loss = 1 - got / sent;
 console.log(`signalRelayRate: sent ${sent}, delivered ${got}, loss ${(loss * 100).toFixed(1)}%`);
-assert(loss < 0.005, `relay drops match traffic at real rates: ${(loss * 100).toFixed(1)}% lost`);
+// ponytail: 3% bound. The guard catches budget caps (old caps dropped 33-44%);
+// a loaded 2-core CI runner loses 0.8% to timing alone (runs #91, #93).
+assert(loss < 0.03,`relay drops match traffic at real rates: ${(loss * 100).toFixed(1)}% lost`);
 assert.equal(host.socket.readyState, WebSocket.OPEN, 'host socket survives a 5v5 snapshot rate');
 // Over budget, snapshots drop but control messages ('c') never do.
 {

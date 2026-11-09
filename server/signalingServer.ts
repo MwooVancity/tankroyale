@@ -270,6 +270,11 @@ export function createSignalingServer({
             throw new Error('invalid message');
           }
           message = parsed as SignalingEnvelope;
+          // D11: only a room_signal may ride the large relay budget; anything
+          // else carrying the data marker (a room_create flood) is rejected.
+          if (relayData && message.type !== 'room_signal') {
+            throw Object.assign(new Error('invalid relay signal'), { code: 'invalid_payload' });
+          }
           const requestId = message.requestId == null ? null : String(message.requestId);
           const payload = isRecord(message.payload) ? message.payload : {};
           switch (message.type) {

@@ -292,7 +292,11 @@ export const PRESETS: Readonly<Record<PresetName, QualityPreset>> = {
     textureScale: 0.5,
     vehicleTextureScale: 0.75,
     textureCap: 2048,
-    dynMin: 1.0,
+    // Pixel 6a vc878/vc881: late fights ran 18-20 fps GPU-bound with the
+    // governor pinned at scale 1.00 (dynMin 1 left it no lever). It may now
+    // step to 0.75 only while frames blow the budget, and earns 1.0 back when
+    // clean. Half resolution measured 11.7 -> 27.6 fps (vc872).
+    dynMin: 0.75,
   },
   // MOBILE r1: the DEVICE tier for phones/tablets — never offered by the
   // settings picker (PRESET_ORDER below is unchanged) and never resolved on a

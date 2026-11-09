@@ -14,6 +14,7 @@
  */
 import * as THREE from 'three';
 import { LATE_FX_LAYER } from './layers.ts';
+import { getPreset } from '../engine/quality.ts';
 
 // Transparent combat FX render after the opaque/world post passes so their
 // shaders can sample resolved scene depth without a framebuffer feedback loop.
@@ -1212,6 +1213,15 @@ class Pool {
  * @param {{ seed?: number }} [opts]
  * @returns {Particles} { group, update(dt), setFrozen(frozen, atTimeS), emit(poolName, opts), pools, resetAll() }
  */
+/** Every other long-lived puff of a thinnable pool, 1.4x opacity; null = skip. */
+export function createPuffThinner(isLite) {
+  return (pool, o) => {
+    if (!(o.life > 1.5) || !pool.thinnable || !isLite()) return o;
+    pool.thinSkip = !pool.thinSkip; // per pool: interleaved smoke+fire both halve
+    return pool.thinSkip ? null : { ...o, alpha: Math.min(1, (o.alpha ?? 1) * 1.4) };
+  };
+}
+
 export function createParticleSystem(engineCtx, { seed = 5000 } = {}) {
   const texRng = mulberry32(seed);
   const group = new THREE.Group();
@@ -1539,7 +1549,15 @@ export function createParticleSystem(engineCtx, { seed = 5000 } = {}) {
 
   // --- emit dispatch --------------------------------------------------------
 
+  // Performance preset (phones): late-battle wreck smoke and fire are the GPU
+  // bill (Pixel 6a: frame ~60 ms from overdraw). Long-lived puffs emit at half
+  // rate with more opacity each, so columns read the same with half the quads.
+  const thin = createPuffThinner(() => !!getPreset().liteMaterials);
+  pools.smoke.thinnable = true;
+  pools.fire.thinnable = true;
   function emitPuff(pool, o) {
+    o = thin(pool, o);
+    if (!o) return;
     const i = pool.claim();
     const birth = uTime.value + (o.birthOffset || 0);
     const A = pool.attrs;

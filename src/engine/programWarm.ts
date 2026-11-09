@@ -53,6 +53,8 @@ export interface ForwardProgramWarmOptions {
   camera: unknown;
   getTarget(): unknown;
   now?: () => number;
+  /** Bring `root` to its in-battle material/light state before compiling. */
+  prepare?: (root: ForwardWarmObject) => void;
 }
 
 interface RendererWithTargets {
@@ -165,6 +167,7 @@ export function createForwardProgramWarmOwner({
   camera,
   getTarget,
   now = () => performance.now(),
+  prepare,
 }: ForwardProgramWarmOptions): ForwardProgramWarmOwner {
   let parallelCompile: ParallelShaderCompileExtension | null | undefined;
 
@@ -182,6 +185,9 @@ export function createForwardProgramWarmOwner({
     root: ForwardWarmObject = scene,
     stats: ForwardProgramWarmStats | null = null,
   ): Generator<void, void, unknown> {
+    // Compile the materials and light count gameplay will draw with, or the
+    // first battle frames recompile every lit program (Pixel 6a: 423 to 578).
+    try { prepare?.(root); } catch { /* warm only */ }
     let sliceAt = now();
     const objects: ForwardWarmObject[] = [];
     root.traverseVisible((object) => {

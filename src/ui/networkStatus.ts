@@ -43,6 +43,7 @@ export interface NetworkStatusController {
   readonly diagnostics: HTMLDivElement;
   set(status?: NetworkStatusState): void;
   update(stats?: NetworkDiagnosticsStats | null): void;
+  hostSilent(seconds: number): void;
   toggleDiagnostics(): void;
   readonly diagnosticsVisible: boolean;
   dispose(): void;
@@ -111,10 +112,22 @@ export function createNetworkStatus(): NetworkStatusController {
   }
 
   function set({ state, attempt = 0 }: NetworkStatusState = {}): void {
+    silentShown = false; // a connection banner owns the line now
     if (state === 'reconnecting') show(`Connection interrupted · reconnecting ${attempt || 1}`);
     else if (state === 'reconnected') show('Connection restored', false, 1800);
     else if (state === 'failed') show('Connection lost · return to garage', true);
     else if (state === 'closed' || state === 'connected') root.classList.remove('show');
+  }
+
+  let silentShown = false;
+  function hostSilent(seconds: number): void {
+    if (seconds > 0) {
+      silentShown = true;
+      show(`Host's game is paused or in the background · waiting ${seconds} s`);
+    } else if (silentShown) {
+      silentShown = false;
+      root.classList.remove('show');
+    }
   }
 
   function update(stats?: NetworkDiagnosticsStats | null): void {
@@ -150,6 +163,7 @@ export function createNetworkStatus(): NetworkStatusController {
     diagnostics,
     set,
     update,
+    hostSilent,
     toggleDiagnostics,
     get diagnosticsVisible() { return diagnosticsVisible; },
     dispose() {

@@ -187,4 +187,24 @@ function createHarness() {
   assert.equal(harness.frames.size, 0, 'disposed schedulers cannot re-arm');
 }
 
+// C9: phones cap at 60 fps; a 120 Hz panel's in-between frames are skipped.
+{
+  const queue = [];
+  const ticks = [];
+  const s = createFrameLoopScheduler({
+    tick: (t) => { ticks.push(t); s.schedule(); },
+    isBootComplete: () => true,
+    minFrameMs: () => 1000 / 60,
+    requestFrame: (cb) => { queue.push(cb); return queue.length; },
+    cancelFrame() {},
+    setRecurring: () => 0, clearRecurring() {},
+    documentState: { hidden: false, hasFocus: () => true },
+    inputTarget: { addEventListener() {}, removeEventListener() {} },
+  });
+  s.schedule();
+  for (let i = 0; i < 120; i++) queue.shift()?.(i * (1000 / 120)); // 1 s at 120 Hz
+  assert.equal(ticks.length, 60, `120 Hz display ticks 60 times a second (${ticks.length})`);
+  s.dispose();
+}
+
 console.log('frameLoopScheduler.selftest: rAF coalescing and hidden-pane recovery passed');

@@ -301,7 +301,12 @@ export function createBattleLoadScreen(): BattleLoadScreen {
       pctEl.textContent = `${Math.round(v * 100)}%`;
       progressEl.setAttribute('aria-valuenow', String(Math.round(v * 100)));
       if (label) stageEl.textContent = label;
-      api.lastProgress.at = performance.now();
+      const now = performance.now();
+      // B1: logcat shows where the tap-to-battle time goes (one line per stage).
+      if (label && label !== api.lastProgress.stage) {
+        console.info(`[battle-load] stage ${api.lastProgress.stage || 'start'} ${Math.round(now - api.lastProgress.at)}ms -> ${label}`);
+      }
+      api.lastProgress.at = now;
       if (label) api.lastProgress.stage = label;
     },
     lastProgress: { at: performance.now(), stage: '' },

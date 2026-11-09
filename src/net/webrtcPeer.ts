@@ -47,6 +47,8 @@ export interface WebRtcPeerOptions {
   /** send backlog of the signaling socket the relay rides on */
   relayBufferedAmount?: () => number;
   relayAfterMs?: number;
+  /** extra wait when ICE is already connected as the relay timer fires (D3) */
+  relayGraceMs?: number;
 }
 
 export const MATCH_CONTROL_CHANNEL_LABEL = 'cot-match-v1';
@@ -105,6 +107,7 @@ export function createWebRTCPeer({
   signalRelay = false,
   relayBufferedAmount = () => 0,
   relayAfterMs = 15_000,
+  relayGraceMs = 3_000,
 }: WebRtcPeerOptions): WebRtcPeerSession {
   if (role !== 'host' && role !== 'client') throw new TypeError('role must be host or client');
   if (typeof onSignal !== 'function') throw new TypeError('onSignal callback is required');
@@ -314,7 +317,9 @@ export function createWebRTCPeer({
     if (signal && typeof signal === 'object' && signal.kind === 'data') {
       // Relay traffic never waits behind SDP negotiation.
       if (closed) return Promise.resolve();
-      if (!relayChannels) activateRelay();
+      if (!relayChannels && !activateRelay() && transport) {
+        console.warn('[rtc] relay data arrived on a direct-link session (D3 split paths)');
+      }
       if (relayChannels) {
         if (signal.ch === 'c' || signal.ch === 's') relayChannels[signal.ch].deliver(signal);
         else if (signal.ch === 'x') {
@@ -413,7 +418,22 @@ export function createWebRTCPeer({
     get recoveryAttempts() { return recoveryAttempts; },
   };
   if (signalRelay) {
-    relayTimer = setTimeout(() => { relayTimer = null; activateRelay(); }, relayAfterMs);
+    // D3: if ICE already connected, the direct channel is seconds from open;
+    // the remote side may open it first and stay direct while this side would
+    // switch to the relay (split paths, both frozen). Wait once more first.
+    let graceUsed = false;
+    const onRelayTimer = () => {
+      relayTimer = null;
+      const ice = peerConnection.iceConnectionState;
+      if (!graceUsed && (ice === 'connected' || ice === 'completed')) {
+        graceUsed = true;
+        relayTimer = setTimeout(onRelayTimer, relayGraceMs);
+        if (typeof relayTimer.unref === 'function') relayTimer.unref();
+        return;
+      }
+      activateRelay();
+    };
+    relayTimer = setTimeout(onRelayTimer, relayAfterMs);
     if (typeof relayTimer.unref === 'function') relayTimer.unref();
   }
   connectTimer = setTimeout(() => {

@@ -143,14 +143,23 @@ for (const ex of m.testExecutions) {
   const perf = pick(/\[perf\] .*bots=\d+\/\d+/).map((l) => ({ fps: Number(/fps=([\d.]+)/.exec(l)?.[1]), enemies: Number(/bots=\d+\/(\d+)/.exec(l)[1]) }));
   const fps = perf.map((p) => p.fps).filter(Number.isFinite).sort((a, b) => a - b);
   const p10 = fps[Math.floor(fps.length * 0.1)] ?? 0, minFps = Number(process.env.MIN_FPS || 30);
+  // B1: tap-to-battle load time (main.ts logs it; builds before 2026-11-08 do not).
+  const loadMs = Math.max(...pick(/\[battle-load\] done \d+ms/).map((l) => Number(/done (\d+)ms/.exec(l)[1])), -1);
+  const maxLoadMs = Number(process.env.MAX_LOAD_MS || 30000);
+  console.log(`  load: ${loadMs < 0 ? 'not logged' : `${(loadMs / 1000).toFixed(1)} s`}`);
+  pick(/\[battle-load\] stage /).slice(0, 20).forEach((l) => console.log('   ', l.replace(/^.*\[battle-load\] /, '').slice(0, 160)));
+  // B2: shaders compiled mid-battle show as programs growing after the first line.
+  const progs = pick(/\[perf\] .*bots=/).map((l) => Number(/progs=(\d+)/.exec(l)?.[1])).filter(Number.isFinite);
+  if (progs.length) console.log(`  programs: first battle line ${progs[0]}, last ${progs.at(-1)}`);
   const fails = [perf.length < 6 && `only ${perf.length} battle [perf] lines (battle not reached?)`,
+    loadMs > maxLoadMs && `load ${(loadMs / 1000).toFixed(1)} s > ${maxLoadMs / 1000} s`,
     perf.length && perf[0].enemies < 1 && 'no enemies on the first battle line',
     p10 < minFps && `p10 fps ${p10} < ${minFps}`,
     // ROUND=1 (long Robo script): the round must reach the end screen (endScreen.ts logs it)
     process.env.ROUND && !pick(/\[round\] end/).length && 'no [round] end line',
     fatal.length && `${fatal.length} crash/ANR lines`,
     pick(/\[lab\]/).length && 'perf-lab build (VITE_PERF_LAB) is never a release candidate'].filter(Boolean);
-  console.log(`  GATE ${fails.length ? 'FAIL: ' + fails.join('; ') : 'PASS'} (battle lines ${perf.length}, fps p10 ${p10} median ${fps[fps.length >> 1] ?? '-'})`);
+  console.log(`  GATE ${fails.length ? 'FAIL: ' + fails.join('; ') : 'PASS'} (battle lines ${perf.length}, fps p10 ${p10} median ${fps[fps.length >> 1] ?? '-'} p90 ${fps[Math.floor(fps.length * 0.9)] ?? '-'})`);
   if (fails.length) process.exitCode = 1;
   else recordGatePass({ label: VC, device: dir, p10, p50: fps[fps.length >> 1], p90: fps[Math.floor(fps.length * 0.9)] });
 }
