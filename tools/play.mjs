@@ -32,7 +32,13 @@ if (cmd === 'tracks') {
   const { tracks } = await api(`/${edit.id}/tracks`);
   const prodMax = Math.max(0, ...(tracks.find((t) => t.track === 'production')?.releases || []).flatMap((r) => (r.versionCodes || []).map(Number)));
   const runs = JSON.parse(execFileSync('gh', ['run', 'list', '--workflow', 'android.yml', '--limit', '200', '--json', 'number,headSha,conclusion'], { encoding: 'utf8' }));
-  const refusal = promoteRefusal(Number(vc), prodMax, runs, findGatePass);
+  let refusal = promoteRefusal(Number(vc), prodMax, runs, findGatePass);
+  // Only the fps gate can be waived, and only by the owner's own words, which
+  // are printed (and go in PLAN.md). CI success and above-production still hold.
+  if (refusal?.startsWith('no Test Lab gate PASS') && process.env.OWNER_OVERRIDE) {
+    console.log(`gate waived by owner: "${process.env.OWNER_OVERRIDE}" (${refusal})`);
+    refusal = null;
+  }
   if (refusal) {
     await api(`/${edit.id}`, 'DELETE');
     console.error(`promote refused: ${refusal}`);
@@ -43,4 +49,21 @@ if (cmd === 'tracks') {
   await api(`/${edit.id}/tracks/production`, 'PUT', { track: 'production', releases: [release] });
   const done = await api(`/${edit.id}:commit`, 'POST');
   console.log('committed edit', done.id, 'production ->', vc);
+} else if (cmd === 'listings') {
+  const { listings } = await api(`/${edit.id}/listings`);
+  for (const l of listings || []) console.log(l.language, '|', l.title, '|', l.shortDescription, '|', l.fullDescription.split('\n')[0], '| ads line:', /ad may show/.test(l.fullDescription), '| "No ads":', /No ads/.test(l.fullDescription));
+  await api(`/${edit.id}`, 'DELETE');
+} else if (cmd === 'listing') {
+  // Push title / short / full description from store-assets/play-store-listing.md
+  // (sections "## App title", "## Short description", "## Full description" up to "---").
+  const md = fs.readFileSync('store-assets/play-store-listing.md', 'utf8');
+  const sec = (h) => { const i = md.indexOf('\n## ' + h); const rest = md.slice(md.indexOf('\n', i + 1) + 1); return rest.slice(0, rest.search(/\n## |\n---/)).trim(); };
+  const body = { title: sec('App title'), shortDescription: sec('Short description'), fullDescription: sec('Full description') };
+  if (body.title.length > 30 || body.shortDescription.length > 80 || body.fullDescription.length > 4000 || !body.fullDescription) throw new Error('listing too long or empty');
+  const { listings } = await api(`/${edit.id}/listings`);
+  for (const l of listings || []) console.log('before', l.language, '|', l.title, '|', l.shortDescription);
+  const lang = (listings || [])[0]?.language || 'en-US';
+  await api(`/${edit.id}/listings/${lang}`, 'PATCH', body);
+  const done = await api(`/${edit.id}:commit`, 'POST');
+  console.log('committed edit', done.id, 'listing', lang, '|', body.title, '|', body.shortDescription);
 } else throw new Error('unknown command ' + cmd);
