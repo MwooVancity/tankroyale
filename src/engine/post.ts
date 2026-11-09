@@ -36,6 +36,7 @@
  */
 import * as THREE from 'three';
 import { createPerfLab } from './perfLab.ts';
+import { createFarCull } from './farCull.ts';
 import { applyLiteMaterials } from './liteMaterials.ts';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -2432,6 +2433,7 @@ export function createPost(
   });
 
   // Test-build-only phone A/B lab (VITE_PERF_LAB=1); dead code in Play builds.
+  const farCull = createFarCull(); // Performance: scenery past 250 m hidden, tanks never
   const lab = import.meta.env.VITE_PERF_LAB ? createPerfLab(renderer, scene, camera, (ratio) => {
     if (ratio == null) { renderer.setPixelRatio(labRatio0); renderer.setSize(cssW, cssH, false); applySize(cssW, cssH); return; }
     labRatio0 = renderer.getPixelRatio();
@@ -2512,6 +2514,7 @@ export function createPost(
       frameTris = renderer.info.render.triangles;
       renderer.info.reset();
       lab?.begin(performance.now());
+      farCull.update(scene, camera, performance.now(), !!preset.liteMaterials);
       if (preset.liteMaterials && performance.now() - liteScanAt > 1000) {
         liteScanAt = performance.now();
         applyLiteMaterials(scene);

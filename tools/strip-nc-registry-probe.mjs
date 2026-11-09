@@ -10,13 +10,13 @@
 // here — the guard checks exactly what a public artifact would register.
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MARKER = '__STRIP_NC_REGISTRY__';
 
-await import(path.join(ROOT, 'src', 'vehicles', 'fleetFactory.ts'));
-const specs = await import(path.join(ROOT, 'src', 'vehicles', 'specs.js'));
+await import(pathToFileURL(path.join(ROOT, 'src', 'vehicles', 'fleetFactory.ts')).href);
+const specs = await import(pathToFileURL(path.join(ROOT, 'src', 'vehicles', 'specs.js')).href);
 
 const sources = {};
 for (const id of specs.ALL_TANK_IDS) {

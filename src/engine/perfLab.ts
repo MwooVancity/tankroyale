@@ -12,12 +12,6 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   const nop = () => {};
   const css = new THREE.Vector2();
   const scaled = (r: number) => ({ on: () => setScale(r), off: () => setScale(null) });
-  const terrainMats = () => {
-    const out = new Set<THREE.Material>();
-    scene.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material; if (m && (m as { customProgramCacheKey?: () => string }).customProgramCacheKey?.().startsWith('world-terrain')) out.add(m); });
-    return out;
-  };
-  const setTerrainLite = (lite: boolean) => { for (const m of terrainMats()) { m.defines = lite ? { TERRAIN_LITE: '' } : {}; m.needsUpdate = true; } };
   const out = (r: number) => ({ on: () => setScale(-r), off: () => setScale(null) });
   const hideCss = (sel: string) => ({
     on: () => document.querySelectorAll<HTMLElement>(sel).forEach((e) => { e.style.display = 'none'; }),
@@ -25,15 +19,24 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   });
   // Shadows fully off (pass + sampling; recompiles, the stall reset handles it).
   const shadowCasters = (on: boolean) => scene.traverse((o) => { if ((o as THREE.DirectionalLight).isDirectionalLight) (o as THREE.DirectionalLight).castShadow = on; });
+  // Lab #5 (2026-11-09): mediump on every material (Mali runs fp16 much faster),
+  // a shorter view distance, and the best-case combo, measured on current code.
+  const mediump = (on: boolean) => scene.traverse((o) => {
+    const ms = (o as THREE.Mesh).material; if (!ms) return;
+    for (const m of (Array.isArray(ms) ? ms : [ms]) as THREE.Material[]) { m.precision = on ? 'mediump' : null; m.needsUpdate = true; }
+  });
+  const pc = camera as THREE.PerspectiveCamera; let farWas = 0;
+  const far = (on: boolean, d: number) => { if (on) { farWas = pc.far; pc.far = d; } else if (farWas) pc.far = farWas; pc.updateProjectionMatrix(); };
+  const hudAll = hideCss('.cot-hud');
   const cfgs: Cfg[] = [
     { name: 'ship', on: nop, off: nop },
     { name: 'ship+hud:reticleHidden', ...hideCss('.cot-ret') },
-    { name: 'ship+hud:allHidden', ...hideCss('.cot-hud') },
+    { name: 'ship+hud:allHidden', ...hudAll },
     { name: 'ship+shadowsOff', on: () => { shadowCasters(false); }, off: () => { shadowCasters(true); } },
+    { name: 'ship+mediump', on: () => mediump(true), off: () => mediump(false) },
+    { name: 'ship+far250', on: () => far(true, 250), off: () => far(false, 0) },
     { name: 'ship+out1.0', ...out(1.0) },
-    { name: 'ship+terrainFull', on: () => setTerrainLite(false), off: () => setTerrainLite(true) },
-    { name: 'ship+hide:vegetation', on: () => { const v = scene.getObjectByName('vegetation'); if (v) v.visible = false; }, off: () => { const v = scene.getObjectByName('vegetation'); if (v) v.visible = true; } },
-    { name: 'ship+shadowFreeze', on: () => { renderer.shadowMap.autoUpdate = false; }, off: () => { renderer.shadowMap.autoUpdate = true; } },
+    { name: 'ship+combo:shadowsOff+mediump+hudHidden', on: () => { shadowCasters(false); mediump(true); hudAll.on(); }, off: () => { shadowCasters(true); mediump(false); hudAll.off(); } },
     { name: 'ship-again', on: nop, off: nop },
   ];
   // Then hide each big top-level scene group, one at a time (full chain).
