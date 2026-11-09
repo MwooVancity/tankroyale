@@ -123,7 +123,8 @@ for (const ex of m.testExecutions) {
   const dir = `${ex.environment.androidDevice.androidModelId}-${ex.environment.androidDevice.androidVersionId}`;
   const mine = objs.filter((o) => o.name.includes(`/${dir}-`) || o.name.includes(`/${dir}/`));
   const local = path.join(OUT, dir); fs.mkdirSync(local, { recursive: true });
-  for (const o of mine.filter((o) => /logcat$|video\.mp4$|\.png$/.test(o.name)).slice(0, 40)) {
+  // logcat + video always; screenshots capped (a long run makes 40+ and pushed logcat out).
+  for (const o of [...mine.filter((o) => /logcat$|video\.mp4$/.test(o.name)), ...mine.filter((o) => /\.png$/.test(o.name)).slice(0, 30)]) {
     fs.writeFileSync(path.join(local, o.name.split('/').slice(-2).join('_')), await get(o.name));
   }
   const logcat = mine.find((o) => /logcat$/.test(o.name));

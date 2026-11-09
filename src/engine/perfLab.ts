@@ -28,15 +28,20 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   const pc = camera as THREE.PerspectiveCamera; let farWas = 0;
   const far = (on: boolean, d: number) => { if (on) { farWas = pc.far; pc.far = d; } else if (farWas) pc.far = farWas; pc.updateProjectionMatrix(); };
   const hudAll = hideCss('.cot-hud');
+  const named = (n: string) => { const o = scene.getObjectByName(n); return o ? [o] : []; };
+  const hideObjs = (pick: () => THREE.Object3D[]) => { let hid: THREE.Object3D[] = []; return {
+    on: () => { hid = pick().filter((o) => o.visible); hid.forEach((o) => { o.visible = false; }); },
+    off: () => { hid.forEach((o) => { o.visible = true; }); hid = []; } }; };
   const cfgs: Cfg[] = [
     { name: 'ship', on: nop, off: nop },
-    { name: 'ship+hud:reticleHidden', ...hideCss('.cot-ret') },
-    { name: 'ship+hud:allHidden', ...hudAll },
-    { name: 'ship+shadowsOff', on: () => { shadowCasters(false); }, off: () => { shadowCasters(true); } },
-    { name: 'ship+mediump', on: () => mediump(true), off: () => mediump(false) },
+    // Lab #6: where do the ~460 draw calls go? Hide one group per row.
+    { name: 'ship+hide:tanks', ...hideObjs(() => scene.children.filter((c) => c.name.startsWith('tank_'))) },
+    { name: 'ship+hide:props', ...hideObjs(() => named('props')) },
+    { name: 'ship+hide:vegetation', ...hideObjs(() => named('vegetation')) },
+    { name: 'ship+hide:fx', ...hideObjs(() => named('fx')) },
+    { name: 'ship+hide:worldOther', ...hideObjs(() => (scene.children.find((c) => c.name.startsWith('world-'))?.children || []).filter((c) => c.name !== 'props' && c.name !== 'vegetation')) },
     { name: 'ship+far250', on: () => far(true, 250), off: () => far(false, 0) },
-    { name: 'ship+out1.0', ...out(1.0) },
-    { name: 'ship+combo:shadowsOff+mediump+hudHidden', on: () => { shadowCasters(false); mediump(true); hudAll.on(); }, off: () => { shadowCasters(true); mediump(false); hudAll.off(); } },
+    { name: 'ship+hud:allHidden', ...hudAll },
     { name: 'ship-again', on: nop, off: nop },
   ];
   // Then hide each big top-level scene group, one at a time (full chain).
