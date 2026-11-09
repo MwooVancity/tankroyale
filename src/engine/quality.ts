@@ -278,7 +278,11 @@ export const PRESETS: Readonly<Record<PresetName, QualityPreset>> = {
     // canvas at CSS pixels: blurry. Test Lab vc873 (lite materials): FSR
     // output at 1.5x = 24.8 fps vs 23.5 at 1.0 (free), 2.0x = 20.7, native
     // 19.7. The 3D scene stays at CSS pixels; only the upscale lands at 1.5x.
-    maxOutputPixelRatio: 1.5,
+    // 2026-11-09 sharpness: at 1.5 the WebView stretched a 1372x618 canvas 1.75x
+    // (bilinear) onto the 2402x1082 Pixel 6a panel, so FSR RCAS never reached the
+    // screen. Lab #5 (vc883): output size no longer costs fps (main-thread bound).
+    // The 3D scene is still rendered at maxPixelRatio x governor scale.
+    maxOutputPixelRatio: 3,
     aoScale: 0,
     bloomScale: 0,
     smaa: false,

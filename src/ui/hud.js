@@ -1645,7 +1645,7 @@ export function initHud(bus) {
     // at ~4 more. Draw the sight at the 3D output ratio and drop HUD filters.
     // ponytail: read at resize; a quality change mid-session applies on the next resize.
     const lite = !!getPreset().liteMaterials;
-    if (lite) dpr = Math.min(dpr, getPreset().maxOutputPixelRatio ?? 1.5);
+    if (lite) dpr = Math.min(dpr, 1.5); // sight stays 1.5x even when the 3D output is native
     root.classList.toggle('cot-hud-lite', lite);
     retCanvas.width = Math.round(w * dpr);
     retCanvas.height = Math.round(h * dpr);

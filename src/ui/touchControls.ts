@@ -106,8 +106,8 @@ body.cot-touch-layout[data-cot-orientation='portrait'] .cot-touch .mobile-chrome
   transition:transform 90ms ease-out,border-color 90ms ease,color 90ms ease;}
 .cot-touch .quick:active{transform:scale(.95);border-color:#f0ad45;color:#ffd27a;background:rgba(48,32,12,.96);}
 .cot-touch .quick svg{width:18px;height:18px;display:block;}
-.cot-touch .quick .ql{font-family:${FONT_COND};font-size:11px;font-weight:800;line-height:1;
-  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+.cot-touch .quick .ql{font-family:${FONT_COND};font-size:10px;font-weight:800;line-height:1;max-width:44px;overflow:hidden;
+  letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;}
 .cot-touch .quick.muted{color:#f08b75;border-color:rgba(240,102,83,.55);}
 /* Recompose the existing live HUD instead of duplicating ammo/state UI. */
 body.cot-touch-layout{overscroll-behavior:none;}
@@ -392,7 +392,7 @@ export function createTouchControls({
   root.innerHTML = `<div class="mobile-chrome" role="toolbar" aria-label="Battle options">` +
     `<button class="quick sound" type="button" aria-label="Mute sound">${SOUND}<span class="ql">Sound</span></button>` +
     `<button class="quick graphics" type="button" aria-label="Change graphics quality">${GRAPHICS}<span class="ql">GFX</span></button>` +
-    `<button class="quick settings" type="button" aria-label="Open settings">${SETTINGS}<span class="ql">Settings</span></button></div>` +
+    `<button class="quick settings" type="button" aria-label="Open settings">${SETTINGS}<span class="ql">Menu</span></button></div>` +
     // One triangle glyph (U+25B2, text presentation on
     // every platform) rotated per direction — U+25C0/U+25B6 carry DEFAULT
     // EMOJI PRESENTATION on iOS, so the left/right arrows rendered as blue
@@ -671,7 +671,8 @@ export function createTouchControls({
     const label = PRESETS[name]?.label || name;
     const short = label === 'Performance' ? 'Perf' : label === 'Balanced' ? 'Bal' :
       label === 'Quality' ? 'Qual' : label;
-    graphicsButton.querySelector<HTMLElement>('.ql')!.textContent = `GFX ${short}`;
+    // Bare preset name: 'GFX Perf' overflowed the 44 px button onto its neighbours (vc887).
+    graphicsButton.querySelector<HTMLElement>('.ql')!.textContent = short;
     graphicsButton.setAttribute('aria-label', `Graphics quality: ${label}. Tap to change level`);
     graphicsButton.title = `Graphics: ${label}`;
   }

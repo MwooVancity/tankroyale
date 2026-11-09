@@ -57,6 +57,18 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
       if (n < 20 || !child.visible) continue;
     }
     console.info(`[lab] scene children ${names.join(' ')}`);
+    // Lab #7: which prop families carry the triangles (lab #6: props = the cost).
+    const fam: string[] = [];
+    scene.getObjectByName('props')?.traverse((o) => {
+      const m = o as THREE.Mesh & { count?: number; isInstancedMesh?: boolean };
+      if (!m.isMesh || !m.geometry) return;
+      const g = m.geometry, per = (g.index ? g.index.count : g.attributes.position.count) / 3;
+      const n = m.isInstancedMesh ? (m.count ?? 1) : 1;
+      const mat = Array.isArray(m.material) ? m.material[0] : m.material;
+      fam.push(`${Math.round(per * n)}:${m.isInstancedMesh ? 'I' + n : 'M'}:${m.name || mat?.name || mat?.type}:shadow=${m.castShadow ? 1 : 0}`);
+    });
+    fam.sort((a, z) => parseInt(z, 10) - parseInt(a, 10));
+    console.info(`[lab] props ${fam.length} meshes, top: ${fam.slice(0, 25).join(' ')}`);
   };
 
   let firstAt = 0, idx = -1, phaseAt = 0, frames = 0, sumMs = 0, sumCpu = 0, sumRenderJs = 0, calls = 0, tris = 0, lastAt = 0, done = false;
