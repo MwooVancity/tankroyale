@@ -61,6 +61,7 @@ import {
 } from './engine/quality.ts';
 import { applyLiteMaterials } from './engine/liteMaterials.ts';
 import { pauseOnBackground } from './game/backgroundPause.ts';
+import { installReviewPrompt } from './game/reviewPrompt.ts';
 import { createSky } from './engine/sky.ts';
 import { createLighting } from './engine/lighting.ts';
 import { createPost } from './engine/post.ts';
@@ -449,6 +450,7 @@ const devTrace = traceRequested
   : null;
 const bus = createBus(devTrace ? (ev, payload) => devTrace.event(ev, payload) : null);
 installBattleRecords(bus);
+installReviewPrompt(bus, () => !!networkSession.match); // Play rating ask: solo wins only
 const game = legacyPort<MainGameState>(createGameState());
 const rosterPresentation = createRosterPresentation({
   getVehicleName: (specId) => legacyPort<MainEntity['spec']>(getSpec(specId))?.name,

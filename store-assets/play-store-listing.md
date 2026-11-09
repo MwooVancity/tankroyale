@@ -1,57 +1,72 @@
 # Tank Royale — Google Play Store Listing
 
+Every claim below was checked against the code on 2026-11-09 (counts in brackets
+say where). The old text said "No ads" and "no downloads": both were false
+(AdMob interstitial every 3rd match; it is an installed app). Not pushed to Play:
+a listing change is a public edit and needs the owner's OK (PLAN.md, D13).
+
 ## App title (max 30 chars)
-Tank Royale
+Tank Royale: Tank Battle 3D
 
 ## Short description (max 80 chars)
-Multiplayer tank battles rendered live. No install, no account.
+Tank battle game: 7v7 vs bots offline or online. 130 tanks, 20 maps, free.
 
 ## Full description (max 4000 chars)
 
-Take command of a tank and fight on 20 hand-crafted battlefields in real-time multiplayer or solo bot battles — rendered entirely in WebGL, no downloads, no accounts.
+Pick a tank and fight a 7v7 tank battle in under a minute. No account, no sign-in.
 
-**Tank Combat, No Compromises**
-- Physical armor and ballistics — angle matters, penetration is calculated
-- X-ray killcam replay after every kill
-- 20 battlefield environments from urban crossfire to open steppe
-- Bot AI for instant solo play, no waiting for lobbies
+**Play right away**
+- Solo battles against bots: no waiting for a lobby, works without internet
+- 7v7 team battles, 7-minute rounds sized for a phone
+- Online rooms: share a room code and play with friends
 
-**Multiplayer**
-- WebRTC peer-to-peer — low latency, no dedicated server between you and your opponent
-- Private room invites — share a link, your friend joins instantly
-- Up to 14 players, 7v7 team mode
+**Real tank combat**
+- Armor angle matters: every shot's penetration is calculated
+- Hit modules and crew: tracks, engine, gun, ammo
+- Kill camera replay after every kill
+- 130 tanks to drive, 20 battlefields from city streets to snow and desert
 
-**Controls**
-- Full touch controls designed for mobile — virtual joystick, tap-to-aim, swipe turret
-- Landscape orientation optimized
+**Built for phones**
+- Touch controls: left stick drives, drag right side to aim, release to fire
+- Graphics settings scale down for older phones
 
-**No Tricks**
-- Free, forever
-- No ads
-- No in-app purchases
-- No account required
+**Free**
+- Free to play, no in-app purchases
+- An ad may show after some battles (every 3rd match)
 
 ---
+
+## Claim sources
+- 7v7: Test Lab vc882 battle started with 7 allies + 7 enemies.
+- 130 tanks: tankAssets.selftest ("130 tanks have tier, flag ...").
+- 20 maps: src/world/maps/index.ts MAP_IDS (20).
+- 7-minute rounds: src/game/roundClock.ts (420 s).
+- No sign-in: no sign-in gate in src; Google sign-in is optional.
+- Ads: src/auth/admob.ts MATCHES_PER_AD = 3. No purchases: no billing dependency.
+- "Works without internet" for bots: assets ship inside the APK and boot makes
+  no required request. NOT tested on Android in airplane mode yet.
 
 ## Category
 Games > Action
 
 ## Content rating
-Everyone 10+ (Fantasy Violence — cartoon tank combat, no blood)
+Everyone 10+ (Fantasy Violence — tank combat, no blood)
 
 ## Tags
-tank, battle, multiplayer, action, 3D, WebGL, war game, shooting
+tank game, tank battle, offline, 7v7, war game, multiplayer, action, 3D
 
 ## Screenshots needed (Play Console upload)
-- Phone: 1080x1920 minimum, 2–8 screenshots
-  1. Main menu / garage
-  2. Battle in progress (overhead action shot)
-  3. X-ray killcam
-  4. Multiplayer lobby
-- Tablet: 1200x1920 (optional but recommended)
+- Phone: real in-game captures from the current build (Test Lab bluejay
+  screenshots, 1080x2400 landscape), 4–8:
+  1. Battle in progress, tanks in view (first: says what you do)
+  2. Garage with a tank
+  3. Kill camera replay
+  4. End screen with the result
+  5. Online room
+- Tablet: optional.
 
 ## Feature graphic
-1024x500 px — dark battlefield background, Tank Royale logo centered
+1024x500 px — a tank in battle, "Tank Royale" wordmark, "7v7 tank battles".
 
 ## App icon
 512x512 px — see store-assets/icon-512.png (generate from icon.svg)

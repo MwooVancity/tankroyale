@@ -33,6 +33,7 @@ import { iconUrl, maskIcon } from './icons.ts';
 import { uiIconSVG } from './uiIcons.ts';
 import { getSpec } from '../vehicles/specs.js';
 import type { EventBus } from '../game/stateCore.ts';
+import { askReviewIfArmed } from '../game/reviewPrompt.ts';
 import type {
   NetworkRoomPlayer,
   NetworkRoomState,
@@ -471,7 +472,10 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
   bus.on('killcam:done', () => {
     if (!adDue) return;
     adDue = false;
-    import('../auth/admob.ts').then(({ showMatchEndAd }) => showMatchEndAd()).catch(() => {});
+    // No ad this match: the Play rating ask may run instead (solo wins only).
+    import('../auth/admob.ts').then(({ showMatchEndAd }) => showMatchEndAd())
+      .then((adTurn) => adTurn ? undefined : askReviewIfArmed())
+      .catch(() => {});
   });
   // any path into a fresh battle retires the screen — including the debug
   // __DEBUG.startBattle flow, which skips the garage's ui:battleStart (the

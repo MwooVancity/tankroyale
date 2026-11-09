@@ -247,6 +247,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'server/seatToken.selftest.mjs',
     'src/ui/hudMinFont.selftest.mjs',
     'src/game/backgroundPause.selftest.mjs',
+    'src/game/reviewPrompt.selftest.mjs',
     'src/game/roundClock.selftest.mjs',
     'src/engine/unsupportedPhone.selftest.mjs',
     'src/fx/particlesThin.selftest.mjs',

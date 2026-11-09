@@ -104,6 +104,7 @@
   "type": "module",
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",
+    "@capacitor-community/in-app-review": "^8.0.0",
     "@capacitor/android": "^8.5.0",
     "@capacitor/app": "^8.1.1",
     "@capacitor/cli": "^8.5.0",

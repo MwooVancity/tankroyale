@@ -4,6 +4,7 @@
 **Reader:** a phone player starting a Bots battle.
 
 ## Numbers (dated)
+- 2026-11-09: Play health (`node tools/play-health.mjs <sa.json>`, read-only, opens no edit): Android vitals crash rate, ANR rate and slow-frame rate all return NO ROWS for the last 28 days, i.e. too few users for Play to report (so the 1.09% crash / 0.47% ANR bad-behavior bars cannot be read yet); Play error clusters: none listed. Reviews with text in the last 7 days: 1 (2 stars, Russian, vc87, device "eos", Android 13: "it launched, thanks, but it lags a lot"). CI for 590ee2ca: Android Build success. Rating, crash rate and install-to-battle time: no new numbers moved this batch (nothing released).
 - 2026-11-08: vc882 (commit 2dfc6479, debug APK, Test Lab Pixel 6a Android 12, Bots battle, 68 battle lines, 0 crashes): fps p10 23.4 / p50 29.0 / p90 31.6 (production 87's vc874: 20.6 / 26.9 / 29.9; different battle each run). Load 21.9 s (gate 30 s: pass; biggest stages "Preparing player vehicle" 5.2 s, "Finishing camouflage" 1.8 s; 61 s before the first stage is Robo idling in the garage). Programs 174 first to 179 last battle line (B2 fixed; was +155). Resolution governor now steps to 0.75 in fights. GATE FAIL p10 < 30. The frame is now main-thread bound: main thread 24-38 ms, of which three.js render submission 16-28 ms for 300-460 draw calls and 1.4-1.9 M triangles; sim 3-5 ms, HUD 2-4 ms. Next lever: fewer draw calls/triangles (distance culling of props and far vehicles on Performance).
 - 2026-11-08: Play API: production 1.87.0 [87] status "completed", alpha 1.90.0 [90]. The API has no review-state field; "completed" means the release is out of draft and rolled out to 100% once Google's review clears. CI run #93 (b4f28d0b) blocked its upload: the relay test lost 0.8% on the 2-core runner even when run alone (0.0% locally). Bound raised to 3% (it guards against caps that dropped 33-44%).
 - 2026-11-08: found in vc878 logs (Pixel 6a): `scale=1.00` on every line, even at 18 fps. The Performance preset pinned `dynMin: 1.0`, so the resolution governor had no lever in heavy fights. Shader warm-up compiled with idle point lights still visible; the 1 s lite scan then hid them, which changed the light count, so lit programs recompiled in battle (423 to 578). Sim catch-up was capped at 4 steps (slow motion below 15 fps; heavy-fight p10 was 14.4).
@@ -98,7 +99,17 @@ Parent-session additions:
 4. Budget phones (Play ANRs: Galaxy A13 / Helio G85 class) are 2-4x weaker than a Pixel 6a: target them next.
 5. Online, not fixed: a mid-match Wi-Fi to LTE switch cannot fall back to the relay (`webrtcPeer.ts` activateRelay); a known player id can take over a seat (`server/roomStore.ts`). Two-phone online test on mobile data is NOT done.
 6. App bundle is 213 MB of web files (website-only media/icons): prune (separate task).
-7. Review replies + in-app review prompt.
+7. (2026-11-09) In-app review prompt: BUILT (`src/game/reviewPrompt.ts`, plugin @capacitor-community/in-app-review 8.0.0). Asks only after a won solo battle, after the killcam, on a match with no ad, never online or after a JS error, at most once per 30 days (`reviewPrompt.selftest`). Not tested on Android: needs a run that wins a battle and logs `[review] requested`.
+8. (2026-11-09) Store listing text rewritten for search words (title "Tank Royale: Tank Battle 3D", short description leads with "Tank battle game ... offline"). The old text said "No ads" (false: an ad every 3rd match) and "no downloads". Every claim has a source in store-assets/play-store-listing.md. Not pushed (needs owner OK, below). Still missing: real phone screenshots from the new build and a 1024x500 feature graphic; "works without internet" not yet tested on Android in airplane mode.
+9. (2026-11-09) First 60 seconds: no sign-in gate; from the garage one tap ("Start Bots battle") starts a battle (Robo script proves the tap on vc882). Controls shown from second 0: "Swipe to aim" on the right, labeled Fire button, and now "Drag to drive" above the stick (hides on first touch). Not checked on a Test Lab screenshot of the new build yet.
+10. Android vitals: rerun `tools/play-health.mjs` weekly; once rows appear, fix the top crash/ANR clusters.
+
+## Owner approval needed (drafts, NOT posted)
+- Push the new listing text (store-assets/play-store-listing.md) to Play in its own edit, never while CI's upload runs.
+- Release below the 30 fps bar (vc882 measured p10 23.4 / p50 29.0; production 87 measured 20.6 / 26.9).
+- Reply to review 11d74d68-5faa-47d9-9a2c-98126c35159f (2 stars, vc87, Russian). Draft:
+  "Спасибо, что написали! Следующее обновление после версии 1.87 снижает нагрузку в тяжёлых боях: разрешение само уменьшается, меньше дыма, интерфейс работает легче. Уже сейчас можно нажать GFX в бою и выбрать «Performance». Когда выйдет обновление, напишите, пожалуйста, стало ли лучше."
+  (English: "Thanks for writing! The next update after 1.87 lowers the load in heavy fights: resolution drops by itself, less smoke, lighter interface. You can already tap GFX in battle and pick Performance. Once the update is out, please tell us if it is better.") Post only after that update is in production.
 
 ## Owner-only
 - Play Console: declare Trader status; confirm "Contains ads" and advertising ID in Data safety.

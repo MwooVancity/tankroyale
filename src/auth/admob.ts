@@ -68,10 +68,10 @@ async function ensureInit(): Promise<boolean> {
 let matchesSinceAd = 0;
 const MATCHES_PER_AD = 3; // one interstitial every 3rd match, not every match
 
-export async function showMatchEndAd(): Promise<void> {
-  if (pending) return;
+export async function showMatchEndAd(): Promise<boolean> {
+  if (pending) return true;
   matchesSinceAd += 1;
-  if (matchesSinceAd < MATCHES_PER_AD) return;
+  if (matchesSinceAd < MATCHES_PER_AD) return false; // false = no ad this match
   matchesSinceAd = 0;
   pending = true;
 
@@ -94,4 +94,5 @@ export async function showMatchEndAd(): Promise<void> {
   } finally {
     pending = false;
   }
+  return true;
 }

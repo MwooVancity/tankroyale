@@ -80,6 +80,10 @@ const CSS = `
 .cot-touch .fire-cancel b{font:400 28px/1 ${FONT_COND};}
 .cot-touch.fire-armed .fire-cancel{visibility:visible;opacity:.82;transform:scale(1);}
 .cot-touch-aim.fire-armed .aimhint{opacity:0;}
+.cot-touch .joyhint{position:absolute;left:0;right:0;bottom:calc(100% + 6px);text-align:center;font-family:${FONT_COND};
+  font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;pointer-events:none;
+  color:rgba(234,242,248,.3);text-shadow:0 1px 3px #000;transition:opacity .4s;}
+.cot-touch.drove .joyhint{opacity:0;}
 .cot-touch.fire-cancel-hot .fire-cancel{opacity:1;color:#fff;border-color:#ff594c;background:rgba(111,14,8,.94);
   transform:scale(1.07);box-shadow:0 0 18px rgba(255,52,38,.46);}
 .cot-touch .scope{right:134px;bottom:43px;width:62px;height:62px;color:#dce7ef;}
@@ -394,7 +398,7 @@ export function createTouchControls({
     // EMOJI PRESENTATION on iOS, so the left/right arrows rendered as blue
     // emoji buttons next to the clean text up/down triangles.
     `<div class="joy" role="group" aria-label="Movement joystick"><span class="arrow u">&#9650;</span><span class="arrow d">&#9650;</span>` +
-    `<span class="arrow l">&#9650;</span><span class="arrow r">&#9650;</span><div class="knob"></div></div>` +
+    `<span class="arrow l">&#9650;</span><span class="arrow r">&#9650;</span><div class="knob"></div><span class="joyhint">Drag to drive</span></div>` +
     `<button class="round fire alt" type="button" aria-label="Fire gun left">${SHELL}<span class="lb">Fire</span></button>` +
     `<button class="round autoaim" type="button" aria-label="Toggle auto-aim" aria-pressed="false">${AUTO_AIM}<span class="lb">Auto Aim</span></button>` +
     `<button class="round scope" type="button" aria-label="Toggle sniper mode">${SCOPE}<span class="lb">Scope</span></button>` +
@@ -471,7 +475,7 @@ export function createTouchControls({
     input.setVirtualMove(dx / max, -dy / max);
   }
   joy.addEventListener('pointerdown', (e) => {
-    e.preventDefault(); e.stopPropagation(); joyPointer = e.pointerId;
+    e.preventDefault(); e.stopPropagation(); joyPointer = e.pointerId; root.classList.add("drove");
     try { joy.setPointerCapture(e.pointerId); } catch (_) { /* capture unavailable */ }
     updateJoy(e);
   });
