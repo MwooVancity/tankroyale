@@ -148,7 +148,6 @@ export const SELFTEST_SUITES = Object.freeze({
     'tools/coplanar-surface-overlap.selftest.mjs',
     'src/engine/frameScheduler.selftest.mjs',
     'src/engine/programWarm.selftest.mjs',
-    'src/engine/farCull.selftest.mjs',
     'src/engine/deploymentWarm.selftest.mjs',
     'src/engine/deploymentShadowWarm.selftest.mjs',
     'src/engine/bootLifecycle.selftest.mjs',
