@@ -74,19 +74,19 @@ function isTint(value: BuildingTint): value is Tint {
 const TT = '/textures/terrain';
 const TB = '/textures/buildings';
 
-// ambientCG 1K JPG naming
+// ambientCG 1K JPG naming (files re-encoded to WebP q90 on 2026-11-09: 45 -> 12 MB of the app)
 const acg = (dir: string, base: string): SourceTextureSet => ({
-  color: `${dir}/${base}_1K-JPG_Color.jpg`,
-  normal: `${dir}/${base}_1K-JPG_NormalGL.jpg`,
-  rough: `${dir}/${base}_1K-JPG_Roughness.jpg`,
-  ao: `${dir}/${base}_1K-JPG_AmbientOcclusion.jpg`,
+  color: `${dir}/${base}_1K-JPG_Color.webp`,
+  normal: `${dir}/${base}_1K-JPG_NormalGL.webp`,
+  rough: `${dir}/${base}_1K-JPG_Roughness.webp`,
+  ao: `${dir}/${base}_1K-JPG_AmbientOcclusion.webp`,
 });
 // Poly Haven 1K JPG naming
 const ph = (dir: string, base: string): SourceTextureSet => ({
-  color: `${dir}/${base}_diff_1k.jpg`,
-  normal: `${dir}/${base}_nor_gl_1k.jpg`,
-  rough: `${dir}/${base}_rough_1k.jpg`,
-  ao: `${dir}/${base}_ao_1k.jpg`,
+  color: `${dir}/${base}_diff_1k.webp`,
+  normal: `${dir}/${base}_nor_gl_1k.webp`,
+  rough: `${dir}/${base}_rough_1k.webp`,
+  ao: `${dir}/${base}_ao_1k.webp`,
 });
 
 const SETS = {
