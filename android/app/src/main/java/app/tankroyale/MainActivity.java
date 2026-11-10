@@ -49,6 +49,15 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    // recreate() after a renderer loss gives the new window focus without a
+    // focus-change event, so the bars stayed visible over the game (emulator,
+    // Android 15, 2026-11-10). Apply on every resume too.
+    @Override
+    public void onResume() {
+        super.onResume();
+        getWindow().getDecorView().post(this::applyImmersiveMode);
+    }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -67,7 +76,7 @@ public class MainActivity extends BridgeActivity {
         View decorView = getWindow().getDecorView();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
-            android.view.WindowInsetsController ctrl = decorView.getWindowInsetsController();
+            android.view.WindowInsetsController ctrl = getWindow().getInsetsController();
             if (ctrl != null) {
                 ctrl.hide(android.view.WindowInsets.Type.systemBars());
                 ctrl.setSystemBarsBehavior(
