@@ -597,7 +597,9 @@ body.cot-touch-layout[data-cot-height='short'][data-cot-orientation='landscape']
    signals: detection, transient system status, and physical muzzle warning.
    Give each a fixed lane so none can cover the others or the bottom HP row. */
 body.cot-touch-layout[data-cot-height='short'][data-cot-orientation='landscape'] .cot-alert{
-  top:118px;bottom:auto;max-width:180px;
+  /* Just above the HP row: the horizon band (top ~100-160px) is where enemy
+     name tags sit, so an alert there hid who was shooting. */
+  top:auto;bottom:calc(max(7px,env(safe-area-inset-bottom)) + 50px);max-width:180px;
 }
 
 body[data-cot-height-density='tight'][data-cot-orientation='landscape'] .cot-touch .joy{width:108px;height:108px}
