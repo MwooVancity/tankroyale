@@ -1845,11 +1845,18 @@ export function simStep(
       ent.aiCtl.setWaypoints([[target.x, target.z]], { loop: false });
     }
   }
+  // Phone diagnosis (2026-11-10, moto g05 sim 20-29 ms): bot AI and movement ms per
+  // frame, summed over this frame's fixed steps; post.ts' [perf] split prints them.
+  const simParts = ((globalThis as { __simParts?: { ai: number; move: number; steps: number } }).__simParts ??= { ai: 0, move: 0, steps: 0 });
+  let partAt = performance.now();
   for (const ent of game.tanks) {
     if (ent.modeActive !== false && ent.aiCtl && !ent.combat.destroyed) {
       ent.aiCtl.update(dt, game.timeS);
     }
   }
+  simParts.ai += performance.now() - partAt;
+  simParts.steps++;
+  partAt = performance.now();
 
   // b. movement
   for (const ent of game.tanks) {
@@ -2038,6 +2045,8 @@ export function simStep(
     if (!stepRolloverLifecycle(ent.state, dt)) continue;
     bus.emit('tank:autoflip', { id: ent.id, specId: ent.specId });
   }
+
+  simParts.move += performance.now() - partAt;
 
   // c. reload timers + firing
   for (const ent of game.tanks) {

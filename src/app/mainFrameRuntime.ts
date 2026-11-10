@@ -208,6 +208,11 @@ export function createMainFrameRuntime({
     );
     dtR = frameState.dtSeconds;
     splitAt = perfSplit('sim', splitAt);
+    // sim's parts (state.ts simStep): bot AI ms, movement ms and fixed steps this frame.
+    const simParts = (globalThis as { __simParts?: { ai: number; move: number; steps: number } }).__simParts;
+    if (simParts) {
+      for (const k of ['ai', 'move', 'steps'] as const) { perfSplitMs[k] = (perfSplitMs[k] ?? 0) * 0.9 + simParts[k] * 0.1; simParts[k] = 0; }
+    }
     const { inBattle, paused, livePaused } = frameState;
     const killcamActive = frameState.killcamActive;
     cameraInput.autoAimPoint = getMobileAutoAim()
