@@ -1726,7 +1726,10 @@ function makeMaskTexture(
   // Loading-speed r1: the mask covers a 1024 m battlefield; 512² gives one
   // texel per 2 m, still finer than the rendered terrain grid (~2.7 m).
   // The former 2048² bake spent 16x the pixels on sub-grid information.
-  const s = texSize(512), T = s / MAP_SIZE;
+  // 2026-11-10: not tier-scaled any more. Phones got 256² (4 m texels) and a
+  // 6-8 m road thresholded into separate brown blobs past ~40 m. 512² RGBA is
+  // 1 MB (+0.75 MB on phones), no per-frame cost.
+  const s = 512, T = s / MAP_SIZE;
   // r6 terrain_environment: landform (mesa/rim) weight pre-sampled on a
   // coarse grid (the field is ~700 m wavelength; 4 m texels bilerped) so the
   // 2048^2 mask bake stays cheap — B channel carries it on landformW maps.
