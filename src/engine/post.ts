@@ -1504,6 +1504,7 @@ class LateFxPass extends Pass {
   softState: LateFxSoftState | null;
   softDepthCopies: number;
   prepared: boolean;
+  lightScan = 0;
   readonly copyMaterial: THREE.ShaderMaterial;
   readonly copyQuad: FullScreenQuad;
 
@@ -1607,6 +1608,14 @@ class LateFxPass extends Pass {
       // render() redrew every cascade here too: half of each phone frame
       // (mobile-frame-probe: 2 world renders x 27 ms at 4x CPU throttle).
       renderer.shadowMap.autoUpdate = false;
+      // Lights must pass this camera's layer test too. A late pass that saw
+      // zero lights changed three's light hash twice a frame, so every lit
+      // material re-ran getProgram on every draw (frame-profile: the largest
+      // JS cost on phones). No late-FX material is lit: nothing on screen
+      // changes. ponytail: rescan every 120 passes picks up lights added later.
+      if ((this.lightScan++ % 120) === 0) {
+        this.scene.traverse((o) => { if ((o as THREE.Light).isLight) o.layers.enable(LATE_FX_LAYER); });
+      }
       try {
         this.camera.layers.set(LATE_FX_LAYER);
         renderer.setRenderTarget(this.target);
