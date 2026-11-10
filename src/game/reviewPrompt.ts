@@ -6,11 +6,14 @@ import { registerPlugin } from '@capacitor/core';
 
 export const REVIEW_KEY = 'tr.review.lastAskMs';
 export const REVIEW_GAP_MS = 30 * 864e5;
+export const BATTLES_KEY = 'tr.review.battles';
+/** A few sessions in: never on a first win in the first minutes of play. */
+export const REVIEW_MIN_BATTLES = 5;
 
-export interface ReviewCtx { result: unknown; online: boolean; errored: boolean; lastAskMs: number; nowMs: number }
+export interface ReviewCtx { result: unknown; online: boolean; errored: boolean; lastAskMs: number; nowMs: number; battles: number }
 
 export function shouldAskReview(c: ReviewCtx): boolean {
-  return c.result === 'victory' && !c.online && !c.errored
+  return c.result === 'victory' && !c.online && !c.errored && c.battles >= REVIEW_MIN_BATTLES
     && !(c.nowMs - c.lastAskMs < REVIEW_GAP_MS);
 }
 
@@ -25,9 +28,13 @@ export function installReviewPrompt(bus: { on(ev: string, fn: (e: any) => void):
   addEventListener('error', () => { errored = true; });
   addEventListener('unhandledrejection', () => { errored = true; });
   bus.on('battle:ended', (e) => {
-    let last = 0;
-    try { last = Number(localStorage.getItem(REVIEW_KEY)) || 0; } catch { /* storage blocked */ }
-    armed = shouldAskReview({ result: e?.result, online: online(), errored, lastAskMs: last, nowMs: Date.now() });
+    let last = 0, battles = 0;
+    try {
+      last = Number(localStorage.getItem(REVIEW_KEY)) || 0;
+      battles = (Number(localStorage.getItem(BATTLES_KEY)) || 0) + 1;
+      localStorage.setItem(BATTLES_KEY, String(battles));
+    } catch { /* storage blocked: battles stays 0, never asks */ }
+    armed = shouldAskReview({ result: e?.result, online: online(), errored, lastAskMs: last, nowMs: Date.now(), battles });
   });
 }
 

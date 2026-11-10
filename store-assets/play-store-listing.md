@@ -32,7 +32,7 @@ Pick a tank and fight a 5v5 tank battle in under a minute. No account, no sign-i
 
 **Free**
 - Free to play, no in-app purchases
-- An ad may show after some battles (every 3rd match)
+- A short ad may show between battles (every 3rd match, never in your first session, never during a battle)
 
 ---
 
@@ -42,7 +42,7 @@ Pick a tank and fight a 5v5 tank battle in under a minute. No account, no sign-i
 - 20 maps: src/world/maps/index.ts MAP_IDS (20).
 - 7-minute rounds: src/game/roundClock.ts (420 s).
 - No sign-in: no sign-in gate in src; Google sign-in is optional.
-- Ads: src/auth/admob.ts MATCHES_PER_AD = 3. No purchases: no billing dependency.
+- Ads: src/auth/admob.ts MATCHES_PER_AD = 3, inFirstSession (30 min) skips ads; endScreen.ts shows the ad when the player leaves results. No purchases: no billing dependency.
 - "Works without internet" for bots: assets ship inside the APK and boot makes
   no required request. NOT tested on Android in airplane mode yet.
 

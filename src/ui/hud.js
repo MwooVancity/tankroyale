@@ -1755,10 +1755,12 @@ export function initHud(bus) {
         const cand = BOT_NICKS[(i + n) % BOT_NICKS.length];
         if (!used.has(cand)) { nick = cand; break; }
       }
-      nick = nick || `Bot_${(hashStr(String(t.id)) % 90) + 10}`;
+      nick = nick || `${(hashStr(String(t.id)) % 90) + 10}`;
       nickById.set(t.id, nick);
     }
-    return nick;
+    // Bots say so (players call hidden bots "rigged"); online bots already
+    // arrive named "Bot A2" through displayName above.
+    return `BOT ${nick}`;
   }
 
   let rosterSig = '';

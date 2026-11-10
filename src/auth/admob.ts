@@ -1,5 +1,5 @@
 /**
- * AdMob interstitial — fires once after each match ends.
+ * AdMob interstitial — every 3rd match, shown when the player leaves results.
  * Auto-dismissed after 10 seconds regardless of ad state.
  * Silently no-ops in browser / if network is down.
  *
@@ -61,38 +61,56 @@ async function ensureInit(): Promise<boolean> {
   }
 }
 
-/**
- * Show a 10-second interstitial after a match ends.
- * Resolves after ad closes or 10s — whichever comes first.
- */
 let matchesSinceAd = 0;
 const MATCHES_PER_AD = 3; // one interstitial every 3rd match, not every match
+const FIRST_SEEN_KEY = 'tr.ads.firstSeenMs';
+const FIRST_SESSION_MS = 30 * 60e3;
 
-export async function showMatchEndAd(): Promise<boolean> {
-  if (pending) return true;
+/**
+ * Never an ad in a player's first session: the first process that reaches a
+ * match end records the time, and that process stays ad-free for 30 min
+ * (most players who leave do so on day 1). Storage blocked = treat as first.
+ */
+let firstSeenMs = 0;
+try {
+  firstSeenMs = Number(localStorage.getItem(FIRST_SEEN_KEY)) || 0;
+  if (!firstSeenMs) { firstSeenMs = Date.now(); localStorage.setItem(FIRST_SEEN_KEY, String(firstSeenMs)); }
+} catch { firstSeenMs = Date.now(); }
+export function inFirstSession(nowMs = Date.now(), seenMs = firstSeenMs): boolean {
+  return nowMs - seenMs < FIRST_SESSION_MS;
+}
+
+/** Called once per finished match: true = this match owes an ad when the player leaves results. */
+export function takeAdTurn(): boolean {
+  if (inFirstSession()) return false;
   matchesSinceAd += 1;
-  if (matchesSinceAd < MATCHES_PER_AD) return false; // false = no ad this match
+  if (matchesSinceAd < MATCHES_PER_AD) return false;
   matchesSinceAd = 0;
-  pending = true;
+  return true;
+}
 
+/**
+ * Show the interstitial (between battles only: the end screen calls this when
+ * the player leaves results, never in front of what they just earned).
+ * Resolves after the ad closes or 10 s, whichever comes first.
+ */
+export async function showInterstitialNow(): Promise<void> {
+  if (pending) return;
+  pending = true;
   let timedOut = false;
   const done = new Promise<void>((resolve) => setTimeout(() => { timedOut = true; resolve(); }, 10_000));
-
   const ad = (async () => {
     try {
       if (!await ensureInit()) return;
       const AdMob = await getAdMob();
       await AdMob.prepareInterstitial({ adId: AD_ID });
-      // A slow load must never pop the ad later, in the middle of the next battle.
       if (timedOut) return;
       await AdMob.showInterstitial();
     } catch { /* no Android, cancelled, network down — fine */ }
   })();
-
   try {
     await Promise.race([ad, done]);
   } finally {
     pending = false;
   }
-  return true;
 }

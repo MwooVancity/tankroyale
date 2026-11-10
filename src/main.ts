@@ -1068,7 +1068,7 @@ const {
   createShell,
   advancePreBattleCountdown,
   resolveVisiblePreBattleSeconds,
-  mobileAutoAimCenter,
+  mobileAutoAimLeadPoint,
   pickMobileAutoAimTarget,
 } = battleClientAccess;
 const preloadBattleClientRuntime = battleClientAccess.preload;
@@ -1389,7 +1389,8 @@ async function ensureMobileAutoAim() {
       getTankById: (id: string) => game.tankById.get(id) || null,
       isVisible: playerTargetVisible,
       pickTarget: pickMobileAutoAimTarget,
-      targetCenter: mobileAutoAimCenter,
+      // Lock aims where a moving target will be when the shell arrives.
+      targetCenter: (target: any, out: any) => mobileAutoAimLeadPoint(target, game.player as any, out),
     }));
     return mobileAutoAim;
   });

@@ -39,5 +39,6 @@ export {
 } from './presentationPose.ts';
 export {
   mobileAutoAimCenter,
+  mobileAutoAimLeadPoint,
   pickMobileAutoAimTarget,
 } from './mobileAutoAim.ts';

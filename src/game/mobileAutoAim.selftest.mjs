@@ -1,5 +1,5 @@
 import { PerspectiveCamera, Vector3 } from 'three';
-import { mobileAutoAimCenter, pickMobileAutoAimTarget } from './mobileAutoAim.ts';
+import { mobileAutoAimCenter, mobileAutoAimLeadPoint, pickMobileAutoAimTarget } from './mobileAutoAim.ts';
 import { battleGeometryQuality } from './rosterState.ts';
 
 if (battleGeometryQuality(true, 'desktop') !== 'high') {
@@ -31,3 +31,15 @@ const hidden = pickMobileAutoAimTarget([centered, offset], player, camera, (e) =
 if (hidden !== offset) throw new Error('visibility gate did not exclude the centered target');
 const center = mobileAutoAimCenter(centered, new Vector3());
 if (center.y !== 1.5) throw new Error('auto-aim did not target center mass');
+
+// Lead: a target 1000 m away crossing at 10 m/s (yaw pi/2 = +x) with a
+// 1000 m/s shell needs ~10 m of lead along +x; guided rounds and a parked
+// target get none.
+{
+  const tgt = { team: 'b', state: { pos: new Vector3(0, 0, 1000), yaw: Math.PI / 2, speed: 10 }, spec: { dims: { heightM: 3 } }, combat: {} };
+  const shooter = (guided) => ({ state: { pos: new Vector3(0, 1.5, 0) }, combat: { shellSlot: 0 }, spec: { gun: { shells: [{ velocityMps: 1000, guided }] } } });
+  const led = mobileAutoAimLeadPoint(tgt, shooter(false), new Vector3());
+  if (!(Math.abs(led.x - 10) < 0.2) || Math.abs(led.z - 1000) > 1e-6) throw new Error(`lead wrong: ${led.x} ${led.z}`);
+  if (mobileAutoAimLeadPoint(tgt, shooter(true), new Vector3()).x !== 0) throw new Error('guided round got lead');
+  if (mobileAutoAimLeadPoint({ ...tgt, state: { ...tgt.state, speed: 0 } }, shooter(false), new Vector3()).x !== 0) throw new Error('parked target got lead');
+}

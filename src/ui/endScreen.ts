@@ -469,13 +469,17 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
     document.body.classList.add('cot-es-armed');
     adDue = (payload as unknown as { reason?: string } | null)?.reason !== 'network_disconnect';
   });
+  // The ad owed by this match plays when the player LEAVES results (Battle
+  // again / Garage), never in front of the rewards they just earned.
+  let adOnLeave = false;
   bus.on('killcam:done', () => {
     if (!adDue) return;
     adDue = false;
     // No ad this match: the Play rating ask may run instead (solo wins only).
-    import('../auth/admob.ts').then(({ showMatchEndAd }) => showMatchEndAd())
-      .then((adTurn) => adTurn ? undefined : askReviewIfArmed())
-      .catch(() => {});
+    import('../auth/admob.ts').then(({ takeAdTurn }) => {
+      adOnLeave = takeAdTurn();
+      return adOnLeave ? undefined : askReviewIfArmed();
+    }).catch(() => {});
   });
   // any path into a fresh battle retires the screen — including the debug
   // __DEBUG.startBattle flow, which skips the garage's ui:battleStart (the
@@ -872,6 +876,10 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
     /** Hide + finalize counters (garage entry, battle restart). */
     hide(): void {
       document.body.classList.remove('cot-es-armed'); // legacy overlay usable again
+      if (adOnLeave) {
+        adOnLeave = false;
+        import('../auth/admob.ts').then(({ showInterstitialNow }) => showInterstitialNow()).catch(() => {});
+      }
       if (!visible && !host.classList.contains('show')) return;
       visible = false;
       rematchPanel = null;

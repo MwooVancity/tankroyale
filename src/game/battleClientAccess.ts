@@ -35,6 +35,7 @@ export interface BattleClientAccess {
   readonly resetTankPresentationPose: RuntimeModule['resetTankPresentationPose'];
   readonly sampleTankPresentationPose: RuntimeModule['sampleTankPresentationPose'];
   readonly mobileAutoAimCenter: RuntimeModule['mobileAutoAimCenter'];
+  readonly mobileAutoAimLeadPoint: RuntimeModule['mobileAutoAimLeadPoint'];
   readonly pickMobileAutoAimTarget: RuntimeModule['pickMobileAutoAimTarget'];
 }
 
@@ -121,6 +122,7 @@ export function createBattleClientAccess(
     resetTankPresentationPose: (...args) => requireRuntime().resetTankPresentationPose(...args),
     sampleTankPresentationPose: (...args) => requireRuntime().sampleTankPresentationPose(...args),
     mobileAutoAimCenter: (...args) => requireRuntime().mobileAutoAimCenter(...args),
+    mobileAutoAimLeadPoint: (...args) => requireRuntime().mobileAutoAimLeadPoint(...args),
     pickMobileAutoAimTarget: (...args) => requireRuntime().pickMobileAutoAimTarget(...args),
   };
 }
