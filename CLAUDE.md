@@ -2,6 +2,14 @@
 
 Capacitor Android game, live on Google Play as `app.tankroyale`. Players are on real Android phones.
 
+## #1: the best game for someone who loves tank games (HARD, owner 2026-11-09)
+Every change answers one question first: does this make the game better for a person who loves tank games, playing on a normal Android phone? Fail = don't build it; an existing part that fails = cut it. In this order:
+1. It plays: no crash, no lag in a fight (slowest moments 30 fps or more on a mid-range phone), into a battle fast.
+2. It feels like a tank: weight, turret turn, armor angle and hit feedback the player can read.
+3. Reasons to come back: tanks to unlock, maps, fair bot and online matches.
+4. Player words decide: every new Play review and Play vitals number is read and answered with a fix; "lags" and "couldn't play" outrank anything new.
+Each change gets one report line: "Tank fan: ..." saying what that player gets.
+
 ## Real Android or it is not tested (HARD, owner 2026-10-26)
 Reviewers said they "couldn't even play" a build that was called bug free after desktop-browser testing only.
 - Desktop Chrome, a resized window, or `?debug=1` in a browser is NOT Android. Never call a build working, fixed or bug free from those.
