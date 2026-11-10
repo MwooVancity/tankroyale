@@ -96,19 +96,22 @@ Parent-session additions:
 - Relay: drop stale ordered state, mixed direct/relayed peers, own room only, the room count at which the Render plan breaks, a clear restart message.
 - Play: versionCode above production; staged rollout 20%, then 100% after a crash-free day.
 
-## Next
-0. Lab #4 is built and waiting (Test Lab quota exceeded 2026-11-07): `VITE_PERF_LAB=1` build. It reads the new `[perf] split=sim,cam,world,fx,hud,light,render` and tests hiding the reticle or the whole HUD, shadows off, and 1.0x output. Fix the biggest main-thread part next.
-1. Late-battle cost: smoke and fire overdraw plus the LateFx pass (4 full-screen passes while any FX is alive), and main-thread JS (35-55 ms). Measure with perfLab configs.
-2. (Done in 92ee4b8c: Lambert terrain and leaves on Performance.)
-3. Shadow sampling: PCFSoft to PCF on the Performance preset (not yet measured).
-4. Budget phones (Play ANRs: Galaxy A13 / Helio G85 class) are 2-4x weaker than a Pixel 6a: target them next.
-5. Online, not fixed: a mid-match Wi-Fi to LTE switch cannot fall back to the relay (`webrtcPeer.ts` activateRelay); a known player id can take over a seat (`server/roomStore.ts`). Two-phone online test on mobile data is NOT done.
-6. App bundle is 213 MB of web files (website-only media/icons): prune (separate task).
-7. (2026-11-09) In-app review prompt: BUILT (`src/game/reviewPrompt.ts`, plugin @capacitor-community/in-app-review 8.0.0). Asks only after a won solo battle, after the killcam, on a match with no ad, never online or after a JS error, at most once per 30 days (`reviewPrompt.selftest`). Not tested on Android: needs a run that wins a battle and logs `[review] requested`.
-8. (2026-11-09) Store listing text rewritten for search words (title "Tank Royale: Tank Battle 3D", short description leads with "Tank battle game ... offline"). The old text said "No ads" (false: an ad every 3rd match) and "no downloads". Every claim has a source in store-assets/play-store-listing.md. Not pushed (needs owner OK, below). Still missing: real phone screenshots from the new build and a 1024x500 feature graphic; "works without internet" not yet tested on Android in airplane mode.
-9. (2026-11-09) First 60 seconds: no sign-in gate; from the garage one tap ("Start Bots battle") starts a battle (Robo script proves the tap on vc882). Controls shown from second 0: "Swipe to aim" on the right, labeled Fire button, and now "Drag to drive" above the stick (hides on first touch). Not checked on a Test Lab screenshot of the new build yet.
-10. Android vitals: rerun `tools/play-health.mjs` weekly; once rows appear, fix the top crash/ANR clusters.
-
+## Next (ranked 2026-11-09 by what a tank fan feels; invisible fixes first)
+1. Lag in fights (the only review this week: "it lags a lot"). Proven cost: props in view (hide props 28 -> 37 fps, lab #6). Do: log prop triangles per family (lab build logs it), then lighter far models past ~120 m for the top families and no shadows from props outside the near cascade. Release 1.10x (with native output + button fix) only if p10 rises on Pixel 6a.
+   Edge cases: a far model swap pops visibly (test: screenshot pair at the swap distance); instanced destructibles break into debris at the wrong detail (test: break a far prop, debris shows); shadow pass still includes map-wide merged meshes (test: lab calls/tris with prop shadows off); a different map (skybridge vs frontier) has a different top family (test: breakdown on 2 maps).
+2. Tap to battle: load 21.5-23 s, "Preparing player vehicle" 5.2 s, "Finishing camouflage" 1.8 s. Do: find what the 5.2 s does (asset fetch, geometry build, texture upload) and warm it while the player sits in the garage. Check whether the 61 s before the first stage is only the Robo script's 45 s wait.
+   Edge cases: warming in the garage stalls the garage frame (test: garage fps during warm); player switches tank after warm (test: second tank still loads right); cold first run with no cache (test: Test Lab fresh install load time).
+3. Download size 217 MB APK. 2026-11-09: app web files measured 169 MB after CI pruning (media 48, textures 44, maps 35, icons 27, code 10). Media pruning now per file and only from code the game reaches (website docs-page chunks no longer keep site media): media 48 -> 30 MB, about -18 MB (desktop build, CI steps replayed). Left: showcase-r1 (17 MB, kept by the studio media archive manifest), textures 44, maps 35, icons 27.
+   Edge cases: a file only one map or tank uses gets cut (test: tank-assets check + every map boots in a selftest); CI's strip step and a local build differ (test: compare APK file lists).
+4. Tank feel: watch one full Bots battle video on Test Lab and write what a tank fan would miss (hit marker, ricochet feedback, reload readout, engine sound, track marks); fix the cheapest gaps.
+   Edge cases: a feedback effect costs fps in fights (test: Pixel 6a p10 before/after); audio missing on Android only (test: logcat audio errors).
+5. Proof on Android: rating box after a won battle (`[review] requested`), two-phone online match, airplane-mode bots, pause on app switch, old-WebView screen, store screenshots from the new build.
+   Edge cases: Play quota shows no box even when asked (test: the log line, not the dialog); Test Lab can't switch apps (test: emulator or owner phone).
+6. Online, not fixed: a mid-match Wi-Fi to LTE switch cannot fall back to the relay (`webrtcPeer.ts` activateRelay); a known player id can take over a seat (`server/roomStore.ts`).
+   Edge cases: relay switch during a shot (test: relayGrace selftest extended to mid-match switch).
+7. Budget phones (Galaxy A13 / Helio G85 class, 2-4x weaker than a Pixel 6a): a Test Lab run on one once the Pixel 6a passes.
+8. Android vitals: rerun `tools/play-health.mjs` weekly; once rows appear, fix the top crash/ANR clusters.
+DONE: in-app review prompt (built, Android proof pending in 5); store listing (LIVE 2026-11-09); first 60 seconds (no sign-in, one tap, drive hint seen on Android vc887); native-resolution output (vc887); Lambert terrain; HUD writes only on change.
 ## Owner approval needed (drafts, NOT posted)
 - (Done 2026-11-09: listing pushed.)
 - (Done 2026-11-09: 101 released, owner "Yes both".)
