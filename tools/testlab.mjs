@@ -148,7 +148,7 @@ for (const ex of m.testExecutions) {
   const loadMs = Math.max(...pick(/\[battle-load\] done \d+ms/).map((l) => Number(/done (\d+)ms/.exec(l)[1])), -1);
   const maxLoadMs = Number(process.env.MAX_LOAD_MS || 30000);
   console.log(`  load: ${loadMs < 0 ? 'not logged' : `${(loadMs / 1000).toFixed(1)} s`}`);
-  pick(/\[battle-load\] stage /).slice(0, 20).forEach((l) => console.log('   ', l.replace(/^.*\[battle-load\] /, '').slice(0, 160)));
+  pick(/\[battle-load\] (stage|player) /).slice(0, 21).forEach((l) => console.log('   ', l.replace(/^.*\[battle-load\] /, '').slice(0, 160)));
   // B2: shaders compiled mid-battle show as programs growing after the first line.
   const progs = pick(/\[perf\] .*bots=/).map((l) => Number(/progs=(\d+)/.exec(l)?.[1])).filter(Number.isFinite);
   if (progs.length) console.log(`  programs: first battle line ${progs[0]}, last ${progs.at(-1)}`);
