@@ -90,6 +90,8 @@ for (const [lo, hi] of want) {
 }
 // MODEL=<id> (e.g. bluejay = Pixel 6a) runs one phone only: 5 physical runs/day.
 if (process.env.MODEL) picked = [{ androidModelId: process.env.MODEL, androidVersionId: process.env.API || '32', locale: 'en', orientation: 'landscape', name: process.env.MODEL }];
+// MODELS=java:30,lamul:35 runs several named phones in one matrix (each counts toward the 5/day).
+if (process.env.MODELS) picked = process.env.MODELS.split(',').map((x) => { const [id, v] = x.split(':'); return { androidModelId: id, androidVersionId: v, locale: 'en', orientation: 'landscape', name: `${id} / API ${v}` }; });
 console.log('Devices:', picked.map((d) => d.name).join(' | '));
 
 // 4. Robo crawl: boots the app, taps through screens, records video + logcat.
