@@ -10,6 +10,9 @@ Every change answers one question first: does this make the game better for a pe
 4. Player words decide: every new Play review and Play vitals number is read and answered with a fix; "lags" and "couldn't play" outrank anything new.
 Each change gets one report line: "Tank fan: ..." saying what that player gets.
 
+## Port, don't redesign (HARD, owner 2026-11-10: "already a great GitHub repo game. It just sucked for Android")
+The game design is good; the job is whatever makes it worse on a phone than on desktop. No new systems unless autoplay shows a measured problem. Edge cases first, each with its test: fps per map and phone tier, load time, download size, touch (dead zone, thumb aim, button size, drive+aim+fire at once), HUD at 6", app switch/call/screen off, renderer killed, 2-hour heat and memory, old WebView, edge-to-edge, ads, mobile network, battery. Autoplay targets: time to battle <30 s, first contact <20 s, 2-hour run with 0 crashes.
+
 ## Real Android or it is not tested (HARD, owner 2026-10-26)
 Reviewers said they "couldn't even play" a build that was called bug free after desktop-browser testing only.
 - Desktop Chrome, a resized window, or `?debug=1` in a browser is NOT Android. Never call a build working, fixed or bug free from those.
