@@ -49,6 +49,8 @@ jobs:
         run: |
           find dist/media -type f \( -name '*.mp4' -o -name '*.webm' \) -delete || true
           node tools/prune-native-media.mjs dist
+          # A failure here only means a bigger APK, never a broken one.
+          (python3 -m pip install --quiet --break-system-packages pillow && python3 tools/native-downscale-maps.py dist) || echo "map downscale skipped"
           du -sh dist
           npx cap sync android
 
