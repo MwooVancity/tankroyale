@@ -32,6 +32,9 @@ public class AutoplayPlugin extends Plugin {
         if (map != null && map.matches("[a-z0-9-]{1,32}")) r.put("map", map);
         // Local runs only (`--ez lite true`): play the budget-phone (Lite) way on any GPU.
         if (scenario > 0 && i.getBooleanExtra("lite", false)) r.put("lite", true);
+        // Local soak only (`--ei battles 40`): more than the Game Loop's 3 battles, capped.
+        int battles = i == null ? 0 : i.getIntExtra("battles", 0);
+        if (scenario > 0 && battles > 0) r.put("battles", Math.min(battles, 60));
         call.resolve(r);
     }
 

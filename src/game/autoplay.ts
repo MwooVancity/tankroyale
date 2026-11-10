@@ -11,7 +11,7 @@ import { forceLitePhone, isLitePhone } from '../engine/quality.ts';
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
 type Bus ={ on(ev: string, fn: (e: any) => void): void };
-type Native = { get(): Promise<{ scenario: number; map?: string; lite?: boolean }>; finish(o: { json: string }): Promise<void> };
+type Native = { get(): Promise<{ scenario: number; map?: string; lite?: boolean; battles?: number }>; finish(o: { json: string }): Promise<void> };
 
 /** Frame intervals (ms) of one battle -> per-second fps p10/p50 and freezes > 2 s. */
 export function summarizeFrames(deltas: number[]) {
@@ -45,12 +45,13 @@ async function click(sel: string, maxMs: number) {
 
 export async function installAutoplay(bus: Bus): Promise<void> {
   let native: Native;
-  let scenario = 0, map = '';
+  let scenario = 0, map = '', battles = 3;
   try {
     native = registerPlugin<Native>('Autoplay');
     const got = await native.get();
     scenario = got.scenario || 0;
     map = got.map || '';
+    if (got.battles) battles = got.battles; // local soak only (`--ei battles N`)
     if (got.lite) forceLitePhone();
   } catch { return; } // web build / plugin missing: never autoplay
   // Scenario 2 = scenario 1 on monsoon, the heaviest map (Game Loop passes only a number).
@@ -101,7 +102,7 @@ export async function installAutoplay(bus: Bus): Promise<void> {
     try { await native.finish({ json }); } catch { /* results file unwritable: logcat keeps it */ }
   };
   // Watchdog: a hang still writes what it has and ends the Game Loop.
-  setTimeout(() => { void finish('watchdog'); }, AUTOPLAY_WATCHDOG_MS);
+  setTimeout(() => { void finish('watchdog'); }, AUTOPLAY_WATCHDOG_MS * Math.max(1, battles / 3));
   await wait(8000); // garage settles
   if (map) {
     // Tap the map's card in the garage, like a player choosing it (id is [a-z0-9-], checked natively).
@@ -113,7 +114,7 @@ export async function installAutoplay(bus: Bus): Promise<void> {
     }
     console.info(`[autoplay] map ${map} picked=${picked}`);
   }
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < battles; i++) {
     presented = 0; ended = null;
     const tapAt = performance.now();
     const ok = i === 0 ? await click('.cot-battle', 60000) : await click('.cot-es-btn.prime', 60000);
