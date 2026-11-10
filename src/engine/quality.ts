@@ -553,6 +553,36 @@ export function setMobilePresetName(name: string): void {
   for (const fn of listeners) fn(preset);
 }
 
+// LITE PHONES (2026-11-10): moto g05 (Mali-G52 MC2, Helio G81) ran 4-9 fps on
+// Performance, CPU-bound (lab #8: half resolution gained nothing). A known
+// budget GPU on Performance gets Lite: bot thinking at 10 Hz (state.ts), and
+// 5v5 Bots battles once the owner's order "staggered AI first, then 5v5 only if
+// still needed" is settled by a g05 run (setLiteTeamSize; Game Loop scenario 3).
+// Picking Balanced/Quality leaves Lite. ?lite forces it for testing.
+// ponytail: GPU list only; a masked or unlisted budget GPU stays on Performance.
+const WEAK_PHONE_GPU = /mali-(?:g31|g51|g52|g57(?!\s*mc[3-9])|t[678]\d\d)|powervr\D*ge8|adreno\D*(?:[34]\d\d|50\d|51\d|61[02])\b/i;
+let _liteTeamSize = 7;
+let _forceLite = false;
+/** Local emulator runs (`--ez lite true`): play Lite on any GPU. */
+export function forceLitePhone(): void { _forceLite = true; }
+
+/** True when this phone plays the Lite way (see LITE PHONES above). */
+export function isLitePhone(): boolean {
+  if (getDeviceTier() !== 'mobile' || resolvePresetName() !== 'mobile-low') return false;
+  if (_forceLite || WEAK_PHONE_GPU.test(_gpuRendererString)) return true;
+  try { return new URLSearchParams(window.location.search).has('lite'); } catch (_) { return false; }
+}
+
+/** Tanks per side in a Bots battle: 7, or the Lite size on a Lite phone. */
+export function soloTeamSize(): number {
+  return isLitePhone() ? _liteTeamSize : 7;
+}
+
+/** Lite phones' Bots battle size (5 or 7); 7 until the g05 run decides. */
+export function setLiteTeamSize(n: number): void {
+  _liteTeamSize = n === 5 ? 5 : 7;
+}
+
 /** @returns {typeof PRESETS[keyof typeof PRESETS]} the active preset object */
 export function getPreset(): QualityPreset {
   return PRESETS[resolvePresetName()];

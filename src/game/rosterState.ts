@@ -9,7 +9,7 @@ import { getSpec, TANK_IDS, RUNTIME_TANK_IDS } from '../vehicles/specs.js';
 import { createTank } from '../vehicles/fleetFactory.ts';
 import { tankTier } from '../vehicles/tier.ts';
 import { isGarageVisibleTankId, rankMatchCandidates } from './matchmaking.ts';
-import { getDeviceTier } from '../engine/quality.ts';
+import { getDeviceTier, soloTeamSize } from '../engine/quality.ts';
 import { mulberry32 } from './stateCore.ts';
 
 interface BattleVisual {
@@ -333,7 +333,7 @@ export function pickBattleParticipants(
 ): RosterEntity[] {
   const player = game.tankById.get(playerSpecId);
   if (!player) throw new Error(`unknown battle vehicle: ${playerSpecId}`);
-  const enemySlots = randomize ? 13 : 7;
+  const enemySlots = randomize ? soloTeamSize() * 2 - 1 : 7;
   // PERF (performance_budget r3, certification determinism): an explicit
   // debug roster bypasses the seeded shuffle/era matchmaking so the perf
   // gate measures a PINNED worst-case lineup (all multi-mesh GLB heavies)

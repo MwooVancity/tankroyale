@@ -30,6 +30,8 @@ public class AutoplayPlugin extends Plugin {
         // Optional fixed map (`--es map monsoon`) so a run compares like with like.
         String map = i == null ? null : i.getStringExtra("map");
         if (map != null && map.matches("[a-z0-9-]{1,32}")) r.put("map", map);
+        // Local runs only (`--ez lite true`): play the budget-phone (Lite) way on any GPU.
+        if (scenario > 0 && i.getBooleanExtra("lite", false)) r.put("lite", true);
         call.resolve(r);
     }
 

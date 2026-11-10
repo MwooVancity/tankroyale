@@ -6,11 +6,12 @@
 // through the same buttons a player taps. The game times itself (Test Lab's
 // fps metric does not see WebView frames) and writes one JSON result.
 import { registerPlugin } from '@capacitor/core';
+import { forceLitePhone, isLitePhone, setLiteTeamSize, soloTeamSize } from '../engine/quality.ts';
 
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
 type Bus ={ on(ev: string, fn: (e: any) => void): void };
-type Native = { get(): Promise<{ scenario: number; map?: string }>; finish(o: { json: string }): Promise<void> };
+type Native = { get(): Promise<{ scenario: number; map?: string; lite?: boolean }>; finish(o: { json: string }): Promise<void> };
 
 /** Frame intervals (ms) of one battle -> per-second fps p10/p50 and freezes > 2 s. */
 export function summarizeFrames(deltas: number[]) {
@@ -50,11 +51,14 @@ export async function installAutoplay(bus: Bus): Promise<void> {
     const got = await native.get();
     scenario = got.scenario || 0;
     map = got.map || '';
+    if (got.lite) forceLitePhone();
   } catch { return; } // web build / plugin missing: never autoplay
   // Scenario 2 = scenario 1 on monsoon, the heaviest map (Game Loop passes only a number).
+  // Scenario 3 = scenario 1 with 5v5 on a Lite phone (owner's g05 test of fewer bots).
   if (scenario === 2) map ||= 'monsoon';
+  else if (scenario === 3) setLiteTeamSize(5);
   else if (scenario !== 1) return;
-  console.info(`[autoplay] scenario ${scenario} start`);
+  console.info(`[autoplay] scenario ${scenario} start lite=${isLitePhone()} teamSize=${soloTeamSize()}`);
   let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false, visAt = -1e9;
   bus.on('battle:rollout', () => { if (inBattle) return; presented = performance.now(); inBattle = true; deltas = []; last = 0; });
   bus.on('battle:ended', (e) => { ended = e?.result ?? 'ended'; inBattle = false; });
@@ -66,7 +70,7 @@ export async function installAutoplay(bus: Bus): Promise<void> {
   };
   requestAnimationFrame(frame);
 
-  const out: Record<string, unknown> = { scenario, battles: [] as unknown[], errors: 0, resumeMs: [] as number[] };
+  const out: Record<string, unknown> = { scenario, lite: isLitePhone(), teamSize: soloTeamSize(), battles: [] as unknown[], errors: 0, resumeMs: [] as number[] };
   addEventListener('error', () => { (out.errors as number)++; });
   // Render loop must come back after home / screen off: time from visible to the next frame.
   document.addEventListener('visibilitychange', () => {

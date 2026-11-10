@@ -66,6 +66,7 @@ import { createAI, roleOf } from './ai.ts';
 import { createBotNavigationGrid, planBotRoute } from '../sim/botRoutePlanner.ts';
 import { pushHullFromHull, pushHullFromObstacle } from '../world/collision.ts';
 import { getStoredDifficulty } from './input.ts';
+import { isLitePhone, soloTeamSize } from '../engine/quality.ts';
 // SPOTTING WIRING: concealment/spotting sim + camo-paint bonus source
 import { createSpottingSystem, CAMO_PAINT_BONUS } from '../sim/spotting.ts';
 import { hasCamoPaint, setCamoOverride, clearCamoOverrides, applyCamoPatterns } from '../vehicles/materials.js';
@@ -225,6 +226,8 @@ interface SoloGameState extends Omit<RosterGameState, 'allTanks' | 'tankById' | 
   nextShellId: number;
   timeS: number;
   fireTickAcc: number;
+  /** sim steps per bot think: 1 = every step; Lite phones 6 (set per battle) */
+  botThinkEvery?: number;
   combatRng: RandomSource;
   result: 'victory' | 'defeat' | 'draw' | null;
   resultReason: string | null;
@@ -522,6 +525,9 @@ export function setupBattle(
   game.modeEvents.length = 0;
   game.battleCount++;
   game.openingRouteJobs.length = 0;
+  const lite = isLitePhone();
+  game.botThinkEvery = lite ? 6 : 1;
+  if (lite) console.info(`[lite] bots think at 10 Hz, ${soloTeamSize()}v${soloTeamSize()} Bots battles`);
 
   // COMMUNITY TANKS: field the participants; park everyone else (hidden,
   // null state/combat — every sim/HUD/audio consumer guards on those).
@@ -658,8 +664,9 @@ export function setupBattle(
     // flags.rosterExact (perf A/B tooling): a pinned short roster splits at
     // the LEGACY ally count (3) so an 8-tank control battle mirrors the old
     // 4v4 shape instead of 7v1.
+    // Lite 5v5 (quality.ts soloTeamSize): 9 non-players split 4 allies + 5 enemies.
     const exactCap = soloDebugFlags()?.rosterExact &&
-      nonPlayers.length < 13 ? 3 : 6;
+      nonPlayers.length < 13 ? 3 : Math.floor(nonPlayers.length / 2);
     const allyCap = Math.min(exactCap, Math.max(1, nonPlayers.length - 1));
     const enemyCap = nonPlayers.length - allyCap;
     const byTier = nonPlayers.slice()
@@ -1849,9 +1856,18 @@ export function simStep(
   // frame, summed over this frame's fixed steps; post.ts' [perf] split prints them.
   const simParts = ((globalThis as { __simParts?: { ai: number; move: number; steps: number } }).__simParts ??= { ai: 0, move: 0, steps: 0 });
   let partAt = performance.now();
-  for (const ent of game.tanks) {
+  // Lite phones (quality.ts isLitePhone): each bot thinks every 6th step (10 Hz),
+  // staggered by slot so one step never carries every bot. Driving and turret
+  // traverse still run every step on the held inputs; a shot leaves only on a
+  // think step, so it always follows a fresh aim check.
+  const every = game.botThinkEvery || 1;
+  const stepNo = Math.round(game.timeS / dt);
+  for (let i = 0; i < game.tanks.length; i++) {
+    const ent = game.tanks[i]!;
     if (ent.modeActive !== false && ent.aiCtl && !ent.combat.destroyed) {
-      ent.aiCtl.update(dt, game.timeS);
+      if (every === 1) ent.aiCtl.update(dt, game.timeS);
+      else if ((stepNo + i) % every === 0) ent.aiCtl.update(dt * every, game.timeS);
+      else ent.input.fire = false;
     }
   }
   simParts.ai += performance.now() - partAt;
