@@ -97,7 +97,10 @@ await refresh();
 matrix = await api(`https://testing.googleapis.com/v1/projects/${PROJECT}/testMatrices`, {
   method: 'POST',
   body: JSON.stringify({
-    testSpecification: { testTimeout: process.env.TIMEOUT || '420s', androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, roboScript } },
+    // LOOP=1: Game Loop (the game's own autoplay, src/game/autoplay.ts) instead of a Robo crawl.
+    testSpecification: { testTimeout: process.env.TIMEOUT || '420s', ...(process.env.LOOP
+      ? { androidTestLoop: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, scenarios: [1] } }
+      : { androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, roboScript } }) },
     environmentMatrix: { androidDeviceList: { androidDevices: picked.map(({ name, ...d }) => d) } },
     resultStorage: { googleCloudStorage: { gcsPath: `gs://${BUCKET}/vc${VC}/results/${Date.now()}` } },
   }),
@@ -134,6 +137,7 @@ for (const ex of m.testExecutions) {
   const fatal = pick(/FATAL EXCEPTION|ANR in app\.tankroyale|Process app\.tankroyale .*has died|renderer.*(crash|gone)/i);
   const consoleErr = pick(/chromium.*CONSOLE.*(Error|Uncaught|failed|rejection)|Capacitor.*(Error|error)/);
   const boot = pick(/__GAME_READY|bootRecovery|preloadError|did not load/i);
+  pick(/\[autoplay\] (battle|result)|\[gl\]/).forEach((l) => console.log('   ', l.replace(/^.*\[(autoplay|gl)\]/, '[$1]').slice(0, 400)));
   console.log(`  crashes/ANR: ${fatal.length}`); fatal.slice(0, 5).forEach((l) => console.log('   ', l.slice(0, 220)));
   console.log(`  WebView console errors: ${consoleErr.length}`); [...new Set(consoleErr.map((l) => l.replace(/^.*CONSOLE/, '').slice(0, 200)))].slice(0, 12).forEach((l) => console.log('   ', l));
   console.log(`  boot markers: ${boot.length}`); boot.slice(0, 5).forEach((l) => console.log('   ', l.slice(0, 200)));

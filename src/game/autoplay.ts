@@ -32,11 +32,12 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function click(sel: string, maxMs: number) {
   const end = performance.now() + maxMs;
   while (performance.now() < end) {
-    const b = document.querySelector<HTMLElement>(sel);
-    if (b && b.offsetParent !== null) { b.click(); return true; }
-    // The boot screen ("Ready for battle") waits for any tap.
+    // Tap first, like a finger: the boot screen ("Ready for battle") only
+    // leaves on a tap, and buttons under it already count as visible.
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await wait(1000);
+    const b = document.querySelector<HTMLElement>(sel);
+    if (b && b.offsetParent !== null) { b.click(); return true; }
   }
   return false;
 }
@@ -50,12 +51,13 @@ export async function installAutoplay(bus: Bus): Promise<void> {
   } catch { return; } // web build / plugin missing: never autoplay
   if (scenario !== 1) return;
   console.info('[autoplay] scenario 1 start');
-  let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false;
+  let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false, visAt = -1e9;
   bus.on('battle:rollout', () => { if (inBattle) return; presented = performance.now(); inBattle = true; deltas = []; last = 0; });
   bus.on('battle:ended', (e) => { ended = e?.result ?? 'ended'; inBattle = false; });
   const frame = (t: number) => {
     // Background time is not a freeze (home button, screen off).
-    if (inBattle && !document.hidden) { if (last) deltas.push(t - last); last = t; } else last = 0;
+    // Frames within 3 s of a visibility change can span the background gap: not a freeze.
+    if (inBattle && !document.hidden) { if (last && t - visAt > 3000) deltas.push(t - last); last = t; } else last = 0;
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
@@ -64,6 +66,7 @@ export async function installAutoplay(bus: Bus): Promise<void> {
   addEventListener('error', () => { (out.errors as number)++; });
   // Render loop must come back after home / screen off: time from visible to the next frame.
   document.addEventListener('visibilitychange', () => {
+    visAt = performance.now(); last = 0;
     if (document.hidden) return;
     const at = performance.now();
     requestAnimationFrame(() => {

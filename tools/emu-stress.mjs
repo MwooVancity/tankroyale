@@ -29,6 +29,8 @@ async function until(re, maxMs) {
 
 if (APK) { note('install ' + APK); adb('install', '-r', '-g', APK); }
 sh('svc power stayon true'); sh('settings put system screen_off_timeout 1800000');
+// Android's one-time "Viewing full screen" tip: a player taps it once; here it would cover every screenshot.
+sh('settings put secure immersive_mode_confirmations confirmed');
 sh(`am force-stop ${PKG}`); sh('logcat -G 16M'); sh('logcat -c');
 const start = sh(`am start -W -n ${PKG}/.MainActivity --ez autoplay true --ei scenario 1`);
 note(`cold start: ${/TotalTime: (\d+)/.exec(start)?.[1] ?? '?'} ms (native activity)`);
