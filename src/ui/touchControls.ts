@@ -106,7 +106,7 @@ body.cot-touch-layout[data-cot-orientation='portrait'] .cot-touch .mobile-chrome
   transition:transform 90ms ease-out,border-color 90ms ease,color 90ms ease;}
 .cot-touch .quick:active{transform:scale(.95);border-color:#f0ad45;color:#ffd27a;background:rgba(48,32,12,.96);}
 .cot-touch .quick svg{width:18px;height:18px;display:block;}
-.cot-touch .quick .ql{font-family:${FONT_COND};font-size:10px;font-weight:800;line-height:1;max-width:44px;overflow:hidden;
+.cot-touch .quick .ql{font-family:${FONT_COND};font-size:11px;font-weight:800;line-height:1;max-width:44px;overflow:hidden;
   letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;}
 .cot-touch .quick.muted{color:#f08b75;border-color:rgba(240,102,83,.55);}
 /* Recompose the existing live HUD instead of duplicating ammo/state UI. */
