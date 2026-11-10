@@ -32,16 +32,18 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   const hideObjs = (pick: () => THREE.Object3D[]) => { let hid: THREE.Object3D[] = []; return {
     on: () => { hid = pick().filter((o) => o.visible); hid.forEach((o) => { o.visible = false; }); },
     off: () => { hid.forEach((o) => { o.visible = true; }); hid = []; } }; };
+  const propMeshes = (keep: (m: THREE.Mesh) => boolean) => { const out: THREE.Object3D[] = []; scene.getObjectByName('props')?.traverse((o) => { if ((o as THREE.Mesh).isMesh && keep(o as THREE.Mesh)) out.push(o); }); return out; };
+  const propShadows = () => { let was: THREE.Mesh[] = []; return {
+    on: () => { was = propMeshes((m) => m.castShadow) as THREE.Mesh[]; was.forEach((m) => { m.castShadow = false; }); },
+    off: () => { was.forEach((m) => { m.castShadow = true; }); was = []; } }; };
   const cfgs: Cfg[] = [
     { name: 'ship', on: nop, off: nop },
-    // Lab #6: where do the ~460 draw calls go? Hide one group per row.
-    { name: 'ship+hide:tanks', ...hideObjs(() => scene.children.filter((c) => c.name.startsWith('tank_'))) },
+    // Lab #7: lab #6 said props cost ~9 ms main thread (-94 calls). Split it.
+    { name: 'ship+props:noShadowCast', ...propShadows() },
+    { name: 'ship+hide:propsInstanced', ...hideObjs(() => propMeshes((m) => !!(m as THREE.InstancedMesh).isInstancedMesh)) },
+    { name: 'ship+hide:propsMerged', ...hideObjs(() => propMeshes((m) => !(m as THREE.InstancedMesh).isInstancedMesh)) },
     { name: 'ship+hide:props', ...hideObjs(() => named('props')) },
     { name: 'ship+hide:vegetation', ...hideObjs(() => named('vegetation')) },
-    { name: 'ship+hide:fx', ...hideObjs(() => named('fx')) },
-    { name: 'ship+hide:worldOther', ...hideObjs(() => (scene.children.find((c) => c.name.startsWith('world-'))?.children || []).filter((c) => c.name !== 'props' && c.name !== 'vegetation')) },
-    { name: 'ship+far250', on: () => far(true, 250), off: () => far(false, 0) },
-    { name: 'ship+hud:allHidden', ...hudAll },
     { name: 'ship-again', on: nop, off: nop },
   ];
   // Then hide each big top-level scene group, one at a time (full chain).
