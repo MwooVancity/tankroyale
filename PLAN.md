@@ -99,6 +99,24 @@ Parent-session additions:
 - Play: versionCode above production; staged rollout 20%, then 100% after a crash-free day.
 
 ## Next (ranked 2026-11-09 by what a tank fan feels; invisible fixes first)
+S. IN PROGRESS 2026-11-09. Android stress test + self-test autoplay (owner via PM: "Stress test this game with a real android emulator again. I need this to stop fucking up on phone"; plan: calcscrape/reports/Tank Royale Android test plan.md).
+   Master prompt: (1) numbers that move: crash-free sessions, fps in fights, time to battle, rating; autoplay catches phone failures before players do. (2) Delete: no Appium; the game's own autoplay drives, plus adb for lifecycle (home, screen, rotate, airplane) that no in-game code can do. (3) Simplify: one entry point (`src/game/autoplay.ts`, native `AutoplayPlugin.java`), same buttons a player taps, reuse tools/testlab.mjs. (4) Accelerate: one APK per round, rerun only failed devices. (5) Automate last: the Game Loop intent filter also makes Play's pre-launch report run it on every upload.
+   Edge cases (test that fails without the guard):
+   - Autoplay on in a player's build: starts only from TEST_LOOP or `--ez autoplay true` (test: normal emulator launch shows the garage, no `[autoplay]` line).
+   - Results file unwritable (no URI): plays on, logs `Autoplay` to logcat, still finishes on Game Loop (test: local `--ez` run has no URI).
+   - Hang or stall mid-run: in-game watchdog writes partial results and finishes at 40 min (test: watchdog selftest on the timer value + Test Lab timeout).
+   - Battle never ends: 10 min cap per battle, then results and stop (test: summarize with no end).
+   - Ad never loads/closes (airplane): end-screen button wait 60 s, then stop with tapped=false logged (test: airplane battles 2-3 in emu-stress).
+   - Render loop does not resume after home/screen off: resume time to the next frame logged per resume, must be under 1 s (test: emu-stress home + screen off with autoplay log).
+   - WebView renderer killed: onRenderProcessGone recreates (test: `am crash`/kill renderer on emulator, app back in garage).
+   - Memory grows over 3 battles: heap and PSS at start vs after each battle (test: end PSS under start + 150 MB).
+   - Low-end phone (2 GB, Android 11, WebView 83): boots, battles, loads under 30 s (test: local emulator `lowend`).
+   - Old WebView without WebGL2: fallback screen, no crash (test: WebView 83 emulator run).
+   - 16 KB page size: DONE 2026-11-09, APK has 0 native libs, `zipalign -c -P 16 4` passes (build #111 APK); CI check below.
+   - Android 15+ edge-to-edge: HUD not under system bars (test: API 35 screenshot).
+   - Online relay down: join times out with a message, bots offered (test: dead relay URL) - later, needs its own run.
+   - Two writers: this session is sole writer of code, CLAUDE.md, PLAN.md.
+   - Quota: 5 physical + 10 virtual Test Lab runs a day; out = phone-free work, queue next day.
 0. WAITING 2026-11-10 (Test Lab: today's 5 runs used). RELEASE RULE (owner 2026-11-09, via PM): sharpness + button fix + size cuts go to production only after the 2026-11-10 Pixel 6a run passes: smaller pictures look right on a screenshot, 0 crashes, slowest moments (p10) not worse than vc887's 21.2. Bundle item 1's prop fix if ready.
    Edge cases: p10 noise between battles hides a real drop (test: same map seed as vc887, compare p10 and p50); a blurry map picture only shows on a 2400 px screen (test: Test Lab screenshot of the loading screen).
 1. WAITING 2026-11-10 (Test Lab: today's 5 runs used). Lag in fights (the only review this week: "it lags a lot"). Proven cost: props in view (hide props 28 -> 37 fps, lab #6). Do: log prop triangles per family (lab build logs it), then lighter far models past ~120 m for the top families and no shadows from props outside the near cascade. Release 1.10x (with native output + button fix) only if p10 rises on Pixel 6a.

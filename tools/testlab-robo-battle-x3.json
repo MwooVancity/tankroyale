@@ -1,0 +1,18 @@
+[
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 45000},
+  {"eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{"className": "android.webkit.WebView"}]},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 5000},
+  {"eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{"text": "BATTLE"}]},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 300000},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 120000},
+  {"eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{"text": "BATTLE AGAIN"}]},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 8000},
+  {"eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{"text": "BATTLE"}]},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 300000},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 120000},
+  {"eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{"text": "BATTLE AGAIN"}]},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 8000},
+  {"eventType": "VIEW_CLICKED", "optional": true, "elementDescriptors": [{"text": "BATTLE"}]},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 300000},
+  {"eventType": "DELAYED_MESSAGE_POSTED", "delayTime": 120000}
+]

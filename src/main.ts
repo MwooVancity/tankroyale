@@ -62,6 +62,7 @@ import {
 import { applyLiteMaterials } from './engine/liteMaterials.ts';
 import { pauseOnBackground } from './game/backgroundPause.ts';
 import { installReviewPrompt } from './game/reviewPrompt.ts';
+import { installAutoplay } from './game/autoplay.ts';
 import { createSky } from './engine/sky.ts';
 import { createLighting } from './engine/lighting.ts';
 import { createPost } from './engine/post.ts';
@@ -451,6 +452,7 @@ const devTrace = traceRequested
 const bus = createBus(devTrace ? (ev, payload) => devTrace.event(ev, payload) : null);
 installBattleRecords(bus);
 installReviewPrompt(bus, () => !!networkSession.match); // Play rating ask: solo wins only
+void installAutoplay(bus); // Game Loop self-test only; a normal launch does nothing
 const game = legacyPort<MainGameState>(createGameState());
 const rosterPresentation = createRosterPresentation({
   getVehicleName: (specId) => legacyPort<MainEntity['spec']>(getSpec(specId))?.name,

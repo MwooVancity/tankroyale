@@ -113,6 +113,7 @@ export function createRenderer(container: HTMLElement): GameRenderer {
   // safer preset; an early-boot loss still reloads through the fallback.
   renderer.domElement.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
+    console.warn('[gl] context lost'); // phone logcat: says why a page reloaded
     let recovering = false;
     try {
       const handler = renderer.userData.contextRecovery?.onLost;
@@ -125,6 +126,7 @@ export function createRenderer(container: HTMLElement): GameRenderer {
   }, false);
   renderer.domElement.addEventListener('webglcontextrestored', () => {
     const handler = renderer.userData.contextRecovery?.onRestored;
+    console.warn(`[gl] context restored, ${typeof handler === 'function' ? 'rebuilding' : 'reloading (early boot)'}`);
     if (typeof handler !== 'function') {
       try { window.location.reload(); } catch (_) { /* overlay reload remains */ }
       return;

@@ -85,6 +85,12 @@ jobs:
             ./gradlew assembleDebug
           fi
 
+      # Play blocks updates without 16 KB page alignment from 2027-02-01.
+      - name: 16 KB page-size check
+        run: |
+          ZA=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/zipalign
+          "$ZA" -c -P 16 4 android/app/build/outputs/apk/debug/app-debug.apk && echo "16 KB alignment ok"
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
