@@ -17,6 +17,8 @@ try {
     await page.waitForFunction('window.__GAME_READY === true', { timeout: 240000 });
     await page.evaluate(async (m) => { await window.__DEBUG.startBattle('m1a2', m); window.__DEBUG.fastForward(6); }, map);
     await new Promise((r) => setTimeout(r, 6000));
+    // EVAL='js': page-side tweak before the shot (e.g. force a HUD state).
+    if (process.env.EVAL) { await page.evaluate(process.env.EVAL); await new Promise((r) => setTimeout(r, 500)); }
     // HIDE=props,vegetation: hide named scene groups to find what draws a defect.
     if (process.env.HIDE) {
       console.log('groups', await page.evaluate((names) => {
