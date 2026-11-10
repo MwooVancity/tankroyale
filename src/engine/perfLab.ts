@@ -73,6 +73,20 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
       if (n < 20 || !child.visible) continue;
     }
     console.info(`[lab] scene children ${names.join(' ')}`);
+    // Visible triangles per top-level group (instanced = per instance), biggest first.
+    const per = scene.children.map((c) => {
+      let t = 0;
+      c.traverseVisible((o) => { const m = o as THREE.Mesh & { count?: number; isInstancedMesh?: boolean }; if (m.isMesh && m.geometry) t += triCount(m) * (m.isInstancedMesh ? (m.count ?? 1) : 1); });
+      return [c.name || c.type, t] as const;
+    }).filter(([, t]) => t > 0).sort((a, z) => z[1] - a[1]);
+    console.info(`[lab] tris by group ${per.slice(0, 15).map(([n, t]) => `${n}:${Math.round(t / 1000)}k`).join(' ')}`);
+    const world = scene.children.find((c) => c.name.startsWith('world-'));
+    const sub = (world?.children || []).map((c) => {
+      let t = 0;
+      c.traverseVisible((o) => { const m = o as THREE.Mesh & { count?: number; isInstancedMesh?: boolean }; if (m.isMesh && m.geometry) t += triCount(m) * (m.isInstancedMesh ? (m.count ?? 1) : 1); });
+      return `${c.name || c.type}:${Math.round(t / 1000)}k`;
+    }).filter((x) => !x.endsWith(':0k'));
+    console.info(`[lab] world split ${sub.join(' ')}`);
     // Lab #7: which prop families carry the triangles (lab #6: props = the cost).
     const fam: string[] = [];
     scene.getObjectByName('props')?.traverse((o) => {

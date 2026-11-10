@@ -1532,6 +1532,7 @@ function buildOakFarGeometry(
 function buildPineFarGeometry(
   rng: RandomSource,
   pal: VegetationPalette = {},
+  massOnly = false,
 ): FarTreeGeometryPair {
   const cp = pal.canopy || {};
   const hue = cp.hue ?? 0.315, sat = cp.sat ?? 0.26, l0 = cp.l0 ?? 0.215, l1 = cp.l1 ?? 0.33;
@@ -1563,7 +1564,8 @@ function buildPineFarGeometry(
   }
   // r5: a few branch-tuft satellites poking through the tier line so the far
   // pine silhouette is ragged like the near card LOD, not a lathe object
-  for (let b = 0; b < 4; b++) {
+  // Performance: the cone tiers are the silhouette; the 4 side tufts (~80 tris) are not.
+  for (let b = 0; b < (massOnly ? 0 : 4); b++) {
     const a = rng() * Math.PI * 2, ty = 1.8 + rng() * 3.4;
     const t = (ty - 1.2) / 5.4;
     const rr = (1.0 - t) * 1.5 + 0.35;
@@ -1676,6 +1678,7 @@ function buildPalmFarGeometry(
 function buildBirchFarGeometry(
   rng: RandomSource,
   pal: VegetationPalette = {},
+  massOnly = false,
 ): FarTreeGeometryPair {
   const cp = pal.canopy || {};
   const trunkParts: THREE.BufferGeometry[] = [], canopyParts: THREE.BufferGeometry[] = [];
@@ -1686,7 +1689,8 @@ function buildBirchFarGeometry(
   trunkParts.push(paintFlat(trunk, _c, 0));
   // r5: real winter birch crowns are a broken haze of twig masses around
   // upward branches, not 2 lobes on a pole — 4-5 lobes + branch cylinders
-  const nBr = 4 + ((rng() * 2) | 0);
+  // Performance: 2-6 cm branches are sub-pixel at far-LOD range; skip them.
+  const nBr = massOnly ? 0 : 4 + ((rng() * 2) | 0);
   for (let b = 0; b < nBr; b++) {
     const len = 1.6 + rng() * 1.4;
     const br = new THREE.CylinderGeometry(0.02, 0.06, len, 4, 1);
@@ -1704,6 +1708,7 @@ function buildBirchFarGeometry(
   // mushroom-cap blobs" (winter critique); a birch crown is an upright
   // broom-shaped twig mass. Pairs with the far-canopy edge erosion.
   for (let b = 0; b < 5 + ((rng() * 3) | 0); b++) {
+    if (massOnly && b >= 4) break; // Performance: 4 lobes carry the crown
     const blob = new THREE.IcosahedronGeometry(0.65 + rng() * 0.45, 0); // PERF r3: far-LOD detail 0
     jitterRadial(blob, rng, 0.45);
     blob.scale(0.72, 1.6 + rng() * 0.5, 0.72);
@@ -2737,7 +2742,7 @@ function* vegetationBuildSteps(
         trunk: buildPineTrunk(mulberry32(seed + 61 + k * 7), pal),
         cards: buildPineCards(mulberry32(seed + 63 + k * 7), 0.60, 1.0, pal),
       }),
-      far: (r, pal) => buildPineFarGeometry(r, pal),
+      far: (r, pal) => buildPineFarGeometry(r, pal, !!getPreset().liteMaterials),
     },
     oak: {
       texSeed: 51, nearSeed: 65, farSeed: 73,
@@ -2763,7 +2768,7 @@ function* vegetationBuildSteps(
       // r5 terrain_environment: k selects BIRCH_VAR — three distinct
       // height/crown proportions so stands stop reading as clones
       near: (k, pal) => buildBirchGeometry(mulberry32(seed + 85 + k * 7), pal, BIRCH_VAR[k % 3]),
-      far: (r, pal) => buildBirchFarGeometry(r, pal),
+      far: (r, pal) => buildBirchFarGeometry(r, pal, !!getPreset().liteMaterials),
     },
   };
   const speciesList = veg.species.filter((sp) => SPECIES[sp]);

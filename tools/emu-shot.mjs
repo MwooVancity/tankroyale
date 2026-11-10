@@ -11,7 +11,7 @@ const sh = (c) => { try { return adb('shell', c); } catch (e) { return String(e.
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const OUT = path.resolve('testlab-results', 'shots'); fs.mkdirSync(OUT, { recursive: true });
 
-adb('install', '-r', '-g', APK);
+adb('install', '-r', '-d', '-g', APK); // -d: before/after builds go back and forth in version
 sh('settings put secure immersive_mode_confirmations confirmed');
 sh('am force-stop app.tankroyale'); sh('logcat -c');
 sh(`am start -n app.tankroyale/.MainActivity --ez autoplay true --ei scenario 1 --es map ${MAP}`);
