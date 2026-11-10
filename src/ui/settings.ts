@@ -69,6 +69,7 @@ type NumericSettingKey =
   | 'volVoice';
 type BooleanSettingKey =
   | 'invertY'
+  | 'leftHanded'
   | 'showPerfMeter'
   | 'showDebugHud'
   | 'armorAimOverlay'
@@ -865,6 +866,10 @@ export function createSettings(opts: SettingsOptions): SettingsRuntime {
       toDisp: (v) => v * 100, fromDisp: (v) => v / 100,
     });
     onOffRow(aim, 'Invert vertical aim (Y axis)', 'invertY');
+    if (touchLayout) {
+      onOffRow(aim, 'Left-handed (stick right, fire left)', 'leftHanded',
+        () => document.body.classList.toggle('cot-lefty', !!input.getSettings().leftHanded));
+    }
 
     // gunnery r1 (owner): what right-click does — hold-to-aim (default),
     // toggle-aim, or the classic gun-lock free look. Persisted as

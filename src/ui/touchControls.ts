@@ -384,6 +384,51 @@ export function createMobileFireGesture({
   };
 }
 
+/**
+ * Left-handed layout: every touch-layout rule that places something by
+ * left/right gets a mirrored twin under body.cot-lefty (one class more
+ * specific, so it wins). Generated from the live sheets instead of a second
+ * hand-kept copy that would drift from the ~40 originals. Centered (50%)
+ * offsets and parts inside a control (stick arrows, knob, badges) stay put.
+ */
+const LEFTY_SKIP = /\.arrow|\.knob|::?before|::?after|\.cnt\b|\.joyhint/;
+export function mirrorLeftyRule(selector: string, get: (prop: string) => string,
+  prio: (prop: string) => string): string {
+  if (!/cot-touch/.test(selector) || LEFTY_SKIP.test(selector)) return '';
+  const l = get('left'), r = get('right');
+  if ((!l && !r) || /50%/.test(l + r)) return ''; // centered, incl. calc(50% - 18px) nudges
+  const imp = (p: string) => (prio(p) ? ' !important' : '');
+  const swapEnv = (v: string) => v.replace(/inset-(left|right)/g, (_m, s) => `inset-${s === 'left' ? 'right' : 'left'}`);
+  let decl = `left:${r ? swapEnv(r) : 'auto'}${imp('right')};right:${l ? swapEnv(l) : 'auto'}${imp('left')};`;
+  const origin = get('transform-origin');
+  if (origin) decl += `transform-origin:${origin.replace(/\b(left|right)\b/g, (s) => (s === 'left' ? 'right' : 'left'))};`;
+  const sel = selector.split(',').map((one) => {
+    const t = one.trim();
+    return t.startsWith('body') ? t.replace(/^body/, 'body.cot-lefty') : `body.cot-lefty ${t}`;
+  }).join(',');
+  return `${sel}{${decl}}`;
+}
+
+function buildLeftyCss(): string {
+  const out: string[] = [];
+  const walk = (rules: CSSRuleList, wrap: (css: string) => string) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule) {
+        const m = mirrorLeftyRule(rule.selectorText, (p) => rule.style.getPropertyValue(p).trim(),
+          (p) => rule.style.getPropertyPriority(p));
+        if (m) out.push(wrap(m));
+      } else if (rule instanceof CSSMediaRule) {
+        walk(rule.cssRules, (css) => `@media ${rule.conditionText}{${css}}`);
+      }
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    if (sheet.ownerNode && (sheet.ownerNode as Element).id === 'cot-lefty-style') continue;
+    try { walk(sheet.cssRules, (css) => css); } catch { /* cross-origin font sheet */ }
+  }
+  return out.join('\n');
+}
+
 export function createTouchControls({
   input, bus, isBattleActive, isSniper = () => false,
   onOpenSettings = () => {}, onToggleSound = () => false,
@@ -443,9 +488,20 @@ export function createTouchControls({
     joyPointer = null; input.setVirtualMove(0, 0); knob.style.transform = 'translate(0px,0px)';
     aimPointer = null; aimPts.clear(); pinchRef = -1;
   }
+  let leftyBuilt = false;
   function syncLayout(): void {
     layout = wantsTouchLayout();
     document.body.classList.toggle('cot-touch-layout', layout);
+    document.body.classList.toggle('cot-lefty', layout && !!input.getSettings?.().leftHanded);
+    // Once per battle, after every HUD sheet exists: the Settings toggle can
+    // then flip the body class mid-battle with the mirror already in place.
+    if (layout && battle && !leftyBuilt) {
+      leftyBuilt = true;
+      let tag = document.getElementById('cot-lefty-style');
+      if (!tag) { tag = document.createElement('style'); tag.id = 'cot-lefty-style'; document.head.appendChild(tag); }
+      tag.textContent = buildLeftyCss();
+    }
+    if (!battle) leftyBuilt = false;
     root.classList.toggle('on', layout && battle);
     aimLayer.classList.toggle('on', layout && battle);
     if (!layout || !battle) { resetMove(); cancelFireGesture(); }

@@ -8,6 +8,7 @@ export interface TouchControlsInput {
   pressVirtual(action: string): void;
   releaseVirtual(action: string): void;
   tapVirtual(action: string): void;
+  getSettings?(): { leftHanded?: boolean };
 }
 
 export interface TouchControlsRuntime {

@@ -40,6 +40,7 @@ export type SettingsOptionIconKey = keyof InputSettings | 'graphicsQuality';
 export const SETTINGS_OPTION_ICONS = Object.freeze({
   sensitivity: { id: 'mouse' },
   invertY: { id: 'invertAim', tone: 'cyan' },
+  leftHanded: { id: 'controller', tone: 'cyan' },
   sniperSensScale: { id: 'scope', tone: 'cyan' },
   aimSmoothing: { id: 'aimSmoothing', tone: 'cyan' },
   padSensitivity: { id: 'controller' },

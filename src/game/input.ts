@@ -84,6 +84,8 @@ export interface InputVector {
 export interface InputSettings {
   sensitivity: number;
   invertY: boolean;
+  /** Touch layout mirrored: stick on the right, fire and aim on the left. */
+  leftHanded: boolean;
   sniperSensScale: number;
   aimSmoothing: number;
   padSensitivity: number;
@@ -238,6 +240,7 @@ const PAD_BUTTON_LABELS = [
 const DEFAULT_SETTINGS: InputSettings = {
   sensitivity: 1, // 0.2x .. 3x multiplier on mouse aim
   invertY: false,
+  leftHanded: false,
   sniperSensScale: 1, // extra multiplier while in sniper mode (0.2x .. 3x)
   aimSmoothing: 0.5, // 0 = raw 1:1 deltas, 1 = heavy (56 ms EMA); 0.5 = classic 28 ms
   padSensitivity: 1, // 0.2x .. 3x multiplier on right-stick aim
@@ -548,6 +551,7 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
   if (isRecord(storedSettings)) {
     if (typeof storedSettings.sensitivity === 'number') settings.sensitivity = clamp(storedSettings.sensitivity, 0.2, 3);
     if (typeof storedSettings.invertY === 'boolean') settings.invertY = storedSettings.invertY;
+    if (typeof storedSettings.leftHanded === 'boolean') settings.leftHanded = storedSettings.leftHanded;
     if (typeof storedSettings.sniperSensScale === 'number') settings.sniperSensScale = clamp(storedSettings.sniperSensScale, 0.2, 3);
     if (typeof storedSettings.aimSmoothing === 'number') settings.aimSmoothing = clamp(storedSettings.aimSmoothing, 0, 1);
     if (typeof storedSettings.padSensitivity === 'number') settings.padSensitivity = clamp(storedSettings.padSensitivity, 0.2, 3);
@@ -1113,6 +1117,7 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
         return clamp(Number.isFinite(n) ? n : fallback, lo, hi);
       };
       if (key === 'invertY') settings.invertY = !!value;
+      else if (key === 'leftHanded') settings.leftHanded = !!value;
       else if (key === 'showPerfMeter') settings.showPerfMeter = !!value;
       else if (key === 'showDebugHud') settings.showDebugHud = !!value;
       else if (key === 'armorAimOverlay') settings.armorAimOverlay = !!value;

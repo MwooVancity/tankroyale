@@ -122,3 +122,19 @@ if (holdStarts !== 3 || holdEnds !== 3 || fired !== 2 || cancelled !== 2) {
 }
 
 console.log('touchControls hybrid fire selftest passed');
+
+// Left-handed mirror: left/right swap (safe-area insets too), origins flip,
+// centered and in-control parts are left alone, non-touch rules ignored.
+{
+  const { mirrorLeftyRule } = await import('./touchControls.ts');
+  const m = (sel, d) => mirrorLeftyRule(sel, (p) => d[p] || '', (p) => (d[`!${p}`] ? 'important' : ''));
+  const fire = m('.cot-touch .fire', { right: 'max(20px, env(safe-area-inset-right))' });
+  if (fire !== 'body.cot-lefty .cot-touch .fire{left:max(20px, env(safe-area-inset-left));right:auto;}') throw new Error(`fire mirror: ${fire}`);
+  const dp = m("body.cot-touch-layout .cot-dp", { left: '232px', 'transform-origin': 'left bottom' });
+  if (dp !== 'body.cot-lefty.cot-touch-layout .cot-dp{left:auto;right:232px;transform-origin:right bottom;}') throw new Error(`dp mirror: ${dp}`);
+  if (m('.cot-touch .arrow.l', { left: '10px' }) || m('body.cot-touch-layout .cot-killfeed', { left: '50%' }) || m('.cot-hud .x', { left: '1px' })) {
+    throw new Error('mirror touched a part it must leave alone');
+  }
+  const imp = m('body.cot-touch-layout .cot-top', { left: 'calc(50% - 18px)' });
+  if (imp) throw new Error('centered rule mirrored');
+}
