@@ -33,6 +33,11 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
     on: () => { hid = pick().filter((o) => o.visible); hid.forEach((o) => { o.visible = false; }); },
     off: () => { hid.forEach((o) => { o.visible = true; }); hid = []; } }; };
   const propMeshes = (keep: (m: THREE.Mesh) => boolean) => { const out: THREE.Object3D[] = []; scene.getObjectByName('props')?.traverse((o) => { if ((o as THREE.Mesh).isMesh && keep(o as THREE.Mesh)) out.push(o); }); return out; };
+  const triCount = (m: THREE.Mesh) => { const g = m.geometry; return (g.index ? g.index.count : g.attributes.position.count) / 3; };
+  const vegMeshes = (keep: (m: THREE.Mesh) => boolean) => { const out: THREE.Object3D[] = []; scene.getObjectByName('vegetation')?.traverse((o) => { if ((o as THREE.Mesh).isMesh && keep(o as THREE.Mesh)) out.push(o); }); return out; };
+  const vegShadows = () => { let was: THREE.Mesh[] = []; return {
+    on: () => { was = vegMeshes((m) => m.castShadow) as THREE.Mesh[]; was.forEach((m) => { m.castShadow = false; }); },
+    off: () => { was.forEach((m) => { m.castShadow = true; }); was = []; } }; };
   const propShadows = () => { let was: THREE.Mesh[] = []; return {
     on: () => { was = propMeshes((m) => m.castShadow) as THREE.Mesh[]; was.forEach((m) => { m.castShadow = false; }); },
     off: () => { was.forEach((m) => { m.castShadow = true; }); was = []; } }; };
@@ -49,6 +54,9 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
     { name: 'ship+mediump', on: () => mediump(true), off: () => mediump(false) },
     { name: 'combo:scale0.5+noShadow+far200', on: () => { setScale(0.5); shadowCasters(false); far(true, 200); },
       off: () => { setScale(null); shadowCasters(true); far(false, 0); } },
+    // Lab #9 (2026-11-10): monsoon = 4.3 M tris on the Pixel 6a; split its vegetation.
+    { name: 'ship+hide:grassCards', ...hideObjs(() => vegMeshes((m) => triCount(m) <= 4)) },
+    { name: 'ship+trees:noShadowCast', ...vegShadows() },
     { name: 'ship-again', on: nop, off: nop },
   ];
   void propShadows; // lab #7 helper, kept for the prop split

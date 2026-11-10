@@ -10,7 +10,7 @@ import { registerPlugin } from '@capacitor/core';
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
 type Bus ={ on(ev: string, fn: (e: any) => void): void };
-type Native = { get(): Promise<{ scenario: number }>; finish(o: { json: string }): Promise<void> };
+type Native = { get(): Promise<{ scenario: number; map?: string }>; finish(o: { json: string }): Promise<void> };
 
 /** Frame intervals (ms) of one battle -> per-second fps p10/p50 and freezes > 2 s. */
 export function summarizeFrames(deltas: number[]) {
@@ -44,13 +44,17 @@ async function click(sel: string, maxMs: number) {
 
 export async function installAutoplay(bus: Bus): Promise<void> {
   let native: Native;
-  let scenario = 0;
+  let scenario = 0, map = '';
   try {
     native = registerPlugin<Native>('Autoplay');
-    scenario = (await native.get()).scenario || 0;
+    const got = await native.get();
+    scenario = got.scenario || 0;
+    map = got.map || '';
   } catch { return; } // web build / plugin missing: never autoplay
-  if (scenario !== 1) return;
-  console.info('[autoplay] scenario 1 start');
+  // Scenario 2 = scenario 1 on monsoon, the heaviest map (Game Loop passes only a number).
+  if (scenario === 2) map ||= 'monsoon';
+  else if (scenario !== 1) return;
+  console.info(`[autoplay] scenario ${scenario} start`);
   let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false, visAt = -1e9;
   bus.on('battle:rollout', () => { if (inBattle) return; presented = performance.now(); inBattle = true; deltas = []; last = 0; });
   bus.on('battle:ended', (e) => { ended = e?.result ?? 'ended'; inBattle = false; });
@@ -92,6 +96,16 @@ export async function installAutoplay(bus: Bus): Promise<void> {
   // Watchdog: a hang still writes what it has and ends the Game Loop.
   setTimeout(() => { void finish('watchdog'); }, AUTOPLAY_WATCHDOG_MS);
   await wait(8000); // garage settles
+  if (map) {
+    // Tap the map's card in the garage, like a player choosing it (id is [a-z0-9-], checked natively).
+    // The map grid can sit in a closed panel: click the card once it exists, visible or not.
+    let picked = false;
+    for (let t = 0; t < 30 && !picked; t++) {
+      const card = document.querySelector<HTMLElement>(`.mthumb.${map}`)?.closest<HTMLElement>('.cot-map-card');
+      if (card) { card.click(); picked = true; } else await wait(1000);
+    }
+    console.info(`[autoplay] map ${map} picked=${picked}`);
+  }
   for (let i = 0; i < 3; i++) {
     presented = 0; ended = null;
     const tapAt = performance.now();

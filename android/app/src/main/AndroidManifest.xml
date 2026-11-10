@@ -31,6 +31,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/javascript" />
             </intent-filter>
+            <!-- Game Loop scenarios: 1 = 3 Bots battles, 2 = same on monsoon (heaviest map) -->
+            <meta-data android:name="com.google.test.loops" android:value="2" />
 
         </activity>
 

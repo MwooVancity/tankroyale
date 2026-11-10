@@ -101,7 +101,7 @@ matrix = await api(`https://testing.googleapis.com/v1/projects/${PROJECT}/testMa
   body: JSON.stringify({
     // LOOP=1: Game Loop (the game's own autoplay, src/game/autoplay.ts) instead of a Robo crawl.
     testSpecification: { testTimeout: process.env.TIMEOUT || '420s', ...(process.env.LOOP
-      ? { androidTestLoop: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, scenarios: [1] } }
+      ? { androidTestLoop: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, scenarios: [Number(process.env.SCENARIO || 1)] } }
       : { androidRoboTest: { appApk: { gcsPath: `gs://${BUCKET}/${obj}` }, appPackageId: PKG, roboScript } }) },
     environmentMatrix: { androidDeviceList: { androidDevices: picked.map(({ name, ...d }) => d) } },
     resultStorage: { googleCloudStorage: { gcsPath: `gs://${BUCKET}/vc${VC}/results/${Date.now()}` } },

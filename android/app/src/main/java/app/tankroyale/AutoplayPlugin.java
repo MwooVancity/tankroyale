@@ -27,6 +27,9 @@ public class AutoplayPlugin extends Plugin {
         }
         JSObject r = new JSObject();
         r.put("scenario", scenario);
+        // Optional fixed map (`--es map monsoon`) so a run compares like with like.
+        String map = i == null ? null : i.getStringExtra("map");
+        if (map != null && map.matches("[a-z0-9-]{1,32}")) r.put("map", map);
         call.resolve(r);
     }
 
