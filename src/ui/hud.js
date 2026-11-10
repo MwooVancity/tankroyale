@@ -4075,6 +4075,14 @@ export function initHud(bus) {
       pushHitDirection(hit, playerRef);
     }
   });
+  // Phones hide the damage panel's BURNING label (touchControls.ts compact
+  // panel = HP row only), so a burning player saw flames but no call to use
+  // the extinguisher. Same alert lane as module damage; desktop keeps the label.
+  bus.on('tank:fire', (e) => {
+    if (playerId == null || e.id !== playerId || !document.body.classList.contains('cot-touch-layout')) return;
+    if (e.burning) showAlert('ON FIRE', { icon: 'extinguisher', tone: 'danger' });
+    else showAlert('FIRE OUT', { icon: 'extinguisher', tone: 'success' });
+  });
   bus.on('module:state', (p) => {
     if (playerId == null || p.id !== playerId || p.state === 'ok') return;
     const label = moduleAlertLabel(p.module);
