@@ -1,4 +1,15 @@
-import { createMobileFireGesture, nextQuickGraphicsPreset } from './touchControls.ts';
+import { createMobileFireGesture, nextQuickGraphicsPreset, shapeStick } from './touchControls.ts';
+
+// Drive stick: 6 px sideways wobble on a 47 px throw at full forward drives straight;
+// a deliberate quarter turn still steers; full deflection still reaches 1.
+{
+  const [wobbleX, fwd] = shapeStick(6 / 47, 1);
+  const [turnX] = shapeStick(0.25, 0.9);
+  const [fullX] = shapeStick(-1, 0);
+  if (wobbleX !== 0 || fwd !== 1 || !(turnX > 0.1) || fullX !== -1) {
+    throw new Error(`drive stick shaping wrong: ${wobbleX} ${fwd} ${turnX} ${fullX}`);
+  }
+}
 import { MOBILE_PRESET_ORDER, PRESETS } from '../engine/quality.ts';
 
 if (nextQuickGraphicsPreset('low') !== 'medium' ||

@@ -268,6 +268,19 @@ export interface MobileFireGesture {
   getState(): MobileFireGestureState;
 }
 
+/** Drive stick shaping (2026-11-10): the old 1 px dead zone let a thumb pushing
+ * "forward" 5-8 px off-centre steer 10-17%, so the tank curved. Each axis drops
+ * its first 15% and rescales the rest, so straight means straight and a
+ * deliberate small turn still turns. x/y in -1..1 (y forward). */
+export function shapeStick(x: number, y: number): [number, number] {
+  const band = (v: number): number => {
+    const a = Math.abs(v);
+    return a <= STICK_DEAD ? 0 : Math.sign(v) * Math.min(1, (a - STICK_DEAD) / (1 - STICK_DEAD));
+  };
+  return [band(x), band(y)];
+}
+const STICK_DEAD = 0.15;
+
 export function nextQuickGraphicsPreset(current: string, mobile = false): PresetName {
   const order: readonly PresetName[] = mobile ? MOBILE_PRESET_ORDER : PRESET_ORDER;
   const i = order.indexOf(current as PresetName);
@@ -472,7 +485,7 @@ export function createTouchControls({
     const len = Math.hypot(dx, dy);
     if (len > max) { dx *= max / len; dy *= max / len; }
     knob.style.transform = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
-    input.setVirtualMove(dx / max, -dy / max);
+    input.setVirtualMove(...shapeStick(dx / max, -dy / max));
   }
   joy.addEventListener('pointerdown', (e) => {
     e.preventDefault(); e.stopPropagation(); joyPointer = e.pointerId; root.classList.add("drove");

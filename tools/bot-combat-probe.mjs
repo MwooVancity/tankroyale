@@ -1,8 +1,8 @@
 // Shared bot-combat integration probe.
-// Runs real 7v7 setup through the fixed-step simulation and exports the full
+// Runs real 5v5 (or --team 7) setup through the fixed-step simulation and exports the full
 // DEV recorder plus per-team combat/fire-discipline telemetry.
 // Usage: node tools/bot-combat-probe.mjs [--seconds 90] [--tank m1a2]
-//   [--map verdant] [--out .qa-bots/bot-combat.json]
+//   [--map verdant] [--team 5] [--out .qa-bots/bot-combat.json]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
@@ -16,6 +16,7 @@ const opt = (name, fallback) => {
 const seconds = Math.max(30, Number(opt('seconds', '90')) || 90);
 const tankId = opt('tank', 'm1a2');
 const mapId = opt('map', 'verdant');
+const teamSize = Number(opt('team', '0')) || 0;
 const output = resolve(opt('out', '.qa-bots/bot-combat.json'));
 const port = 6100 + Math.floor(Math.random() * 300);
 const server = await createServer({
@@ -42,9 +43,11 @@ try {
     waitUntil: 'domcontentloaded', timeout: 120000,
   });
   await page.waitForFunction('window.__GAME_READY === true', { timeout: 180000 });
-  result = await page.evaluate(async ({ durationS, tankId: playerTank, mapId: battleMap }) => {
+  result = await page.evaluate(async ({ durationS, tankId: playerTank, mapId: battleMap, team }) => {
     const D = window.__DEBUG;
     const g = D.game;
+    if (team) D.flags.teamSize = team;
+    let firstShotS = null, firstSpotS = null;
     if (D.devTrace) D.devTrace.clear();
     const teamRow = () => ({ shots: 0, hits: 0, damage: 0, kills: 0, shooters: {} });
     const combat = { player: teamRow(), enemy: teamRow() };
@@ -55,7 +58,9 @@ try {
     const timeline = [];
     let firstDeathS = null;
     const off = [
+      D.bus.on('tank:spotted', () => { if (firstSpotS == null) firstSpotS = g.timeS; }),
       D.bus.on('shell:fired', (ev) => {
+        if (firstShotS == null) firstShotS = g.timeS;
         const shooter = g.tankById.get(ev.shooterId);
         if (!shooter || !combat[shooter.team]) return;
         const row = combat[shooter.team];
@@ -119,11 +124,11 @@ try {
     return {
       generatedAt: new Date().toISOString(), durationS, tankId: playerTank,
       mapId: battleMap, simTimeS: g.timeS,
-      result: g.result, firstDeathS, roster, combat, discipline, aggregate,
+      result: g.result, firstSpotS, firstShotS, firstDeathS, teamSize: g.tanks.length / 2, roster, combat, discipline, aggregate,
       controllers, timeline,
       trace: D.devTrace ? D.devTrace.snapshot() : null,
     };
-  }, { durationS: seconds, tankId, mapId });
+  }, { durationS: seconds, tankId, mapId, team: teamSize });
 } finally {
   await browser.close();
   await server.close();
@@ -142,6 +147,7 @@ mkdirSync(dirname(output), { recursive: true });
 writeFileSync(output, `${JSON.stringify(result, null, 2)}\n`);
 console.log(JSON.stringify({
   output, simTimeS: result.simTimeS, result: result.result,
+  teamSize: result.teamSize, firstSpotS: result.firstSpotS, firstShotS: result.firstShotS,
   firstDeathS: result.firstDeathS, combat: result.combat,
   discipline: result.discipline, aggregate: result.aggregate,
   trace: result.trace && result.trace.stats, checks,

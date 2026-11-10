@@ -72,6 +72,8 @@ type RosterPredicate = (entity: RosterEntity) => boolean;
 interface DebugFlags {
   forceRoster?: string[];
   rosterExact?: boolean;
+  /** tools/bot-combat-probe.mjs --team 7: compare against the old 7v7 */
+  teamSize?: number;
 }
 
 function debugFlags(): DebugFlags | null {
@@ -338,7 +340,7 @@ export function pickBattleParticipants(
 ): RosterEntity[] {
   const player = game.tankById.get(playerSpecId);
   if (!player) throw new Error(`unknown battle vehicle: ${playerSpecId}`);
-  const enemySlots = randomize ? SOLO_TEAM_SIZE * 2 - 1 : 7;
+  const enemySlots = randomize ? (debugFlags()?.teamSize || SOLO_TEAM_SIZE) * 2 - 1 : 7;
   // PERF (performance_budget r3, certification determinism): an explicit
   // debug roster bypasses the seeded shuffle/era matchmaking so the perf
   // gate measures a PINNED worst-case lineup (all multi-mesh GLB heavies)
