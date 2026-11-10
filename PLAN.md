@@ -2,6 +2,7 @@
 
 **Goal:** a playable Android game on Google Play (app.tankroyale) that lifts the 2.25-star rating ("couldn't even play").
 **Reader:** a phone player starting a Bots battle.
+**Owner goal (2026-11-09, via PM):** $1,500/month from ads and 5-star reviews. No paid or rewarded reviews (Play bans them). Path: lag, tap-to-battle time, download size, rating box proven after a win.
 
 ## Numbers (dated)
 - 2026-11-09: props on the desktop (`node tools/prop-tris.mjs <map>`, no phone): skybridge 83 prop meshes / 0.53 M triangles, frontier 90 / 0.38 M (before LOD, wrecks not counted). Top families: utility poles 2,976 triangles each (already swap to a light model past 105-120 m), big sandbags 7,168 each, rocks ~320 x 278 instances. No single family dominates, and lab #6 showed hiding props saves ~9 ms of MAIN THREAD (-94 calls), so the lever is draw submissions, not triangles. Lab #7 rows (queued for 2026-11-10): props shadow casting off / instanced props hidden / merged props hidden.
@@ -98,11 +99,14 @@ Parent-session additions:
 - Play: versionCode above production; staged rollout 20%, then 100% after a crash-free day.
 
 ## Next (ranked 2026-11-09 by what a tank fan feels; invisible fixes first)
+0. RELEASE RULE (owner 2026-11-09, via PM): sharpness + button fix + size cuts go to production only after the 2026-11-10 Pixel 6a run passes: smaller pictures look right on a screenshot, 0 crashes, slowest moments (p10) not worse than vc887's 21.2. Bundle item 1's prop fix if ready.
+   Edge cases: p10 noise between battles hides a real drop (test: same map seed as vc887, compare p10 and p50); a blurry map picture only shows on a 2400 px screen (test: Test Lab screenshot of the loading screen).
 1. WAITING 2026-11-10 (Test Lab: today's 5 runs used). Lag in fights (the only review this week: "it lags a lot"). Proven cost: props in view (hide props 28 -> 37 fps, lab #6). Do: log prop triangles per family (lab build logs it), then lighter far models past ~120 m for the top families and no shadows from props outside the near cascade. Release 1.10x (with native output + button fix) only if p10 rises on Pixel 6a.
    Edge cases: a far model swap pops visibly (test: screenshot pair at the swap distance); instanced destructibles break into debris at the wrong detail (test: break a far prop, debris shows); shadow pass still includes map-wide merged meshes (test: lab calls/tris with prop shadows off); a different map (skybridge vs frontier) has a different top family (test: breakdown on 2 maps).
 2. WAITING 2026-11-10 (Test Lab: today's 5 runs used). Tap to battle: load 21.5-23 s, "Preparing player vehicle" 5.2 s, "Finishing camouflage" 1.8 s. Do: find what the 5.2 s does (asset fetch, geometry build, texture upload) and warm it while the player sits in the garage. Check whether the 61 s before the first stage is only the Robo script's 45 s wait.
    Edge cases: warming in the garage stalls the garage frame (test: garage fps during warm); player switches tank after warm (test: second tank still loads right); cold first run with no cache (test: Test Lab fresh install load time).
 3. DONE 2026-11-09 for this round (about -72 MB, see below; Android check of textures and pictures rides on item 1's run). Download size 217 MB APK. 2026-11-09: app web files measured 169 MB after CI pruning (media 48, textures 44, maps 35, icons 27, code 10). Media pruning now per file and only from code the game reaches (website docs-page chunks no longer keep site media): media 48 -> 30 MB, about -18 MB (desktop build, CI steps replayed). Terrain/building textures re-encoded JPG -> WebP q90: 45.3 -> 11.7 MB (all 8 sets are used, so no deletion possible). Map loading pictures downscaled 4K -> 2400x1350 in the native build only (CI step tools/native-downscale-maps.py; website keeps 4K): 31.8 -> 12.2 MB. Total about -72 MB. Not yet seen on Android (texture look + load). Left: showcase-r1 (17 MB, studio archive), maps 35, icons 27 (tank-assets.json 4.4 MB).
+   2026-11-09 CI #111 (f232c052, real cloud build): app web files 100 MB (was 169 MB), 20 map pictures resized, release AAB 95.5 MB (Play splits it per phone, so the download is smaller).
    Edge cases: a file only one map or tank uses gets cut (test: tank-assets check + every map boots in a selftest); CI's strip step and a local build differ (test: compare APK file lists).
 4. WAITING 2026-11-10 (Test Lab: today's 5 runs used). Tank feel: watch one full Bots battle video on Test Lab and write what a tank fan would miss (hit marker, ricochet feedback, reload readout, engine sound, track marks); fix the cheapest gaps.
    Edge cases: a feedback effect costs fps in fights (test: Pixel 6a p10 before/after); audio missing on Android only (test: logcat audio errors).
@@ -111,14 +115,15 @@ Parent-session additions:
 6. WAITING 2026-11-10 (needs its own session: mid-match connection swap in channelTransport + two-device relay soak). Online, not fixed: a mid-match Wi-Fi to LTE switch cannot fall back to the relay (`webrtcPeer.ts` activateRelay); a known player id can take over a seat (`server/roomStore.ts`).
    Edge cases: relay switch during a shot (test: relayGrace selftest extended to mid-match switch).
 7. WAITING (after item 1 passes). Budget phones (Galaxy A13 / Helio G85 class, 2-4x weaker than a Pixel 6a): a Test Lab run on one once the Pixel 6a passes.
-8. WAITING 2026-11-16 (weekly). Android vitals: rerun `tools/play-health.mjs` weekly; once rows appear, fix the top crash/ANR clusters.
+8. WAITING 2026-11-16 (weekly). Android vitals: rerun `tools/play-health.mjs` weekly; once rows appear, fix the top crash/ANR clusters. Same run, progress to $1,500/month: daily active players = its `distinctUsers` (Play reports it only once enough users), ad revenue per day = AdMob (the Play service account cannot read AdMob; AdMob's API needs the owner's own Google sign-in). Log one dated line here each week: players/day, $/day, $/month pace.
+   Edge cases: no vitals rows (too few users) reads as 0 players (test: print "no rows" not 0, already done); AdMob day ends in Pacific time, Play in UTC (test: label each number's time zone).
 DONE: in-app review prompt (built, Android proof pending in 5); store listing (LIVE 2026-11-09); first 60 seconds (no sign-in, one tap, drive hint seen on Android vc887); native-resolution output (vc887); Lambert terrain; HUD writes only on change.
 ## Owner approval needed (drafts, NOT posted)
 - (Done 2026-11-09: listing pushed.)
 - (Done 2026-11-09: 101 released, owner "Yes both".)
-- Reply to review 11d74d68-5faa-47d9-9a2c-98126c35159f (2 stars, vc87, Russian). Draft:
-  "Спасибо, что написали! Следующее обновление после версии 1.87 снижает нагрузку в тяжёлых боях: разрешение само уменьшается, меньше дыма, интерфейс работает легче. Уже сейчас можно нажать GFX в бою и выбрать «Performance». Когда выйдет обновление, напишите, пожалуйста, стало ли лучше."
-  (English: "Thanks for writing! The next update after 1.87 lowers the load in heavy fights: resolution drops by itself, less smoke, lighter interface. You can already tap GFX in battle and pick Performance. Once the update is out, please tell us if it is better.") Post only after that update is in production.
+- Reply to review 11d74d68-5faa-47d9-9a2c-98126c35159f (2 stars, vc87, Russian). Text the owner picked in the PM chat 2026-11-09:
+  "Спасибо, что играете! Версия 1.101 работает плавнее — пожалуйста, обновитесь. Скоро будут новые исправления производительности."
+  ("Thanks for playing! Version 1.101 is smoother, please update. More speed fixes are coming soon.") Posting is public, so it needs the owner's yes in this session's chat (a relayed pick does not count).
 
 ## Owner-only
 - Play Console: declare Trader status; confirm "Contains ads" and advertising ID in Data safety.
