@@ -1483,6 +1483,7 @@ function buildOakFarGeometry(
   rng: RandomSource,
   pal: VegetationPalette = {},
   fvi = 0,
+  massOnly = false,
 ): FarTreeGeometryPair {
   const cp = pal.canopy || {};
   const hue = cp.hue ?? 0.24, sat = cp.sat ?? 0.30, l0 = cp.l0 ?? 0.235, l1 = cp.l1 ?? 0.36;
@@ -1503,6 +1504,10 @@ function buildOakFarGeometry(
   // shade gradient bottom -> crown
   const nLobes = 6 + ((rng() * 3) | 0);
   for (let b = 0; b < nLobes; b++) {
+    // Performance (2026-11-10): monsoon's ~6,600 far oaks were 1.05 M of the Pixel 6a's
+    // 4.2 M tris. Keep the 3 mass lobes (the silhouette), drop the small satellite tufts.
+    // Own rng per geometry, so tree placement (shared online) is untouched.
+    if (massOnly && b >= 3) break;
     const big = b === 0 ? 1 : (b < 3 ? 0.62 + rng() * 0.32 : 0.30 + rng() * 0.26);
     // PERF (performance_budget r3): icosa detail 1 -> 0 on every far-LOD
     // canopy lobe. These lobes render ONLY beyond TREE_NEAR_IN (260 m), where
@@ -1823,8 +1828,11 @@ function* vegetationBuildSteps(
   const liteGrass = !!getPreset().liteMaterials;
   const grassFadeEnd = liteGrass ? 70 : mobileTier ? 132 : GRASS_FADE_END;
   const grassTaperEnd = liteGrass ? 58 : mobileTier ? 112 : 155;
-  const treeNearIn = mobileTier ? 200 : TREE_NEAR_IN;
-  const treeNearOut = mobileTier ? 225 : TREE_NEAR_OUT;
+  // Performance (2026-11-10): Pixel 6a on monsoon drew 4.2 M tris (14 fps slowest
+  // moments); hiding vegetation alone gave 40 fps (lab #9). Full-detail trees
+  // stop at 130 m instead of 200 m (60% less area); the far silhouettes carry the rest.
+  const treeNearIn = liteGrass ? 130 : mobileTier ? 200 : TREE_NEAR_IN;
+  const treeNearOut = liteGrass ? 150 : mobileTier ? 225 : TREE_NEAR_OUT;
   const veg: VegetationConfig = {
     species: ['pine', 'oak'],
     clusterMix: [['pine', 0.55], ['oak', 0.45]],
@@ -2739,7 +2747,7 @@ function* vegetationBuildSteps(
         cards: buildBroadleafCards(mulberry32(seed + 67 + k * 7),
           OAK_SHAPES[k % 3].n, 1.0, pal, OAK_SHAPES[k % 3]),
       }),
-      far: (r, pal, k) => buildOakFarGeometry(r, pal, k),
+      far: (r, pal, k) => buildOakFarGeometry(r, pal, k, !!getPreset().liteMaterials),
     },
     palm: {
       texSeed: 53, nearSeed: 81, farSeed: 75,

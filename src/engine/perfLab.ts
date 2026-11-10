@@ -85,6 +85,18 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
     });
     fam.sort((a, z) => parseInt(z, 10) - parseInt(a, 10));
     console.info(`[lab] props ${fam.length} meshes, top: ${fam.slice(0, 25).join(' ')}`);
+    // Lab #9: same for vegetation, visible meshes only (update() swaps LOD pools at runtime).
+    const vf: string[] = [];
+    let vsum = 0;
+    scene.getObjectByName('vegetation')?.traverseVisible((o) => {
+      const m = o as THREE.Mesh & { count?: number; isInstancedMesh?: boolean };
+      if (!m.isMesh || !m.geometry) return;
+      const n = m.isInstancedMesh ? (m.count ?? 1) : 1, t = triCount(m) * n;
+      vsum += t;
+      vf.push(`${Math.round(t)}:${m.isInstancedMesh ? 'I' + n + 'x' + triCount(m) : 'M'}:${m.name || (m.material as THREE.Material)?.name || 'mesh'}:shadow=${m.castShadow ? 1 : 0}`);
+    });
+    vf.sort((a, z) => parseInt(z, 10) - parseInt(a, 10));
+    console.info(`[lab] vegetation visible ${vf.length} meshes ${(vsum / 1e6).toFixed(2)} M tris, top: ${vf.slice(0, 20).join(' ')}`);
   };
 
   let firstAt = 0, idx = -1, phaseAt = 0, frames = 0, sumMs = 0, sumCpu = 0, sumRenderJs = 0, calls = 0, tris = 0, lastAt = 0, done = false;
