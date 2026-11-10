@@ -53,3 +53,11 @@ assert.ok(releasedDirection.angleTo(heldDirection) < 1e-9,
   'releasing gun hold leaves the camera at the current aim without snapping back');
 
 console.log('cameraRig.selftest: live gun-hold sight and snap-free release passed');
+
+// Auto-zoom by lock distance snaps to the existing sniper steps.
+{
+  const { autoZoomFor } = await import('./cameraRig.ts');
+  const base = [2, 4, 8];
+  const got = [100, 200, 350, 450, 800, 2000].map((d) => autoZoomFor(d, base)).join(',');
+  if (got !== '2,2,4,4,8,8') throw new Error(`auto-zoom steps wrong: ${got}`);
+}

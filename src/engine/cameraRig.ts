@@ -74,6 +74,13 @@ const SHAKE_AMP_XY = 0.045;
 const SHAKE_AMP_Z = 0.03;
 const SNIPER_SHAKE_SCALE = 0.3;
 const AUTO_AIM_FOLLOW_TAU_S = 0.10; // Blitz-style lock settles quickly without snapping
+// Auto-zoom while scoped on a lock: one zoom unit per 100 m (200 m = x2,
+// 400 m = x4, 800 m = x8), snapped to the existing steps. Keeps a locked
+// tank about the same size on a 6" screen.
+const AUTO_ZOOM_M_PER_X = 100;
+export function autoZoomFor(distanceM: number, zooms: readonly number[]): number {
+  return zooms[nearestZoomIndex(distanceM / AUTO_ZOOM_M_PER_X, zooms)];
+}
 
 const _pivotTarget = new THREE.Vector3();
 const _desired = new THREE.Vector3();
@@ -247,6 +254,8 @@ export function createCameraRig(
   // snap? Gates enterSniper's dirt-guard scan-lift — once the player owns the
   // pitch, scoping preserves it exactly (see enterSniper).
   let aimTouched = false;
+  // A manual zoom during a lock wins until that lock ends.
+  let autoZoomManual = false;
   // gunnery r1: RMB hold-to-aim edge state (camInput.aimHold).
   let prevAimHold = false;
   let aimHoldLatched = false;
@@ -803,6 +812,7 @@ export function createCameraRig(
       // Consume ALL wheel notches accumulated this frame (main.ts clamps to
       // ±3): fast flicks used to collapse to one step per render frame.
       if (camInput.wheel) {
+        if (camInput.autoAimPoint) autoZoomManual = true;
         const wDir = camInput.wheel > 0 ? 1 : -1;
         for (let n = Math.min(Math.abs(camInput.wheel | 0), 3); n > 0; n--) stepZoom(wDir);
       }
@@ -834,8 +844,11 @@ export function createCameraRig(
           aimYaw += wrapPi(wantYaw - aimYaw) * follow;
           aimPitch += (wantPitch - aimPitch) * follow;
           aimTouched = true;
+          if (rig.mode === 'SNIPER' && !autoZoomManual) {
+            rig.zoom = autoZoomFor(horiz, rig._increasedZoom ? SNIPER_ZOOMS_FULL : SNIPER_ZOOMS_BASE);
+          }
         }
-      }
+      } else autoZoomManual = false;
 
       applyPlayerVisibility(player, rig.mode !== 'SNIPER');
       if (rig.mode === 'ARCADE') solveArcade(player, dt, false);
