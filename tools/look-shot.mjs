@@ -17,6 +17,15 @@ try {
     await page.waitForFunction('window.__GAME_READY === true', { timeout: 240000 });
     await page.evaluate(async (m) => { await window.__DEBUG.startBattle('m1a2', m); window.__DEBUG.fastForward(6); }, map);
     await new Promise((r) => setTimeout(r, 6000));
+    // HIDE=props,vegetation: hide named scene groups to find what draws a defect.
+    if (process.env.HIDE) {
+      console.log('groups', await page.evaluate((names) => {
+        const scene = window.__DEBUG.scene || window.__DEBUG.engineCtx?.scene;
+        for (const n of names) { const o = scene?.getObjectByName(n); if (o) o.visible = false; }
+        return scene ? scene.children.map((c) => c.name || c.type).join(',') : 'no scene';
+      }, process.env.HIDE.split(',')));
+      await new Promise((r) => setTimeout(r, 1500));
+    }
     await page.screenshot({ path: resolve(OUT, `${map}-${TAG}.png`) });
     console.log('shot', map, TAG);
     await page.close();
