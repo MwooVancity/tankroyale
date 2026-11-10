@@ -36,16 +36,22 @@ export function createPerfLab(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   const propShadows = () => { let was: THREE.Mesh[] = []; return {
     on: () => { was = propMeshes((m) => m.castShadow) as THREE.Mesh[]; was.forEach((m) => { m.castShadow = false; }); },
     off: () => { was.forEach((m) => { m.castShadow = true; }); was = []; } }; };
+  const veg = hideObjs(() => named('vegetation')), props = hideObjs(() => named('props'));
   const cfgs: Cfg[] = [
     { name: 'ship', on: nop, off: nop },
-    // Lab #7: lab #6 said props cost ~9 ms main thread (-94 calls). Split it.
-    { name: 'ship+props:noShadowCast', ...propShadows() },
-    { name: 'ship+hide:propsInstanced', ...hideObjs(() => propMeshes((m) => !!(m as THREE.InstancedMesh).isInstancedMesh)) },
-    { name: 'ship+hide:propsMerged', ...hideObjs(() => propMeshes((m) => !(m as THREE.InstancedMesh).isInstancedMesh)) },
-    { name: 'ship+hide:props', ...hideObjs(() => named('props')) },
-    { name: 'ship+hide:vegetation', ...hideObjs(() => named('vegetation')) },
+    // Lab #8 (2026-11-10): moto g05 (Mali-G52 MC2) ran ~4 fps, render ~200 ms/frame
+    // on Performance. Which lever rescues a weak GPU?
+    { name: 'ship+scale0.5', ...scaled(0.5) },
+    { name: 'ship+shadows:off', on: () => shadowCasters(false), off: () => shadowCasters(true) },
+    { name: 'ship+hide:vegetation', ...veg },
+    { name: 'ship+hide:props', ...props },
+    { name: 'ship+far200', on: () => far(true, 200), off: () => far(false, 0) },
+    { name: 'ship+mediump', on: () => mediump(true), off: () => mediump(false) },
+    { name: 'combo:scale0.5+noShadow+far200', on: () => { setScale(0.5); shadowCasters(false); far(true, 200); },
+      off: () => { setScale(null); shadowCasters(true); far(false, 0); } },
     { name: 'ship-again', on: nop, off: nop },
   ];
+  void propShadows; // lab #7 helper, kept for the prop split
   // Then hide each big top-level scene group, one at a time (full chain).
   let groupsAdded = false;
   const addGroups = () => {
