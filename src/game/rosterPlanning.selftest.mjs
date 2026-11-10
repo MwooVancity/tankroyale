@@ -13,7 +13,7 @@ const again = planBattleParticipantIds(game, 'm1a2', true);
 assert.equal(game.battleCount, beforeCount, 'planning does not consume a battle ordinal');
 assert.deepEqual(again, first, 'planning is deterministic until a battle starts');
 assert.equal(first[0], 'm1a2', 'player remains the first participant');
-assert.equal(first.length, 14, 'random battle plan covers the full 7v7 roster');
+assert.equal(first.length, 10, 'random battle plan covers the full 5v5 roster');
 assert.equal(new Set(first).size, first.length, 'planned participant ids are unique');
 const firstCamo = planBattleCamoOverrides(game, 'm1a2', 'verdant', true);
 assert.deepEqual(planBattleCamoOverrides(game, 'm1a2', 'verdant', true), firstCamo,

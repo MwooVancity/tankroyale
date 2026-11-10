@@ -9,7 +9,7 @@ import { getSpec, TANK_IDS, RUNTIME_TANK_IDS } from '../vehicles/specs.js';
 import { createTank } from '../vehicles/fleetFactory.ts';
 import { tankTier } from '../vehicles/tier.ts';
 import { isGarageVisibleTankId, rankMatchCandidates } from './matchmaking.ts';
-import { getDeviceTier, soloTeamSize } from '../engine/quality.ts';
+import { getDeviceTier } from '../engine/quality.ts';
 import { mulberry32 } from './stateCore.ts';
 
 interface BattleVisual {
@@ -325,6 +325,11 @@ function textureQualityFor(game: RosterGameState, ent: RosterEntity) {
  * rosters include community vehicles.
  * @returns {object[]} TankEntity[] (player's entity included)
  */
+/** Tanks per side in a Bots battle. Owner 2026-11-10: 5v5 on every device
+ * (was 7v7); fewer tanks = more frame time on phones. Online rooms pick 1-5 in
+ * the menu; the server still accepts up to 7 for clients from before 5v5. */
+export const SOLO_TEAM_SIZE = 5;
+
 export function pickBattleParticipants(
   game: RosterGameState,
   playerSpecId: string,
@@ -333,7 +338,7 @@ export function pickBattleParticipants(
 ): RosterEntity[] {
   const player = game.tankById.get(playerSpecId);
   if (!player) throw new Error(`unknown battle vehicle: ${playerSpecId}`);
-  const enemySlots = randomize ? soloTeamSize() * 2 - 1 : 7;
+  const enemySlots = randomize ? SOLO_TEAM_SIZE * 2 - 1 : 7;
   // PERF (performance_budget r3, certification determinism): an explicit
   // debug roster bypasses the seeded shuffle/era matchmaking so the perf
   // gate measures a PINNED worst-case lineup (all multi-mesh GLB heavies)

@@ -45,13 +45,9 @@ for (const gpu of ['Mali-G52 MC2', 'Mali-G57 MC2', 'Mali-G57', 'PowerVR Rogue GE
 for (const gpu of ['Mali-G78 MP20', 'Mali-G57 MC3', 'Adreno (TM) 618', 'Adreno (TM) 650', 'Mali-G610 MC6', '']) {
   assert.equal(liteFor(gpu), false, `${gpu || 'masked GPU'} is not Lite`);
 }
-assert.equal(liteFor('Mali-G52 MC2') && mobile.soloTeamSize(), 7, 'Lite stays 7v7 until the g05 run decides');
-mobile.setLiteTeamSize(5);
-assert.equal(mobile.soloTeamSize(), 5);
+mobile.noteGpuRenderer('Mali-G52 MC2');
 mobile.setMobilePresetName('mobile');
 assert.equal(mobile.isLitePhone(), false, 'picking Balanced leaves Lite');
-assert.equal(mobile.soloTeamSize(), 7, 'non-Lite phones keep 7v7');
-mobile.setLiteTeamSize(7);
 mobile.noteGpuRenderer('');
 
 const desktopBrowser = installBrowser('?tier=desktop');

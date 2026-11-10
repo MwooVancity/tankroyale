@@ -657,7 +657,6 @@ export function createPlayMenu({
                 <button class="menu-select-option" type="button" role="option" data-value="2" data-label="2 vs 2" aria-selected="true">2 vs 2</button>
                 <button class="menu-select-option" type="button" role="option" data-value="3" data-label="3 vs 3" aria-selected="false">3 vs 3</button>
                 <button class="menu-select-option" type="button" role="option" data-value="5" data-label="5 vs 5" aria-selected="false">5 vs 5</button>
-                <button class="menu-select-option" type="button" role="option" data-value="7" data-label="7 vs 7" aria-selected="false">7 vs 7</button>
               </div>
             </div></div>
             <button class="action" data-action="create" type="button">Create room</button></div></div>
@@ -705,7 +704,6 @@ export function createPlayMenu({
                 <button class="menu-select-option" type="button" role="option" data-value="2" data-label="2 vs 2" aria-selected="false">2 vs 2</button>
                 <button class="menu-select-option" type="button" role="option" data-value="3" data-label="3 vs 3" aria-selected="false">3 vs 3</button>
                 <button class="menu-select-option" type="button" role="option" data-value="5" data-label="5 vs 5" aria-selected="false">5 vs 5</button>
-                <button class="menu-select-option" type="button" role="option" data-value="7" data-label="7 vs 7" aria-selected="false">7 vs 7</button>
               </div></div></div></div>
         <div class="control-actions"><button class="action alt leave-room" data-action="leave" type="button">Leave room</button>
           <button class="action alt" data-action="ready" type="button">I'm ready</button>
@@ -715,7 +713,7 @@ export function createPlayMenu({
     <section class="ranked"><div class="ranked-form">
       <label>Commander name<input data-ranked="name" maxlength="24" autocomplete="nickname"></label>
       <label>Match service<input data-ranked="service" spellcheck="false"></label>
-      <label>Format<select data-ranked="size"><option value="1">1 vs 1</option><option value="2">2 vs 2</option><option value="3">3 vs 3</option><option value="5">5 vs 5</option><option value="7">7 vs 7</option></select></label>
+      <label>Format<select data-ranked="size"><option value="1">1 vs 1</option><option value="2">2 vs 2</option><option value="3">3 vs 3</option><option value="5">5 vs 5</option></select></label>
       <button class="action" data-ranked="queue" type="button">Find match</button>
       <button class="action alt" data-ranked="cancel" type="button" disabled>Cancel</button>
     </div><div class="rank-profile"></div><div class="ladder"></div></section></div>`;
@@ -813,7 +811,7 @@ export function createPlayMenu({
     ? automaticPlayerName(ownPlayerId)
     : storedPlayerName;
   const storedRoomSize = Number(stored(ROOM_SIZE_KEY, '2'));
-  createSizeSelect.value = ['1', '2', '3', '5', '7'].includes(String(storedRoomSize))
+  createSizeSelect.value = ['1', '2', '3', '5'].includes(String(storedRoomSize))
     ? String(storedRoomSize) : '2';
   rankedName.value = nameInput.value;
   rankedSize.value = createSizeSelect.value;

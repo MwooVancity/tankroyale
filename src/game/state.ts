@@ -66,7 +66,6 @@ import { createAI, roleOf } from './ai.ts';
 import { createBotNavigationGrid, planBotRoute } from '../sim/botRoutePlanner.ts';
 import { pushHullFromHull, pushHullFromObstacle } from '../world/collision.ts';
 import { getStoredDifficulty } from './input.ts';
-import { isLitePhone, soloTeamSize } from '../engine/quality.ts';
 // SPOTTING WIRING: concealment/spotting sim + camo-paint bonus source
 import { createSpottingSystem, CAMO_PAINT_BONUS } from '../sim/spotting.ts';
 import { hasCamoPaint, setCamoOverride, clearCamoOverrides, applyCamoPatterns } from '../vehicles/materials.js';
@@ -226,7 +225,7 @@ interface SoloGameState extends Omit<RosterGameState, 'allTanks' | 'tankById' | 
   nextShellId: number;
   timeS: number;
   fireTickAcc: number;
-  /** sim steps per bot think: 1 = every step; Lite phones 6 (set per battle) */
+  /** sim steps per bot think (set per battle); unset = every step */
   botThinkEvery?: number;
   combatRng: RandomSource;
   result: 'victory' | 'defeat' | 'draw' | null;
@@ -525,9 +524,7 @@ export function setupBattle(
   game.modeEvents.length = 0;
   game.battleCount++;
   game.openingRouteJobs.length = 0;
-  const lite = isLitePhone();
-  game.botThinkEvery = lite ? 6 : 1;
-  if (lite) console.info(`[lite] bots think at 10 Hz, ${soloTeamSize()}v${soloTeamSize()} Bots battles`);
+  game.botThinkEvery = BOT_THINK_EVERY;
 
   // COMMUNITY TANKS: field the participants; park everyone else (hidden,
   // null state/combat — every sim/HUD/audio consumer guards on those).
@@ -664,7 +661,7 @@ export function setupBattle(
     // flags.rosterExact (perf A/B tooling): a pinned short roster splits at
     // the LEGACY ally count (3) so an 8-tank control battle mirrors the old
     // 4v4 shape instead of 7v1.
-    // Lite 5v5 (quality.ts soloTeamSize): 9 non-players split 4 allies + 5 enemies.
+    // 5v5 (rosterState SOLO_TEAM_SIZE): 9 non-players split 4 allies + 5 enemies.
     const exactCap = soloDebugFlags()?.rosterExact &&
       nonPlayers.length < 13 ? 3 : Math.floor(nonPlayers.length / 2);
     const allyCap = Math.min(exactCap, Math.max(1, nonPlayers.length - 1));
@@ -1812,6 +1809,9 @@ function tickRepairs(game: SoloGameState, bus: EventBus, dt: number): void {
  * @param {object} collider makeCollide bundle (created once via createCollider)
  * @returns {void}
  */
+/** Bot AI every 6th 60 Hz step = 10 Hz (2026-11-10: AI 0.48 -> 0.28 ms/frame on the emulator). */
+const BOT_THINK_EVERY = 6;
+
 export function simStep(
   game: SoloGameState,
   bus: EventBus,
@@ -1856,7 +1856,7 @@ export function simStep(
   // frame, summed over this frame's fixed steps; post.ts' [perf] split prints them.
   const simParts = ((globalThis as { __simParts?: { ai: number; move: number; steps: number } }).__simParts ??= { ai: 0, move: 0, steps: 0 });
   let partAt = performance.now();
-  // Lite phones (quality.ts isLitePhone): each bot thinks every 6th step (10 Hz),
+  // Each bot thinks every BOT_THINK_EVERY-th step (10 Hz),
   // staggered by slot so one step never carries every bot. Driving and turret
   // traverse still run every step on the held inputs; a shot leaves only on a
   // think step, so it always follows a fresh aim check.

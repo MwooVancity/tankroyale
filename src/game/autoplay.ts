@@ -6,7 +6,7 @@
 // through the same buttons a player taps. The game times itself (Test Lab's
 // fps metric does not see WebView frames) and writes one JSON result.
 import { registerPlugin } from '@capacitor/core';
-import { forceLitePhone, isLitePhone, setLiteTeamSize, soloTeamSize } from '../engine/quality.ts';
+import { forceLitePhone, isLitePhone } from '../engine/quality.ts';
 
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
@@ -54,13 +54,16 @@ export async function installAutoplay(bus: Bus): Promise<void> {
     if (got.lite) forceLitePhone();
   } catch { return; } // web build / plugin missing: never autoplay
   // Scenario 2 = scenario 1 on monsoon, the heaviest map (Game Loop passes only a number).
-  // Scenario 3 = scenario 1 with 5v5 on a Lite phone (owner's g05 test of fewer bots).
   if (scenario === 2) map ||= 'monsoon';
-  else if (scenario === 3) setLiteTeamSize(5);
   else if (scenario !== 1) return;
-  console.info(`[autoplay] scenario ${scenario} start lite=${isLitePhone()} teamSize=${soloTeamSize()}`);
+  console.info(`[autoplay] scenario ${scenario} start lite=${isLitePhone()}`);
   let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false, visAt = -1e9;
-  bus.on('battle:rollout', () => { if (inBattle) return; presented = performance.now(); inBattle = true; deltas = []; last = 0; });
+  // 5v5 check (owner 2026-11-10): seconds from rollout to the first spotting and first shell.
+  let firstSpotS: number | null = null, firstShotS: number | null = null;
+  const sinceRollout = () => Math.round((performance.now() - presented) / 100) / 10;
+  bus.on('battle:rollout', () => { if (inBattle) return; presented = performance.now(); inBattle = true; deltas = []; last = 0; firstSpotS = firstShotS = null; });
+  bus.on('tank:spotted', () => { if (inBattle && firstSpotS === null) firstSpotS = sinceRollout(); });
+  bus.on('shell:fired', () => { if (inBattle && firstShotS === null) firstShotS = sinceRollout(); });
   bus.on('battle:ended', (e) => { ended = e?.result ?? 'ended'; inBattle = false; });
   const frame = (t: number) => {
     // Background time is not a freeze (home button, screen off).
@@ -70,7 +73,7 @@ export async function installAutoplay(bus: Bus): Promise<void> {
   };
   requestAnimationFrame(frame);
 
-  const out: Record<string, unknown> = { scenario, lite: isLitePhone(), teamSize: soloTeamSize(), battles: [] as unknown[], errors: 0, resumeMs: [] as number[] };
+  const out: Record<string, unknown> = { scenario, lite: isLitePhone(), battles: [] as unknown[], errors: 0, resumeMs: [] as number[] };
   addEventListener('error', () => { (out.errors as number)++; });
   // Render loop must come back after home / screen off: time from visible to the next frame.
   document.addEventListener('visibilitychange', () => {
@@ -118,7 +121,8 @@ export async function installAutoplay(bus: Bus): Promise<void> {
     while (!presented && performance.now() - tapAt < 180000) await wait(500);
     battle.tapToFightMs = presented ? Math.round(presented - tapAt) : null; // load + countdown
     while (presented && ended === null && performance.now() - presented < 600000) await wait(1000);
-    Object.assign(battle, { result: ended }, summarizeFrames(deltas));
+    const matchS = presented ? sinceRollout() : null;
+    Object.assign(battle, { result: ended, matchS, firstSpotS, firstShotS }, summarizeFrames(deltas));
     (out.battles as unknown[]).push(battle);
     console.info(`[autoplay] battle ${i + 1} ${JSON.stringify(battle)}`);
     if (!presented || ended === null) break;

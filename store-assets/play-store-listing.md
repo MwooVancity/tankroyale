@@ -9,16 +9,16 @@ a listing change is a public edit and needs the owner's OK (PLAN.md, D13).
 Tank Royale: Tank Battle 3D
 
 ## Short description (max 80 chars)
-Tank battle game: 7v7 vs bots offline or online. 130 tanks, 20 maps, free.
+Tank battle game: 5v5 vs bots offline or online. 130 tanks, 20 maps, free.
 
 ## Full description (max 4000 chars)
 
-Pick a tank and fight a 7v7 tank battle in under a minute. No account, no sign-in.
+Pick a tank and fight a 5v5 tank battle in under a minute. No account, no sign-in.
 
 **Play right away**
 - Solo battles against bots: no waiting for a lobby, works without internet
-- 7v7 team battles, 7-minute rounds sized for a phone
-- Online rooms: share a room code and play with friends
+- 5v5 team battles, 7-minute rounds sized for a phone
+- Online rooms up to 5v5: share a room code and play with friends
 
 **Real tank combat**
 - Armor angle matters: every shot's penetration is calculated
@@ -37,7 +37,7 @@ Pick a tank and fight a 7v7 tank battle in under a minute. No account, no sign-i
 ---
 
 ## Claim sources
-- 7v7: Test Lab vc882 battle started with 7 allies + 7 enemies.
+- 5v5 (changed from 7v7 2026-11-10, owner): rosterState SOLO_TEAM_SIZE = 5; emulator Android 15 vc907+ battles log bots=5/5 (4 allies + player, 5 enemies). Online room menus offer 1-5 per side.
 - 130 tanks: tankAssets.selftest ("130 tanks have tier, flag ...").
 - 20 maps: src/world/maps/index.ts MAP_IDS (20).
 - 7-minute rounds: src/game/roundClock.ts (420 s).
@@ -53,7 +53,7 @@ Games > Action
 Everyone 10+ (Fantasy Violence — tank combat, no blood)
 
 ## Tags
-tank game, tank battle, offline, 7v7, war game, multiplayer, action, 3D
+tank game, tank battle, offline, 5v5, war game, multiplayer, action, 3D
 
 ## Screenshots needed (Play Console upload)
 - Phone: real in-game captures from the current build (Test Lab bluejay
@@ -66,7 +66,7 @@ tank game, tank battle, offline, 7v7, war game, multiplayer, action, 3D
 - Tablet: optional.
 
 ## Feature graphic
-1024x500 px — a tank in battle, "Tank Royale" wordmark, "7v7 tank battles".
+1024x500 px — a tank in battle, "Tank Royale" wordmark, "5v5 tank battles". The current file (public/brand/store-assets/feature-graphic-1024x500.png) names no team size.
 
 ## App icon
 512x512 px — see store-assets/icon-512.png (generate from icon.svg)
