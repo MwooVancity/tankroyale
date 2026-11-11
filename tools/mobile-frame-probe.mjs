@@ -5,10 +5,11 @@
 import { preview } from 'vite';
 import puppeteer from 'puppeteer';
 
-const RATE = Number(process.argv[2] || 4);
+const HEADED = process.argv.includes('--headed'); // opt-in: owner games on this PC (2026-11-11), no window by default
+const RATE = Number(process.argv.slice(2).find((a) => !a.startsWith('--')) || 4);
 const server = await preview({ root: process.cwd(), logLevel: 'error', preview: { host: '127.0.0.1', port: 5790, strictPort: false } });
 const url = server.resolvedUrls.local[0];
-const browser = await puppeteer.launch({ headless: false, protocolTimeout: 600000, args: ['--ignore-gpu-blocklist', '--window-size=960,480'] }) // headed: headless Chrome falls back to software GL and stalls;
+const browser = await puppeteer.launch({ headless: HEADED ? false : 'new', protocolTimeout: 600000, args: ['--ignore-gpu-blocklist', '--use-gl=angle', '--enable-webgl', '--window-size=960,480'] }) // --headed if headless falls back to software GL and stalls;
 try {
   const page = await browser.newPage();
   await page.setViewport({ width: 915, height: 412, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true });

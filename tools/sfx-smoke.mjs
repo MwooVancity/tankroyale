@@ -214,6 +214,8 @@ try {
     await new Promise((r) => setTimeout(r, 600));
     return A.ctx.currentTime > t0 + 0.2;
   });
+  // Owner games on this PC (2026-11-11): never open a window unless asked for.
+  if (!clockOk && !process.argv.includes('--headed')) throw new Error('headless AudioContext clock stalled; rerun with --headed (opens a visible Chrome window)');
   if (!clockOk) {
     console.warn('[sfx-smoke] headless AudioContext clock stalled — relaunching headful');
     await browser.close();
