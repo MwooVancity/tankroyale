@@ -1,5 +1,5 @@
 // node tools/export-glb.mjs: exports every tank (GLB), map terrain/props/vegetation (GLB + placement JSON)
-// and spec/ballistics/map data (JSON) for the Unity rebuild. Output: ../../unity-export (OUT=dir overrides).
+// and spec/ballistics/map data (JSON) for the Unity rebuild. Output: ../tank-royale-unity-export (OUT=dir overrides).
 // Env: ONLY=tanks|data|maps (comma list), TANKS=id,id  MAPS=monsoon,skybridge  (default MAPS: monsoon,skybridge)
 // Tanks are built in the page with the real fleet factory (quality 'high', full geometry), then GLTFExporter.
 import { createServer } from 'vite';
@@ -9,14 +9,16 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 const ROOT = process.cwd();
-const OUT = path.resolve(process.env.OUT || path.join(ROOT, '..', '..', '..', 'unity-export'));
+// Default: a sibling of the checkout (<Desktop>/tank-royale-unity-export when run from the main repo); set OUT from a worktree.
+const OUT = path.resolve(process.env.OUT || path.join(ROOT, '..', 'tank-royale-unity-export'));
 const ONLY = new Set((process.env.ONLY || 'tanks,data,maps').split(','));
 const MAPS = (process.env.MAPS || 'monsoon,skybridge').split(',');
 for (const d of ['tanks', 'data', 'maps']) fs.mkdirSync(path.join(OUT, d), { recursive: true });
 
 const server = await createServer({ root: ROOT, logLevel: 'error', server: { port: 6520, strictPort: false, fs: { strict: false } } });
 await server.listen();
-const browser = await puppeteer.launch({ headless: 'new', args: ['--use-gl=angle', '--enable-webgl', '--no-sandbox'], protocolTimeout: 1200000 });
+const launch = () => puppeteer.launch({ headless: 'new', args: ['--use-gl=angle', '--enable-webgl', '--no-sandbox'], protocolTimeout: 1200000 });
+let browser = await launch();
 const log = (...a) => console.log(...a);
 const failures = [];
 
@@ -43,6 +45,7 @@ async function readOut(page, file) {
 async function newPage() {
   const page = await browser.newPage();
   page.on('pageerror', (e) => log('pageerror', String(e).slice(0, 200)));
+  page.on('console', (m) => { if (m.text().startsWith('[export]')) log(m.text()); });
   await page.setViewport({ width: 915, height: 412, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   await page.goto(`http://localhost:${server.config.server.port}/?nosplash=1`, { waitUntil: 'domcontentloaded', timeout: 180000 });
   await page.waitForFunction('window.__GAME_READY === true', { timeout: 300000 });
@@ -83,7 +86,7 @@ function externalizeImages(file) {
 const writeJson = (rel, v) => { const f = path.join(OUT, rel); fs.writeFileSync(f, JSON.stringify(v)); return fs.statSync(f).size; };
 
 try {
-  const page = await newPage();
+  let page = await newPage();
   const ids = await page.evaluate(async () => {
     const ff = await import('/src/vehicles/fleetFactory.ts'); await ff.ensureFullFleet();
     const sp = await import('/src/vehicles/specs.js'); return sp.ALL_TANK_IDS.slice();
@@ -92,9 +95,11 @@ try {
 
   if (ONLY.has('tanks')) {
     const manifest = [];
+    let tp = page;
+    const timeout = (ms) => new Promise((_, rej) => setTimeout(() => rej(new Error(`timeout ${ms / 1000}s`)), ms));
     for (const id of tankIds) {
       try {
-        const info = await page.evaluate(async (id) => {
+        const info = await Promise.race([timeout(Number(process.env.TANK_TIMEOUT_S || 120) * 1000), tp.evaluate(async (id) => {
           const { toGlb, expandBatched } = await window.__X;
           const ff = await import('/src/vehicles/fleetFactory.ts'); await ff.ensureTankBuilder(id);
           const D = window.__DEBUG;
@@ -102,8 +107,10 @@ try {
             setupShadowMaterial: (m, h = null) => D.lighting.setupShadowMaterial(m, h),
             releaseShadowMaterial: (m) => D.lighting.releaseShadowMaterial(m),
             anisotropy: Math.max(1, Math.min(8, D.renderer.capabilities.getMaxAnisotropy())) };
+          console.log(`[export] ${id} build`);
           const v = ff.createTank(id, ctx, { camoSeed: 4000, quality: 'high', geometryQuality: 'high' });
-          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          console.log(`[export] ${id} built`);
+          await new Promise((r) => setTimeout(r, 50));
           const root = v.root || v.group || v.object;
           const kinds = {}; const named = [];
           root.traverse((o) => { const k = o.isInstancedMesh ? 'InstancedMesh' : o.isBatchedMesh ? 'BatchedMesh' : o.isMesh ? 'Mesh' : o.type;
@@ -112,15 +119,22 @@ try {
           // ponytail: LOD0 only (lower levels hidden so onlyVisible drops them); Unity LODGroup can be re-made from LOD0.
           root.traverse((o) => { if (o.isLOD) o.levels.forEach((l, i) => { if (i > 0) l.object.visible = false; }); });
           window.__out = new Uint8Array(await toGlb(root));
+          console.log(`[export] ${id} exported`);
           v.dispose?.();
           return { kinds, named: [...new Set(named)].slice(0, 40), skippedBatched };
-        }, id);
-        const file = path.join(OUT, 'tanks', `${id}.glb`); await readOut(page, file);
+        }, id)]);
+        const file = path.join(OUT, 'tanks', `${id}.glb`); await readOut(tp, file);
         const bytes = externalizeImages(file) || fs.statSync(file).size;
         manifest.push({ id, bytes, ...info });
         log(`tank ${id} ${(bytes / 1e6).toFixed(2)} MB`, JSON.stringify(info.kinds));
-      } catch (e) { failures.push(`tank ${id}: ${String(e.message || e).slice(0, 200)}`); log('FAIL', id, String(e).slice(0, 300)); }
+      } catch (e) {
+        failures.push(`tank ${id}: ${String(e.message || e).slice(0, 200)}`); log('FAIL', id, String(e).slice(0, 300));
+        // A hung renderer also blocks new pages in the same browser: relaunch the browser.
+        await browser.close().catch(() => {}); browser = await launch(); tp = await newPage();
+        await tp.evaluate(async () => { const ff = await import('/src/vehicles/fleetFactory.ts'); await ff.ensureFullFleet(); });
+      }
     }
+    page = tp;
     writeJson('tanks/manifest.json', { allTankIds: ids, exported: manifest });
   }
 
