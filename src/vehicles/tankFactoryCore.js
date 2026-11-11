@@ -37,6 +37,7 @@ import { attachTankDecorations } from './decorations.js';
 // between captures aged the old dt-accumulators in wall-clock time).
 import { fxNow, emitPopTrail } from '../fx/clock.ts';
 import { markShadowOnly } from '../engine/renderLayers.ts';
+import { isEmergencyPreset } from '../engine/emergencyPreset.ts';
 
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -7684,7 +7685,7 @@ export function createTank(specId, engineCtx, opts = {}) {
       }
       if (farProxy) {
         // Inspection contexts (no distance) and wrecks always show the real tank.
-        const far = viewDistM !== undefined && !destroyed && (farProxyOn ? viewDistM > 110 : viewDistM > 130);
+        const far = !destroyed && (isEmergencyPreset() || (viewDistM !== undefined && (farProxyOn ? viewDistM > 110 : viewDistM > 130)));
         if (far !== farProxyOn) {
           setFarProxy(far);
         }
@@ -8478,7 +8479,7 @@ export function createTank(specId, engineCtx, opts = {}) {
     if (geometryQuality === 'low') mobileDetailObjects = detailObjects;
     if (geometryQuality === 'low') {
       farGearObjects = collectFarGearObjects(root);
-      if (botPaint) {
+      if (botPaint || isEmergencyPreset()) { // EXPERIMENT: the player too
         farProxy = buildFarProxy(root, { skip: new Set(detailObjects.map((r) => r.object)), paint: () => mats.botPaint(), disposables });
         root.userData.farProxySavedDraws = farProxy ? farProxy.savedDraws : 0;
         if (farProxy) {
@@ -8498,6 +8499,8 @@ export function createTank(specId, engineCtx, opts = {}) {
 
   // Run after decoration, static batching and battle-detail regrouping so
   // every final color-pass mesh receives exactly one stable layer.
+  // EXPERIMENT (?emergency): every tank, the full-detail player included, gets a proxy.
+  if (!farProxy && isEmergencyPreset()) farProxy = buildFarProxy(root, { paint: () => mats.botPaint(), disposables });
   installCoplanarDepthLayers(root);
 
   return visual;

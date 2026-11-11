@@ -36,6 +36,7 @@ assert.ok(hull.geometry.attributes.color, 'colors baked per vertex');
 
 // Battle wiring: hysteresis 110/130 m, wrecks and inspection show the real tank.
 const src = await readFile(new URL('./tankFactoryCore.js', import.meta.url), 'utf8');
-assert.match(src, /viewDistM !== undefined && !destroyed && \(farProxyOn \? viewDistM > 110 : viewDistM > 130\)/);
+assert.match(src, /!destroyed && \(isEmergencyPreset\(\) \|\| \(viewDistM !== undefined && \(farProxyOn \? viewDistM > 110 : viewDistM > 130\)\)\)/,
+  'hysteresis 110/130 m; inspection (no distance) and wrecks show the real tank unless the emergency experiment is on');
 assert.match(src, /setDestroyed\(opts\) \{[\s\S]{0,400}?setFarProxy\(false\);/, 'wreck snapshot never sees the proxy');
 console.log('farProxy.selftest: one baked mesh per moving node, detail/shadow/pads excluded, wiring pinned passed');

@@ -14,6 +14,7 @@
  */
 import * as THREE from 'three';
 import { getDeviceTier, getPreset, resolveDeviceTier, noteGpuRenderer, isLitePhone } from './quality.ts';
+import { isEmergencyPreset, onEmergencyForced } from './emergencyPreset.ts';
 import { outputResolution, type OutputResolution } from './resolutionPolicy.ts';
 import { routeShadowOnlyLayer } from './renderLayers.ts';
 
@@ -168,7 +169,8 @@ export function createRenderer(container: HTMLElement): GameRenderer {
   // Lite phones (moto g05 class, CPU-bound): no shadow map at all; the shadow
   // pass was 55-82 draws a frame (teardown 2026-11-10) and lab #8 measured the
   // g05 at 7.8 fps without shadows vs 7.1. MASTER-PROMPT item 3.
-  renderer.shadowMap.enabled = !isLitePhone();
+  renderer.shadowMap.enabled = !isLitePhone() && !isEmergencyPreset();
+  onEmergencyForced(() => { renderer.shadowMap.enabled = false; });
   renderer.shadowMap.type = THREE.PCFShadowMap; // PCFSoft is deprecated in r185
   routeShadowOnlyLayer(renderer);
 

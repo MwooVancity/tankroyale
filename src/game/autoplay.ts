@@ -7,6 +7,7 @@
 // fps metric does not see WebView frames) and writes one JSON result.
 import { registerPlugin } from '@capacitor/core';
 import { forceLitePhone, forceRenderPixelRatio, isLitePhone } from '../engine/quality.ts';
+import { forceEmergencyPreset } from '../engine/emergencyPreset.ts';
 
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
@@ -58,6 +59,8 @@ export async function installAutoplay(bus: Bus, mapNow: () => string | null = ()
   if (scenario === 2) map ||= 'monsoon';
   // Scenario 3 = scenario 1 with the 3D scene at 0.7x native pixels (A/B vs 1.0 CSS px).
   else if (scenario === 3) forceRenderPixelRatio(0.7 * (window.devicePixelRatio || 1));
+  // Scenarios 4/5 = the look-be-damned emergency floor on monsoon / alpine (engine viability test).
+  else if (scenario === 4 || scenario === 5) { forceEmergencyPreset(); map ||= scenario === 4 ? 'monsoon' : 'alpine'; }
   else if (scenario !== 1) return;
   console.info(`[autoplay] scenario ${scenario} start lite=${isLitePhone()} dpr=${window.devicePixelRatio}`);
   let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false, visAt = -1e9;

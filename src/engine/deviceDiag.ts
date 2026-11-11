@@ -26,6 +26,7 @@
 // active and observable through window.__GL_DIAG without covering the game.
 import * as THREE from 'three';
 import { isLitePhone } from './quality.ts';
+import { isEmergencyPreset } from './emergencyPreset.ts';
 
 interface DeviceDiagResult {
   basic: boolean;
@@ -403,7 +404,7 @@ export function reclaimShadows(
     if (bag && bag.errors.length < 8) bag.errors.push(message);
   };
   if (renderer.shadowMap.enabled) return { reclaimed: false, reason: 'already-on' };
-  if (isLitePhone()) return { reclaimed: false, reason: 'lite-phone' }; // off by design, not a failed probe
+  if (isLitePhone() || isEmergencyPreset()) return { reclaimed: false, reason: 'lite-phone' }; // off by design, not a failed probe
   if (FORCE === 'noshadow') return { reclaimed: false, reason: 'forced-off' };
   const probe = createSceneBandProbe(renderer);
   try {

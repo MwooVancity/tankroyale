@@ -39,6 +39,7 @@ import { createPerfLab } from './perfLab.ts';
 import { applyLiteMaterials } from './liteMaterials.ts';
 import { splitInstancedMaterials } from './instancedMaterialSplit.ts';
 import { applyPhoneWorldShadows } from './phoneWorldStyle.ts';
+import { emergencyCull, isEmergencyPreset } from './emergencyPreset.ts';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
@@ -2554,6 +2555,7 @@ export function createPost(
         if (preset.liteMaterials) applyLiteMaterials(scene);
         splitInstancedMaterials(scene);
         if (getDeviceTier() === 'mobile') applyPhoneWorldShadows(scene); // streamed-in world meshes
+        if (isEmergencyPreset()) emergencyCull(scene, camera); // EXPERIMENT floor
       }
       dynGovern(dt);
       // sniper zoom / rig changes can retune the camera planes — keep the

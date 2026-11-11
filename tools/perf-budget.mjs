@@ -16,7 +16,7 @@ try {
   for (const tier of ['phone', 'lite']) for (const map of MAPS.split(',')) {
     const page = await browser.newPage();
     await page.setViewport({ width: 915, height: 412, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-    await page.goto(`http://localhost:${server.config.server.port}/?nosplash=1&tier=mobile${tier === 'lite' ? '&lite=1' : ''}`, { waitUntil: 'domcontentloaded', timeout: 120000 });
+    await page.goto(`http://localhost:${server.config.server.port}/?nosplash=1&tier=mobile${tier === 'lite' ? '&lite=1' : ''}${process.env.EMERGENCY ? '&emergency=1' : ''}`, { waitUntil: 'domcontentloaded', timeout: 120000 });
     await page.waitForFunction('window.__GAME_READY === true', { timeout: 240000 });
     await page.evaluate(async (m) => { await window.__DEBUG.startBattle('m1a2', m); window.__DEBUG.fastForward(6); }, map);
     await new Promise((r) => setTimeout(r, 20000)); // past terrain streaming and shader warm-up
