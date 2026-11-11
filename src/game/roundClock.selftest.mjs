@@ -9,4 +9,9 @@ for (const file of ['src/game/state.ts', 'src/ui/hud.js']) {
   assert.match(src, /from '\.\.?\/(game\/)?roundClock\.ts'/, `${file} imports the shared round clock`);
   assert.doesNotMatch(src, /VITE_QA_ROUND_S\)\s*\|\|/, `${file} has no private round length`);
 }
-console.log('roundClock.selftest: one 7-minute round clock for sim and HUD');
+// Online authority too (it ran 900 s while the HUD showed 7:00; PM 2026-11-11: 420 s everywhere).
+const online = await readFile(new URL('../sim/authoritativeMatch.ts', import.meta.url), 'utf8');
+const lim = /const BATTLE_LIMIT_S = ([\d\s*]+);/.exec(online);
+assert.ok(lim, 'online BATTLE_LIMIT_S found');
+assert.equal(lim[1].split('*').reduce((p, x) => p * Number(x.trim()), 1), BATTLE_TIME_LIMIT_S, 'online round = solo round');
+console.log('roundClock.selftest: one 7-minute round clock for sim, HUD and the online authority');
