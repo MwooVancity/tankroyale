@@ -253,6 +253,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'src/vehicles/farGear.selftest.mjs',
     'src/world/terrainTextureRelease.selftest.mjs',
     'src/auth/admob.selftest.mjs',
+    'src/auth/googleAuth.selftest.mjs',
     'src/game/roundClock.selftest.mjs',
     'src/engine/unsupportedPhone.selftest.mjs',
     'src/fx/particlesThin.selftest.mjs',

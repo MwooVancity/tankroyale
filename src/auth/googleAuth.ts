@@ -28,6 +28,17 @@ function saveUser(user: GoogleUser): void {
   try { localStorage.setItem(STORED_KEY, JSON.stringify(user)); } catch { /* ok */ }
 }
 
+const ASKED_KEY = 'tr.google.asked';
+let askedThisSession = false;
+export function googleAsked(): boolean {
+  if (askedThisSession) return true;
+  try { return localStorage.getItem(ASKED_KEY) === '1'; } catch { return false; }
+}
+function markGoogleAsked(): void {
+  askedThisSession = true;
+  try { localStorage.setItem(ASKED_KEY, '1'); } catch { /* session flag still holds */ }
+}
+
 export function clearGoogleUser(): void {
   try { localStorage.removeItem(STORED_KEY); } catch { /* ok */ }
 }
@@ -46,6 +57,11 @@ export async function signInWithGoogle(): Promise<GoogleUser | null> {
   // Return cached user if already signed in
   const cached = storedUser();
   if (cached) return cached;
+  // Ask once (teardown 2026-11-10: the sheet reopened on every Private/LAN
+  // pick only to fill the nickname). A cancel or failure is remembered; the
+  // nickname field stays editable, so nothing is lost.
+  if (googleAsked()) return null;
+  markGoogleAsked();
 
   try {
     // A runtime import('@codetrix-studio/...') can never resolve inside the packaged
