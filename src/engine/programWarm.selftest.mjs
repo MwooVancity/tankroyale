@@ -63,6 +63,8 @@ assert.deepEqual(targetCalls, [
 
 const initialized = [];
 let warmClock = 0;
+let polls = 0;
+let pendingPolls = 2; // the driver finishes linking after two checks
 const warmPrograms = [];
 const pendingProgram = {
   program: {},
@@ -80,7 +82,8 @@ const forwardRenderer = {
       getProgramParameter(program, token) {
         assert.equal(program, pendingProgram.program);
         assert.equal(token, 0x91B1);
-        return false;
+        polls += 1;
+        return polls > pendingPolls;
       },
     };
   },
@@ -101,8 +104,9 @@ const forwardOwner = createForwardProgramWarmOwner({
   getTarget: () => 'composer-hdr',
   now: () => { warmClock += 5; return warmClock; },
 });
-assert.equal([...forwardOwner.initializeSteps()].length, 1,
-  'newly submitted programs yield after uniform discovery');
+const warmYields = [...forwardOwner.initializeSteps()].length;
+assert.ok(warmYields >= 2 && warmYields < 10, `parallel path waits for the link, then reads uniforms (${warmYields} yields)`);
+pendingPolls = Infinity; polls = 0;
 assert.deepEqual(initialized, ['uniforms']);
 assert.equal([...forwardOwner.linkerBreathingSlices(3)].length, 3,
   'pending ANGLE links receive a bounded number of scheduler slices');

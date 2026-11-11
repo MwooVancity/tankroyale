@@ -8145,12 +8145,12 @@ export function createTank(specId, engineCtx, opts = {}) {
      *   (screenshot composers freeze mid-flight). Default: settled pose.
      */
     setDestroyed(opts) {
-      setFarProxy(false); // wreck visuals snapshot the real parts, never the proxy
       if (destroyed) return;
       // Battle warm normally prepares these exact maps behind the loading
       // cover. Keep setDestroyed self-contained for screenshots, Studio, and
       // any recovery path that intentionally bypasses the warm coordinator.
       mats.prepareBurnt?.();
+      setFarProxy(false); // wreck visuals snapshot the real parts, never the proxy
       // A distant live bot may have its cosmetic hierarchy detached from the
       // scene graph. Restore it before the one-time burn capture so a later
       // close killcam never reveals pristine fittings on a charred wreck.
@@ -8281,6 +8281,7 @@ export function createTank(specId, engineCtx, opts = {}) {
     /** Shared fallback used by non-standard fittings during the wreck sweep. */
     getWreckFallbackMaterial() {
       mats.prepareBurnt?.();
+      setFarProxy(false); // wreck visuals snapshot the real parts, never the proxy
       return mats.burnt;
     },
 

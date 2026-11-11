@@ -195,6 +195,13 @@ export function createForwardProgramWarmOwner({
         objects.push(object);
       }
     });
+    // With KHR_parallel_shader_compile the driver compiles and links on its
+    // own threads: submit every program first, wait for completion, then read
+    // uniforms. The old per-program getUniforms() forced each link to finish
+    // before the next compile started (Pixel 6a 2026-11-11: player-vehicle
+    // stage = 15.8 s of serial compile). No extension: the one-at-a-time path.
+    const parallel = hasParallelCompile();
+    const firstNew = renderer.info?.programs?.length ?? 0;
     for (const object of objects) {
       const before = renderer.info?.programs?.length ?? 0;
       const compileAt = now();
@@ -207,17 +214,37 @@ export function createForwardProgramWarmOwner({
           stats.maxCompileObject = object.name || object.type || '(unnamed)';
         }
       }
-      const programs = renderer.info?.programs ?? [];
-      for (let index = before; index < programs.length; index += 1) {
-        try { programs[index]?.getUniforms?.(); } catch { /* warm only */ }
-        yield;
-        sliceAt = now();
+      if (!parallel) {
+        const programs = renderer.info?.programs ?? [];
+        for (let index = before; index < programs.length; index += 1) {
+          try { programs[index]?.getUniforms?.(); } catch { /* warm only */ }
+          yield;
+          sliceAt = now();
+        }
       }
       if (now() - sliceAt >= 8) {
         yield;
         sliceAt = now();
       }
     }
+    if (!parallel) return;
+    yield* linkerBreathingSlices(600); // ~10 s of frames at most, then the reads below block
+    const programs = renderer.info?.programs ?? [];
+    for (let index = firstNew; index < programs.length; index += 1) {
+      try { programs[index]?.getUniforms?.(); } catch { /* warm only */ }
+      if (now() - sliceAt >= 8) { yield; sliceAt = now(); }
+    }
+  };
+
+  const hasParallelCompile = (): boolean => {
+    try {
+      if (parallelCompile === undefined) {
+        parallelCompile = renderer.getContext().getExtension(
+          'KHR_parallel_shader_compile',
+        ) as ParallelShaderCompileExtension | null;
+      }
+    } catch { parallelCompile = null; }
+    return !!parallelCompile;
   };
 
   const linkerBreathingSlices = function* (
