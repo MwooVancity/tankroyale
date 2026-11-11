@@ -11,6 +11,7 @@ import type { getSpec } from '../vehicles/specs.js';
 
 export interface MainLightingRuntime {
   setupShadowMaterial(material: THREE.Material, extraHook?: unknown): void;
+  twinShadowMaterial(src: THREE.Material, twin: THREE.Material): boolean;
   releaseShadowMaterial(material: THREE.Material): unknown;
   setFarCascadeDormant(dormant: boolean): void;
   setStaticPresentationDormant(dormant: boolean): void;

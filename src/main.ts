@@ -63,6 +63,7 @@ import { applyLiteMaterials } from './engine/liteMaterials.ts';
 import { pauseOnBackground } from './game/backgroundPause.ts';
 import { installReviewPrompt } from './game/reviewPrompt.ts';
 import { installAutoplay } from './game/autoplay.ts';
+import { setShadowTwinning } from './engine/instancedMaterialSplit.ts';
 import { createSky } from './engine/sky.ts';
 import { createLighting } from './engine/lighting.ts';
 import { createPost } from './engine/post.ts';
@@ -317,6 +318,10 @@ const bootCloudWarmP = sky.ensureCloudTexturesChunked
 const lighting = legacyPort<MainLightingRuntime>(
   await bootStage('lighting', () => createLighting(scene, camera, sky.sunDir)),
 );
+setShadowTwinning({
+  twin: (src, twin) => lighting.twinShadowMaterial(src, twin),
+  release: (twin) => lighting.releaseShadowMaterial(twin),
+});
 // The sealed garage can only see the near/contact shadow bands. Request far
 // dormancy now; lighting deliberately renders every native CSM depth map once
 // before honoring it because all PCF samplers remain active in the shader.

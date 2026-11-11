@@ -37,6 +37,7 @@
 import * as THREE from 'three';
 import { createPerfLab } from './perfLab.ts';
 import { applyLiteMaterials } from './liteMaterials.ts';
+import { splitInstancedMaterials } from './instancedMaterialSplit.ts';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
@@ -2521,9 +2522,10 @@ export function createPost(
       frameTris = renderer.info.render.triangles;
       renderer.info.reset();
       lab?.begin(performance.now());
-      if (preset.liteMaterials && performance.now() - liteScanAt > 1000) {
+      if (performance.now() - liteScanAt > 1000) {
         liteScanAt = performance.now();
-        applyLiteMaterials(scene);
+        if (preset.liteMaterials) applyLiteMaterials(scene);
+        splitInstancedMaterials(scene);
       }
       dynGovern(dt);
       // sniper zoom / rig changes can retune the camera planes — keep the

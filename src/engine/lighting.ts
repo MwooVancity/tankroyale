@@ -896,6 +896,8 @@ export function createLighting(
   // refreshed every other frame, matching the existing cadence of each far
   // desktop split while removing one full CSM sampler and allocation.
   const mobileTier = getDeviceTier() === 'mobile';
+  // Extra shader hook each material was registered with, so a twin (instancedMaterialSplit) registers the same way.
+  const shadowHooks = new WeakMap<THREE.Material, MaterialCompileHook | null>();
   const cascadeCount = preset.shadowCascades ?? (mobileTier ? 3 : CASCADES);
   const csm = new CSM({
     camera,
@@ -1205,6 +1207,7 @@ export function createLighting(
       extraHook: MaterialCompileHook | null = null,
     ): T {
       csm.setupMaterial(mat);
+      shadowHooks.set(mat, extraHook);
       if (extraHook) {
         const csmHook = mat.onBeforeCompile;
         mat.onBeforeCompile = (shader, rdr) => {
@@ -1221,6 +1224,13 @@ export function createLighting(
         buildCoverageMipmaps(surface.map, surface.alphaTest ?? 0);
       }
       return mat;
+    },
+
+    /** Register `twin` for cascaded shadows the way `src` was (same extra hook). False if src has none. */
+    twinShadowMaterial(src: THREE.Material, twin: THREE.Material): boolean {
+      if (!csm.shaders.has(src)) return false;
+      this.setupShadowMaterial(twin, shadowHooks.get(src) ?? null);
+      return true;
     },
 
     releaseShadowMaterial(material: THREE.Material | null | undefined): boolean {
