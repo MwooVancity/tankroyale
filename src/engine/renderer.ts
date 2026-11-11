@@ -13,7 +13,7 @@
  * resolution governor.
  */
 import * as THREE from 'three';
-import { getDeviceTier, getPreset, resolveDeviceTier, noteGpuRenderer } from './quality.ts';
+import { getDeviceTier, getPreset, resolveDeviceTier, noteGpuRenderer, isLitePhone } from './quality.ts';
 import { outputResolution, type OutputResolution } from './resolutionPolicy.ts';
 import { routeShadowOnlyLayer } from './renderLayers.ts';
 
@@ -165,7 +165,10 @@ export function createRenderer(container: HTMLElement): GameRenderer {
   // 1.16; the grade pivot (0.33) keeps the lit playfield stable under the
   // stronger contrast on its own.
   renderer.toneMappingExposure = 1.16;
-  renderer.shadowMap.enabled = true;
+  // Lite phones (moto g05 class, CPU-bound): no shadow map at all; the shadow
+  // pass was 55-82 draws a frame (teardown 2026-11-10) and lab #8 measured the
+  // g05 at 7.8 fps without shadows vs 7.1. MASTER-PROMPT item 3.
+  renderer.shadowMap.enabled = !isLitePhone();
   renderer.shadowMap.type = THREE.PCFShadowMap; // PCFSoft is deprecated in r185
   routeShadowOnlyLayer(renderer);
 

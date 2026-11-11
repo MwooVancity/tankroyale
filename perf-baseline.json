@@ -1,0 +1,91 @@
+{
+ "at": "2026-11-11T02:19:35.447Z",
+ "commit": "d8235808",
+ "throttle": "4x CPU, headless",
+ "rows": [
+  {
+   "tier": "phone",
+   "map": "winter",
+   "frames": 180,
+   "callsAvg": 439,
+   "callsP95": 447,
+   "shadowCallsAvg": 85,
+   "trisAvgM": 1.89,
+   "programs": 174,
+   "frameMsP50": 55.5,
+   "frameMsP95": 69.3,
+   "budget": 150,
+   "overBudget": true
+  },
+  {
+   "tier": "phone",
+   "map": "monsoon",
+   "frames": 262,
+   "callsAvg": 340,
+   "callsP95": 351,
+   "shadowCallsAvg": 63,
+   "trisAvgM": 3.02,
+   "programs": 167,
+   "frameMsP50": 34.8,
+   "frameMsP95": 41.7,
+   "budget": 150,
+   "overBudget": true
+  },
+  {
+   "tier": "phone",
+   "map": "skybridge",
+   "frames": 243,
+   "callsAvg": 352,
+   "callsP95": 385,
+   "shadowCallsAvg": 47,
+   "trisAvgM": 1.52,
+   "programs": 164,
+   "frameMsP50": 41.6,
+   "frameMsP95": 55.5,
+   "budget": 150,
+   "overBudget": true
+  },
+  {
+   "tier": "lite",
+   "map": "winter",
+   "frames": 234,
+   "callsAvg": 370,
+   "callsP95": 380,
+   "shadowCallsAvg": 0,
+   "trisAvgM": 1.58,
+   "programs": 205,
+   "frameMsP50": 41.6,
+   "frameMsP95": 55.4,
+   "budget": 80,
+   "overBudget": true
+  },
+  {
+   "tier": "lite",
+   "map": "monsoon",
+   "frames": 327,
+   "callsAvg": 277,
+   "callsP95": 286,
+   "shadowCallsAvg": 0,
+   "trisAvgM": 2.53,
+   "programs": 159,
+   "frameMsP50": 27.8,
+   "frameMsP95": 34.8,
+   "budget": 80,
+   "overBudget": true
+  },
+  {
+   "tier": "lite",
+   "map": "skybridge",
+   "frames": 291,
+   "callsAvg": 305,
+   "callsP95": 340,
+   "shadowCallsAvg": 0,
+   "trisAvgM": 1.28,
+   "programs": 159,
+   "frameMsP50": 34.6,
+   "frameMsP95": 48.6,
+   "budget": 80,
+   "overBudget": true
+  }
+ ]
+}
