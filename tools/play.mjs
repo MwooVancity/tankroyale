@@ -1,5 +1,6 @@
 // Google Play tracks. Read: node tools/play.mjs <sa.json> tracks
 // Promote: node tools/play.mjs <sa.json> promote <versionCode> "<release notes>"
+// Internal testing: node tools/play.mjs <sa.json> internal <versionCode> "<notes>" (internal track only)
 // Promote = edits.insert, tracks.update production (status completed), commit.
 // Play sends the change for review itself; never set changesNotSentForReview.
 // Never run while CI's upload edit is in flight (a second edit expires it).
@@ -49,6 +50,15 @@ if (cmd === 'tracks') {
   await api(`/${edit.id}/tracks/production`, 'PUT', { track: 'production', releases: [release] });
   const done = await api(`/${edit.id}:commit`, 'POST');
   console.log('committed edit', done.id, 'production ->', vc);
+} else if (cmd === 'internal') {
+  // Internal testing track only (owner's own phone; no store review, not public).
+  // Never touches production: that path is `promote`, with its release gate.
+  if (!/^\d+$/.test(String(vc))) throw new Error('versionCode required');
+  const release = { versionCodes: [String(vc)], status: 'completed', name: `internal ${vc}` };
+  if (notes) release.releaseNotes = [{ language: 'en-US', text: notes.slice(0, 500) }];
+  await api(`/${edit.id}/tracks/internal`, 'PUT', { track: 'internal', releases: [release] });
+  const done = await api(`/${edit.id}:commit`, 'POST');
+  console.log('committed edit', done.id, 'internal ->', vc);
 } else if (cmd === 'listings') {
   const { listings } = await api(`/${edit.id}/listings`);
   for (const l of listings || []) console.log(l.language, '|', l.title, '|', l.shortDescription, '|', l.fullDescription.split('\n')[0], '| ads line:', /ad may show/.test(l.fullDescription), '| "No ads":', /No ads/.test(l.fullDescription));
