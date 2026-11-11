@@ -508,7 +508,11 @@ interface ActiveCullRecord {
 type CullRecord = PendingCullRecord | ActiveCullRecord;
 
 const _cullState = new WeakMap<THREE.InstancedMesh, CullRecord | null>();
-const _geomClaims = new WeakMap<THREE.BufferGeometry, THREE.InstancedMesh>();
+// geometry -> claiming mesh.id (GEOM_SHARED once two meshes claimed it). Holds an
+// id, not the mesh: a WeakMap value stays alive while its key does, and shared
+// geometry outlives an evicted world, which kept the whole old world group alive.
+const _geomClaims = new WeakMap<THREE.BufferGeometry, number>();
+const GEOM_SHARED = -1;
 const _cullFrustum = new THREE.Frustum();
 const _cullProj = new THREE.Matrix4();
 const _cullSphere = new THREE.Sphere();
@@ -540,14 +544,15 @@ function cullPending(mesh: THREE.InstancedMesh): PendingCullRecord {
 function buildCullRec(mesh: THREE.InstancedMesh): ActiveCullRecord | null {
   const geo = mesh.geometry;
   const claimed = _geomClaims.get(geo);
-  if (claimed && claimed !== mesh) {
+  if (claimed !== undefined && claimed !== mesh.id) {
     // two meshes share one geometry's instanced attrs — compacting for one
-    // would corrupt the other's draw; permanently skip both.
+    // would corrupt the other's draw; permanently skip both (the first
+    // claimer sees GEOM_SHARED on its next shadow draw).
     _cullState.set(mesh, null);
-    _cullState.set(claimed, null);
+    _geomClaims.set(geo, GEOM_SHARED);
     return null;
   }
-  _geomClaims.set(geo, mesh);
+  _geomClaims.set(geo, mesh.id);
   if (!geo.boundingSphere) geo.computeBoundingSphere();
   const bs = geo.boundingSphere;
   if (!bs || !isFinite(bs.radius) || bs.radius <= 0) { _cullState.set(mesh, null); return null; }
@@ -632,6 +637,7 @@ function shadowCullBefore(object: THREE.Object3D, shadowCamera: THREE.Camera): v
     rec = buildCullRec(object);
     if (!rec) return;
   }
+  if (_geomClaims.get(object.geometry) === GEOM_SHARED) { _cullState.set(object, null); return; }
   // foreign-write / live-count invalidation (owner rebuilt the instances)
   if (object.count !== rec.n) { cullPending(object); return; }
   for (let a = 0; a < rec.attrs.length; a++) {

@@ -8,6 +8,7 @@ import { SimplexNoise } from '../engine/simplexFast.ts';
 import { applyTone, type HeightField } from './terrain.ts';
 import { getDeviceTier } from '../engine/quality.ts';
 import { markShadowOnly } from '../engine/renderLayers.ts';
+import { registerRetainedObject3DResources } from '../engine/resourceLifetime.ts';
 import { destructibleCastsShadow } from './destructibleRenderPolicy.ts';
 import { applySourcedBuildings } from './sourcedTextures.ts';
 import { URBAN_BUILDERS } from './maps/urbanKit.ts';
@@ -1705,6 +1706,10 @@ ${snowCap ? `
     if (mk !== 'dark' && mk !== 'glass') m.userData.hookTextures = [grimeTex]; // freed with the world
     m.customProgramCacheKey = () => 'world-props-' + mk + '-v6' + (snowCap ? 's' : '');
   }
+  // a bucket with no mesh on this map leaves its material off the tree; declare
+  // all of them so world eviction disposes them (and drops their CSM shader
+  // registration, whose grimeHook closure otherwise kept the old world alive)
+  registerRetainedObject3DResources(group, { materials: Object.values(mats) });
 
   const buckets: CompletePropsBuckets = {
     plaster: [], plaster2: [], plaster3: [], stone: [], roof: [], wood: [], dark: [],

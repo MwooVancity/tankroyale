@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { createWorldBuildCoordinator } from './worldBuildCoordinator.ts';
+import { notifyShellSweep, registerWorldDestructibles } from './destructibles.ts';
 
 let clock = 2000;
 let moduleLoads = 0;
@@ -71,7 +72,11 @@ assert.equal(coordinator.stats.skippedCapacity, 1);
 assert.equal(coordinator.cache.size, 2);
 await coordinator.beginBuild('alpine').promise;
 assert.equal(coordinator.cache.size, 3, 'foreground demand may temporarily exceed idle capacity');
+let verdantSweeps = 0;
+registerWorldDestructibles({ key: 'verdant', isActive: () => true, sweep: () => verdantSweeps++, impact() {} });
 coordinator.enforceCacheBudget();
+notifyShellSweep(0, 0, 0, 1, 1, 1);
+assert.equal(verdantSweeps, 0, 'eviction drops the world from the destructibles registry (it retained the whole world graph)');
 assert.equal(coordinator.cache.size, 2);
 assert.equal(coordinator.lastRelease.id, 'verdant');
 assert.equal(verdant.group.parent, null, 'eviction detaches the released scene graph');

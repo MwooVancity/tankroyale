@@ -7,6 +7,7 @@ import {
   disposeObject3DResources,
   residentResourceLimits,
 } from '../engine/resourceLifetime.ts';
+import { unregisterWorldDestructibles } from './destructibles.ts';
 
 interface WorldScene {
   group: THREE.Object3D;
@@ -170,6 +171,7 @@ export function createWorldBuildCoordinator(
       if (cache.size <= limits.worldScenes) break;
       if (cached === dependencies.getCurrentWorld() || builds.has(id)) continue;
       cache.delete(id);
+      unregisterWorldDestructibles(id); // module-level registry kept evicted worlds alive
       const preserveRoots = dependencies.scene.children.filter(
         (child) => child !== cached.group,
       );

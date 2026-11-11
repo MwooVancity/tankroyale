@@ -50,6 +50,19 @@ const meshTwin = new WeakMap<Object3D, Twin>();
 export function twinSource(m: Material): Material | undefined { return sourceOf.get(m); }
 const sourceOf = new WeakMap<Material, Material>();
 
+// Module-level on purpose: a closure made inside splitInstancedMaterials shares
+// its scope with the scene-wide `inst` map, so every hooked mesh kept every
+// instanced mesh of that traversal (removed bot tanks included) alive.
+function hookSync(o: Object3D): void {
+  const prev = o.onBeforeRender;
+  o.onBeforeRender = function (renderer, ...rest) {
+    const f = renderer.info.render.frame;
+    const tw = meshTwin.get(this);
+    if (tw && tw.frame !== f) { tw.frame = f; sync(tw); }
+    return prev.call(this, renderer, ...rest);
+  };
+}
+
 /** Scene-wide (tanks share fleet materials across tanks): give instanced meshes their own material wherever a plain mesh shares it. Returns meshes moved. */
 export function splitInstancedMaterials(root: Object3D | null | undefined): number {
   if (!root) return 0;
@@ -73,14 +86,7 @@ export function splitInstancedMaterials(root: Object3D | null | undefined): numb
       n++;
       const had = meshTwin.has(o);
       meshTwin.set(o, t);
-      if (had) continue;
-      const prev = o.onBeforeRender;
-      o.onBeforeRender = function (renderer, ...rest) {
-        const f = renderer.info.render.frame;
-        const tw = meshTwin.get(this);
-        if (tw && tw.frame !== f) { tw.frame = f; sync(tw); }
-        return prev.call(this, renderer, ...rest);
-      };
+      if (!had) hookSync(o);
     }
   }
   return n;

@@ -102,6 +102,12 @@ export function registerWorldDestructibles(entry: WorldDestructibleEntry): void 
   if (i >= 0) worlds[i] = entry; else worlds.push(entry);
 }
 
+/** World eviction: the entry's closures hold the whole props group. */
+export function unregisterWorldDestructibles(key: string): void {
+  const i = worlds.findIndex((w) => w.key === key);
+  if (i >= 0) worlds.splice(i, 1);
+}
+
 /**
  * Shell flight segment (effects.js update loop, one per live shell per frame).
  * Light props crossed by the segment break cosmetically; the shell itself is
