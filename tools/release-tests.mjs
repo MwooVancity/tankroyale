@@ -9,15 +9,12 @@ import os from 'node:os';
 // Failing on unchanged code as of 2026-11-07 (website pages, attribution,
 // fleet era fixtures, lazy-runtime string checks, a timing-flaky handoff test).
 export const KNOWN_FAILING = new Set([
-  'src/vehicles/fleetLazy.selftest.mjs',
   'tools/attribution-audit.mjs',
   'src/vehicles/profiles/fleetEraFinish.selftest.mjs',
-  'src/fx/lazyRuntime.selftest.mjs',
   'src/presentation/publicNav.selftest.mjs',
   'src/presentation/seoMetadata.selftest.mjs',
   'src/presentation/analytics.selftest.mjs',
   'src/net/privateMatchHandoff.selftest.mjs',
-  'src/fx/impactDecals.selftest.mjs',
 ]);
 
 const { SELFTEST_SUITES } = await import(pathToFileURL(path.resolve('tools/selftest-suites.mjs')).href);

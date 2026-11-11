@@ -111,8 +111,8 @@ assert.match(responsiveSurfaces,
   /data-cot-height='short'\]\[data-cot-orientation='landscape'\] \.cot-top\{[\s\S]*left:calc\(50% - 18px\);width:294px[\s\S]*grid-template-columns:minmax\(62px,1fr\) 72px/,
   'short landscape score plate must stay inside the lane between corner controls');
 assert.match(responsiveSurfaces,
-  /data-cot-height='short'\]\[data-cot-orientation='landscape'\] \.cot-alert\{[\s\S]*top:118px;bottom:auto/,
-  'short landscape system alerts must not collide with muzzle warnings or bottom health');
+  /data-cot-height='short'\]\[data-cot-orientation='landscape'\] \.cot-alert\{[\s\S]*top:auto;bottom:calc\(max\(7px,env\(safe-area-inset-bottom\)\) \+ 50px\)/,
+  'short landscape system alerts sit just above the HP row, off the horizon band where enemy name tags are');
 assert.match(responsiveSurfaces,
   /data-cot-width='phone'\]\[data-cot-orientation='portrait'\] \.cot-touch \.scope\{[\s\S]*bottom:105px/,
   'portrait scope must share the auto-aim row instead of covering the health instrument');
