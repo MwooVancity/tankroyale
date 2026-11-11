@@ -1702,6 +1702,7 @@ ${snowCap ? `
   };
   for (const [mk, m] of Object.entries(mats)) {
     engineCtx.setupShadowMaterial(m, mk === 'dark' || mk === 'glass' ? null : grimeHook);
+    if (mk !== 'dark' && mk !== 'glass') m.userData.hookTextures = [grimeTex]; // freed with the world
     m.customProgramCacheKey = () => 'world-props-' + mk + '-v6' + (snowCap ? 's' : '');
   }
 

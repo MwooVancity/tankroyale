@@ -103,6 +103,11 @@ function collectMaterialTextures(material: Material | null | undefined, out: Set
       for (const item of value) if (isTexture(item)) out.add(item);
     }
   }
+  // Textures a material hands its shader only inside onBeforeCompile are
+  // invisible above; owners list them in userData.hookTextures.
+  for (const value of (material.userData?.hookTextures as Iterable<unknown> | undefined) || []) {
+    if (isTexture(value)) out.add(value);
+  }
   const uniforms = (material as unknown as {
     uniforms?: Record<string, { value?: unknown } | null | undefined>;
   }).uniforms;

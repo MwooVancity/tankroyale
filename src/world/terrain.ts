@@ -2933,6 +2933,16 @@ function createSplatMaterial(
   engineCtx.setupShadowMaterial(mat, splatHook);
   mat.customProgramCacheKey = () => liteTerrain ? 'world-terrain-splat-lite-v21' : 'world-terrain-splat-v21';
   mat.userData.sourcedTexturesReady = sourcedTexturesReady;
+  // The splat textures reach the GPU only through splatHook's uniforms, which
+  // the world disposer cannot see: each map left ~10 textures resident and the
+  // WebView renderer was OOM-killed on the ~12th new map (teardown 2026-11-10,
+  // Android 15 emulator). Read live: sourced sets replace layers in place.
+  mat.userData.splatTextures = {
+    *[Symbol.iterator]() {
+      for (const l of Object.values(layers)) { if (l.albedo) yield l.albedo; if (l.normal) yield l.normal; }
+      yield mask; yield noiseTex;
+    },
+  } as Iterable<THREE.Texture>;
   return mat;
 }
 
@@ -3224,7 +3234,10 @@ function* terrainBuildSteps(
   // level is mounted on the mesh. Register the complete live set so world
   // eviction releases uploaded dormant buffers as well as the visible tree.
   const retainedLodGeometries = new Set<THREE.BufferGeometry>();
-  registerRetainedObject3DResources(group, { geometries: retainedLodGeometries });
+  registerRetainedObject3DResources(group, {
+    geometries: retainedLodGeometries,
+    textures: mat.userData.splatTextures as Iterable<THREE.Texture>,
+  });
   const streamFarLods = streamOpts?.streamFarLods === true;
   const focus = streamOpts?.focus || heightField._layout?.spawns?.player || { x: 0, z: 0 };
   let initialGeometryCount = 0;
