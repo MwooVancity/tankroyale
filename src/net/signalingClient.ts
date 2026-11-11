@@ -111,6 +111,10 @@ function codedError(code: string, message: string): Error & { code: string } {
   return Object.assign(new Error(message), { code });
 }
 
+function cancelledError(): Error {
+  return Object.assign(new Error('room request cancelled'), { code: 'cancelled' });
+}
+
 function errorCode(error: unknown, fallback: string): string {
   if (!isRecord(error) || typeof error.code !== 'string' || !error.code) return fallback;
   return error.code;
@@ -418,6 +422,13 @@ export class RoomSignalingClient {
   }
 
   async #requestRoom(type: string, payload: unknown): Promise<unknown> {
+    const out = await this.#requestRoomOnce(type, payload);
+    // A cancel that landed while the request was in flight: no room, no polling.
+    if (this.manualClose) throw cancelledError();
+    return out;
+  }
+
+  async #requestRoomOnce(type: string, payload: unknown): Promise<unknown> {
     const startedAt = Date.now();
     for (let attempt = 0; ; attempt++) {
       try {
@@ -433,6 +444,8 @@ export class RoomSignalingClient {
         this.#discardSocket('room_request_retry');
         if (attempt >= 1) this.onWaking?.(elapsed);
         await delay(ROOM_REQUEST_RETRY_DELAYS_MS[attempt] ?? WAKE_RETRY_DELAY_MS);
+        // Cancel during the wake sleep (teardown 2026-11-10): stop, never reconnect.
+        if (this.manualClose) throw cancelledError();
       }
     }
   }
