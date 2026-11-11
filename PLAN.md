@@ -5,6 +5,7 @@
 **Owner goal (2026-11-09, via PM):** $1,500/month from ads and 5-star reviews. No paid or rewarded reviews (Play bans them). Path: lag, tap-to-battle time, download size, rating box proven after a win.
 
 ## Numbers (dated)
+- 2026-11-11 emergency floor preset (10c2e094, flag only, off for players; engine viability test for the owner's Unity decision): headless phone tier monsoon 108 draws / p50 27.8 ms, alpine 120 / 27.7 ms, winter 220. Headless p50 did not move between 154 and 108 draws (CPU limit is elsewhere headless). Physical answer: build 915 staged (testlab-results/apk915), run `bash tools/testlab-emergency-915.sh <sa.json>` in the first 2026-11-12 slot (6a + g05, scenarios 4 monsoon / 5 alpine). RC f4c152cd = vc 174 on the Play internal track; virtual Android 14 scenarios 1+2: 0 crashes/ANR.
 - 2026-11-11 PHYSICAL Test Lab, build 914 = f170a3b2 (leak fixes, far proxy, name tags, Lite no-shadow; NOT art C, NOT parallel compile), Game Loop, 5 device runs:
   - Pixel 6a, Android 12, scenario 1: verdant 17.7/23.9, coastal 16.8/20.8, alpine 12.5/13.7 (fps p10/p50), 0 crashes, load 36.1 s, player-vehicle stage 15.8 s = compile 15.8 s, 329 programs at the first battle line.
   - Pixel 6a, scenario 2 (monsoon): 21.0/28.7, 17.4/21.3, 17.7/20.0; all [perf] lines p10 19 / median 21.1 vs 1.101 monsoon 14.2/16.8 (+34% / +26%); 0 crashes; load 21.9 s; tap to fight 14-29 s.
