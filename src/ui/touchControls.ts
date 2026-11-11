@@ -133,6 +133,9 @@ body.cot-touch-layout .cot-shell.sel::after{content:'‹';position:absolute;left
 body.cot-touch-layout .cot-shells.touch-open .cot-shell{opacity:1;pointer-events:auto;
   transform:translateX(var(--touch-ammo-x,0));}
 body.cot-touch-layout .cot-shells.touch-open .cot-shell.sel::after{content:'›';}
+body.cot-lefty.cot-touch-layout .cot-shells.touch-open .cot-shell{transform:translateX(calc(-1 * var(--touch-ammo-x,0px)));}
+body.cot-lefty.cot-touch-layout .cot-shell.sel::after{content:'›';left:auto;right:2px;}
+body.cot-lefty.cot-touch-layout .cot-shells.touch-open .cot-shell.sel::after{content:'‹';}
 body.cot-touch-layout .cot-shell canvas{transform:translate(-50%,-50%) scale(.76);}
 body.cot-touch-layout .cot-shell .key,body.cot-touch-layout .cot-con .key{display:none;}
 body.cot-touch-layout .cot-shell .tip{display:none!important;}
