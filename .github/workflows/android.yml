@@ -91,12 +91,17 @@ jobs:
           ZA=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/zipalign
           "$ZA" -c -P 16 4 android/app/build/outputs/apk/debug/app-debug.apk && echo "16 KB alignment ok"
 
+      # Only the manual android-emulator.yml smoke reads this. 2026-11-11: GitHub's
+      # artifact service 404'd ("workflow run not found") and the failed upload
+      # skipped the release build and the Play upload below on every push. Never
+      # fatal now, and 3-day retention (it stored ~98 MB per push for 30 days).
       - name: Upload debug APK
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: tank-royale-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          retention-days: 3
 
       # Release build (only when KEYSTORE_BASE64 secret is set)
       - name: Build release AAB
@@ -115,13 +120,15 @@ jobs:
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
+      # Convenience copy only (Play keeps every uploaded AAB): never fatal, short retention.
       - name: Upload release AAB
         if: ${{ env.KEYSTORE_BASE64 != '' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: tank-royale-release
           path: android/app/build/outputs/bundle/release/app-release.aab
-          retention-days: 90
+          retention-days: 7
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
