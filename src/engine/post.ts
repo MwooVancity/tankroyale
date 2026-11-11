@@ -38,6 +38,7 @@ import * as THREE from 'three';
 import { createPerfLab } from './perfLab.ts';
 import { applyLiteMaterials } from './liteMaterials.ts';
 import { splitInstancedMaterials } from './instancedMaterialSplit.ts';
+import { applyPhoneWorldShadows } from './phoneWorldStyle.ts';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
@@ -52,6 +53,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import {
+  getDeviceTier,
   getPreset,
   onPresetChange,
   reportSustainedOverload,
@@ -493,6 +495,24 @@ const FIREFLY_PAD = 0.06; // absolute headroom so dim neighborhoods don't crush
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
 // CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Art direction C phone grade (dry run measured as a CSS filter: contrast 1.14,
+// saturate 1.3, brightness 1.03), in display space at the end of the screen
+// pass. Appended to a fragment shader's main(); uGradeOn gates it at runtime.
+export const PHONE_GRADE = { contrast: 1.14, saturation: 1.3, brightness: 1.03 };
+export function withPhoneGrade(src: string): string {
+  const { contrast, saturation, brightness } = PHONE_GRADE;
+  const body = `
+  if ( uGradeOn > 0.5 ) {
+    vec3 gc = gl_FragColor.rgb;
+    gc = mix( vec3( dot( gc, vec3( 0.2126, 0.7152, 0.0722 ) ) ), gc, ${saturation.toFixed(3)} );
+    gc = ( gc - 0.5 ) * ${contrast.toFixed(3)} + 0.5;
+    gl_FragColor.rgb = clamp( gc * ${brightness.toFixed(3)}, 0.0, 1.0 );
+  }
+}`;
+  const end = src.lastIndexOf('}');
+  return `uniform float uGradeOn;\n${src.slice(0, end)}${body}${src.slice(end + 1)}`;
+}
+
 const FSR_EASU_FRAG = /* glsl */ `
   precision highp float;
   uniform sampler2D tDiffuse;
@@ -652,25 +672,31 @@ class FsrUpscalePass extends Pass {
       stencilBuffer: false,
     });
     this.intermediate.texture.name = 'FSR1.EASU';
+    // Art direction C (owner 2026-11-11), phones only: the colour grade rides
+    // the pass that writes the screen (the dry run's CSS filter cost a whole
+    // extra compositor pass on phones). Only the pass that ends on screen
+    // grades: EASU feeding RCAS writes an intermediate first.
+    const grade = getDeviceTier() === 'mobile';
+    const graded = (src: string): string => (grade ? withPhoneGrade(src) : src);
     this.easuMaterial = new THREE.ShaderMaterial({
       name: 'FSR1.EASU', vertexShader: CopyShader.vertexShader,
-      fragmentShader: FSR_EASU_FRAG,
+      fragmentShader: graded(FSR_EASU_FRAG),
       uniforms: { tDiffuse: { value: null }, uInputSize: { value: new THREE.Vector2(1, 1) },
-        uOutputSize: { value: this.outputSize } },
+        uOutputSize: { value: this.outputSize }, uGradeOn: { value: 1 } },
       depthTest: false, depthWrite: false, blending: THREE.NoBlending, toneMapped: false,
     });
     this.rcasMaterial = new THREE.ShaderMaterial({
       name: 'FSR1.RCAS', vertexShader: CopyShader.vertexShader,
-      fragmentShader: FSR_RCAS_FRAG,
+      fragmentShader: graded(FSR_RCAS_FRAG),
       uniforms: { tDiffuse: { value: null }, uTexelDelta: { value: new THREE.Vector2(1, 1) },
-        uSharpness: { value: 0.12 } },
+        uSharpness: { value: 0.12 }, uGradeOn: { value: 1 } },
       depthTest: false, depthWrite: false, blending: THREE.NoBlending, toneMapped: false,
     });
     this.copyMaterial = new THREE.ShaderMaterial({
       name: 'NativeOutput.Linear',
       vertexShader: CopyShader.vertexShader,
-      fragmentShader: CopyShader.fragmentShader,
-      uniforms: THREE.UniformsUtils.clone(CopyShader.uniforms),
+      fragmentShader: graded(CopyShader.fragmentShader),
+      uniforms: { ...THREE.UniformsUtils.clone(CopyShader.uniforms), uGradeOn: { value: 1 } },
       depthTest: false, depthWrite: false, blending: THREE.NoBlending, toneMapped: false,
     });
     this.quad = new FullScreenQuad(this.easuMaterial);
@@ -707,6 +733,7 @@ class FsrUpscalePass extends Pass {
     if (upscale) {
       this.easuMaterial.uniforms.tDiffuse.value = source;
       this.easuMaterial.uniforms.uInputSize.value.set(inW, inH);
+      this.easuMaterial.uniforms.uGradeOn.value = applyRcas ? 0 : 1; // RCAS grades the screen pass
       this.quad.material = this.easuMaterial;
       if (applyRcas) {
         if (this.intermediate.width !== outW || this.intermediate.height !== outH) {
@@ -2526,6 +2553,7 @@ export function createPost(
         liteScanAt = performance.now();
         if (preset.liteMaterials) applyLiteMaterials(scene);
         splitInstancedMaterials(scene);
+        if (getDeviceTier() === 'mobile') applyPhoneWorldShadows(scene); // streamed-in world meshes
       }
       dynGovern(dt);
       // sniper zoom / rig changes can retune the camera planes — keep the

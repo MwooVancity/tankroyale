@@ -252,6 +252,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'src/engine/instancedMaterialSplit.selftest.mjs',
     'src/vehicles/farGear.selftest.mjs',
     'src/vehicles/farProxy.selftest.mjs',
+    'src/engine/phoneWorldStyle.selftest.mjs',
     'src/world/terrainTextureRelease.selftest.mjs',
     'src/ui/hudNameplates.selftest.mjs',
     'src/net/signalingCancel.selftest.mjs',

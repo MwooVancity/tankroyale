@@ -19,6 +19,8 @@ import {
   preloadPropModels,
 } from './props.ts';
 import { getMapConfig, type BattlefieldMapConfig } from './maps/index.ts';
+import { applyPhoneWorldShadows } from '../engine/phoneWorldStyle.ts';
+import { getDeviceTier } from '../engine/quality.ts';
 import {
   createObstacleGrid,
   rayCollisionRecord,
@@ -357,6 +359,7 @@ function assembleWorld(
   const group = new THREE.Group();
   group.name = 'world-' + config.id;
   group.add(terrain, vegetation.group, props.group);
+  if (getDeviceTier() === 'mobile') applyPhoneWorldShadows(group); // art direction C
   engineCtx.scene.add(group);
   // perf-governor r1 (discoverthreejs "matrixAutoUpdate = false for static
   // objects"): every world dynamic goes through instanceMatrix writes or

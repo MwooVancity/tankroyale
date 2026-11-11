@@ -4555,7 +4555,7 @@ export function vehicleAmbientFloorHook(shader) {
     );
   }
 }
-export const VEHICLE_INK_EDGE_PHONE = 0.6;
+export const VEHICLE_INK_EDGE_PHONE = 0.8;
 export const VEHICLE_SAT_PHONE = 1.15;
 export function vehicleInkEdge() {
   return getDeviceTier() === 'mobile' ? VEHICLE_INK_EDGE_PHONE : 0;
