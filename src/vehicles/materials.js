@@ -29,7 +29,7 @@ import { isPostwarVehicleEra } from './taxonomy.ts';
 // unchanged; the mobile tier halves it and clamps to the device texture cap.
 // The painters are all canvas.width-relative, so this is a pure resolution
 // change — identical feature plan, quarter the pixels at scale 0.5.
-import { texSize } from '../engine/quality.ts';
+import { texSize, getDeviceTier } from '../engine/quality.ts';
 
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -4537,6 +4537,28 @@ export function vehicleAmbientFloorHook(shader) {
 		// <<< gameplay_feel r4
 	}`,
   );
+  // Phones only (owner 2026-11-10: "the outline of the tanks could be bolder"):
+  // an ink-like DARK contour on grazing edges (reads against snow and sand,
+  // unlike a bright rim) plus a little saturation so tanks part from terrain.
+  // No extra draw; desktop compiles without it.
+  const edge = vehicleInkEdge();
+  if (edge > 0) {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <opaque_fragment>',
+      `{
+		float vehEdge = pow( 1.0 - saturate( abs( dot( normal, geometryViewDir ) ) ), 2.5 );
+		outgoingLight *= 1.0 - ${edge.toFixed(3)} * vehEdge;
+		float vehL = dot( outgoingLight, vec3( 0.2126, 0.7152, 0.0722 ) );
+		outgoingLight = max( mix( vec3( vehL ), outgoingLight, ${VEHICLE_SAT_PHONE.toFixed(3)} ), 0.0 );
+	}
+	#include <opaque_fragment>`,
+    );
+  }
+}
+export const VEHICLE_INK_EDGE_PHONE = 0.6;
+export const VEHICLE_SAT_PHONE = 1.15;
+export function vehicleInkEdge() {
+  return getDeviceTier() === 'mobile' ? VEHICLE_INK_EDGE_PHONE : 0;
 }
 
 // Renderer stubs expose setupShadowMaterial but ignore its hook argument.
