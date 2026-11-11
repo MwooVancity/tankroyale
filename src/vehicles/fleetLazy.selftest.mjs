@@ -31,7 +31,7 @@ assert.equal(owners.size - canonicalOnlyIds.size, Object.keys(PROCEDURAL_PROFILE
 const here = dirname(fileURLToPath(import.meta.url));
 execFileSync(process.execPath, [join(here, '../../tools/gen-legacy-fleet-specs.mjs'), '--check'], {
   stdio: 'inherit',
-  timeout: 30_000,
+  timeout: 90_000, // CI runners vary ~2x (release-tests 628-1070 s on 2026-11-11)
 });
 const facadeUrl = pathToFileURL(join(here, 'fleetFactory.ts')).href;
 const specsUrl = pathToFileURL(join(here, 'specs.js')).href;
@@ -112,6 +112,6 @@ execFileSync(process.execPath, ['--input-type=module', '-e', `
     visual.dispose();
   }
   console.log('demand-loaded fleet sweep:', VISIBLE_TANK_IDS.length);
-`], { stdio: 'inherit', timeout: 240000 });
+`], { stdio: 'inherit', timeout: 480000 }); // full sweep; SIGTERM-killed at 240 s on a slow runner (run 43115437753)
 
 console.log(`fleetLazy.selftest: PASS (${owners.size} demand-owned profiles)`);
