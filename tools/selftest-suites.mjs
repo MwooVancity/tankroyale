@@ -249,6 +249,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'src/game/backgroundPause.selftest.mjs',
     'src/game/reviewPrompt.selftest.mjs',
     'src/game/autoplay.selftest.mjs',
+    'src/auth/admob.selftest.mjs',
     'src/game/roundClock.selftest.mjs',
     'src/engine/unsupportedPhone.selftest.mjs',
     'src/fx/particlesThin.selftest.mjs',

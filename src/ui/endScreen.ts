@@ -476,16 +476,26 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
     if (!adDue) return;
     adDue = false;
     // No ad this match: the Play rating ask may run instead (solo wins only).
-    import('../auth/admob.ts').then(({ takeAdTurn }) => {
+    import('../auth/admob.ts').then(({ takeAdTurn, prepareAd }) => {
       adOnLeave = takeAdTurn();
+      if (adOnLeave) prepareAd();
       return adOnLeave ? undefined : askReviewIfArmed();
     }).catch(() => {});
   });
+  // Shown only where no battle runs: before Battle Again starts one (awaited),
+  // or on arrival in the garage. Any path straight into a battle (online
+  // rematch) drops it.
+  const playOwedAd = async (): Promise<void> => {
+    if (!adOnLeave) return;
+    adOnLeave = false;
+    await import('../auth/admob.ts').then(({ showInterstitialNow }) => showInterstitialNow()).catch(() => {});
+  };
   // any path into a fresh battle retires the screen — including the debug
   // __DEBUG.startBattle flow, which skips the garage's ui:battleStart (the
   // garage path also lands here via hud.setMode -> shotInfo.hideStats)
   bus.on('phase:change', (payload) => {
-    if (isRecord(payload) && payload.phase === 'battle') { adDue = false; api.hide(); }
+    if (isRecord(payload) && payload.phase === 'battle') { adDue = false; adOnLeave = false; api.hide(); }
+    if (isRecord(payload) && payload.phase === 'garage') void playOwedAd();
   });
   bus.on('network:roomState', (context) => {
     roomContext = readRoomContext(context);
@@ -858,8 +868,11 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
         const again = el('button', 'cot-es-btn prime', actions);
         again.type = 'button';
         again.innerHTML = `<span class="btn-inner">${uiIconSVG('rematch', 18)}<span>BATTLE AGAIN</span></span>`;
-        again.addEventListener('click', () => {
+        again.addEventListener('click', async () => {
+          if (again.disabled) return;
+          again.disabled = true;
           bus.emit('ui:click', {});
+          await playOwedAd();
           bus.emit('ui:battleAgain', {});
           api.hide();
         });
@@ -876,10 +889,6 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
     /** Hide + finalize counters (garage entry, battle restart). */
     hide(): void {
       document.body.classList.remove('cot-es-armed'); // legacy overlay usable again
-      if (adOnLeave) {
-        adOnLeave = false;
-        import('../auth/admob.ts').then(({ showInterstitialNow }) => showInterstitialNow()).catch(() => {});
-      }
       if (!visible && !host.classList.contains('show')) return;
       visible = false;
       rematchPanel = null;

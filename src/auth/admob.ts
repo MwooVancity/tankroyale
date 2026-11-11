@@ -89,24 +89,34 @@ export function takeAdTurn(): boolean {
   return true;
 }
 
-/**
- * Show the interstitial (between battles only: the end screen calls this when
- * the player leaves results, never in front of what they just earned).
- * Resolves after the ad closes or 10 s, whichever comes first.
- */
-export async function showInterstitialNow(): Promise<void> {
-  if (pending) return;
-  pending = true;
-  let timedOut = false;
-  const done = new Promise<void>((resolve) => setTimeout(() => { timedOut = true; resolve(); }, 10_000));
-  const ad = (async () => {
+let loading = false;
+let loaded = false;
+/** Load the owed ad while the player reads results, so leaving never waits on a fill. */
+export function prepareAd(): void {
+  if (loading || loaded) return;
+  loading = true;
+  void (async () => {
     try {
       if (!await ensureInit()) return;
-      const AdMob = await getAdMob();
-      await AdMob.prepareInterstitial({ adId: AD_ID });
-      if (timedOut) return;
-      await AdMob.showInterstitial();
-    } catch { /* no Android, cancelled, network down — fine */ }
+      await (await getAdMob()).prepareInterstitial({ adId: AD_ID });
+      loaded = true;
+    } catch { /* no Android, network down: no ad this turn */ } finally { loading = false; }
+  })();
+}
+
+/**
+ * Show the preloaded interstitial now, between battles only (the end screen
+ * waits for this before the next battle starts). Not loaded yet = no ad: a
+ * late fill used to land in the next battle's countdown. Resolves after the
+ * ad closes or 10 s, whichever comes first.
+ */
+export async function showInterstitialNow(): Promise<void> {
+  if (pending || !loaded) return;
+  pending = true;
+  loaded = false;
+  const done = new Promise<void>((resolve) => setTimeout(resolve, 10_000));
+  const ad = (async () => {
+    try { await (await getAdMob()).showInterstitial(); } catch { /* cancelled: fine */ }
   })();
   try {
     await Promise.race([ad, done]);
