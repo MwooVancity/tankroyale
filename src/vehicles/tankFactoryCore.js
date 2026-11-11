@@ -515,6 +515,70 @@ export function collectFarGearObjects(root) {
   return out;
 }
 
+// Far-tank proxy (MASTER-PROMPT item 4, battle bots on phones): past ~130 m a
+// bot is ~25-40 px tall on a 6" screen but still cost ~20 draws. Bake every
+// visible color mesh into ONE vertex-colored mesh per moving node (root and
+// rig_* groups, so turret traverse and gun elevation still show). Textured
+// paint bakes to its base color; cosmetic detail (already hidden past 66 m),
+// small wheel layers and track pads are left out; instanced wheels bake at
+// their current pose. Returns null when nothing would be saved.
+export function buildFarProxy(root, { skip = new Set(), paint, disposables }) {
+  root.updateMatrixWorld(true);
+  const groups = new Map();
+  const inv = new THREE.Matrix4(), rel = new THREE.Matrix4(), inst = new THREE.Matrix4();
+  const originals = [];
+  root.traverse((mesh) => {
+    if (!mesh.isMesh || mesh.isSkinnedMesh || skip.has(mesh) || Array.isArray(mesh.material) || !mesh.material) return;
+    const m = mesh.material, ud = mesh.userData || {};
+    if (m.colorWrite === false || m.transparent || m.visible === false || ud.shadowOnly || ud.authoredShadowProxy) return;
+    let p = mesh, visible = true;
+    while (p && p !== root.parent) { if (!p.visible) { visible = false; break; } p = p.parent; }
+    if (!visible) return;
+    let node = mesh.parent, detail = false;
+    while (node && !MOVING_NODE(node, root)) { if (skip.has(node)) detail = true; node = node.parent; }
+    if (!node || detail) return;
+    if (mesh.isInstancedMesh && (!/Tires$|Discs$|Track/.test(mesh.name || '') || /Pads/.test(mesh.name || ''))) return;
+    originals.push(mesh);
+    if (!groups.has(node)) groups.set(node, []);
+    groups.get(node).push(mesh);
+  });
+  const proxies = [];
+  let sourceDraws = 0;
+  for (const [node, meshes] of groups) {
+    inv.copy(node.matrixWorld).invert();
+    const parts = [];
+    for (const mesh of meshes) {
+      const n = mesh.isInstancedMesh ? mesh.count : 1;
+      for (let i = 0; i < n; i++) {
+        rel.multiplyMatrices(inv, mesh.matrixWorld);
+        if (mesh.isInstancedMesh) { mesh.getMatrixAt(i, inst); rel.multiply(inst); }
+        const g = mesh.geometry.clone().applyMatrix4(rel);
+        for (const name of Object.keys(g.attributes)) if (name !== 'position' && name !== 'normal' && name !== 'uv' && name !== 'color') g.deleteAttribute(name);
+        const painted = toBotPaintGeometry(g, mesh.material);
+        parts.push(painted.index ? painted.toNonIndexed() : painted);
+      }
+    }
+    if (!parts.length) continue;
+    const geometry = mergeGeometries(parts, false);
+    if (!geometry) continue;
+    disposables.push(geometry);
+    const proxy = new THREE.Mesh(geometry, paint());
+    proxy.name = 'farProxy';
+    proxy.userData.farProxy = true;
+    proxy.castShadow = false;
+    proxy.receiveShadow = false;
+    proxy.visible = false;
+    node.add(proxy);
+    proxies.push(proxy);
+    sourceDraws += meshes.length;
+  }
+  if (!proxies.length || sourceDraws <= proxies.length) {
+    for (const proxy of proxies) proxy.removeFromParent();
+    return null;
+  }
+  return { proxies, originals, savedDraws: sourceDraws - proxies.length };
+}
+
 function collectMobileDetailObjects(root, rigParents) {
   const records = [];
   const managedGroups = new Set();
@@ -7372,6 +7436,20 @@ export function createTank(specId, engineCtx, opts = {}) {
   // main tire/disc rows stay, so the silhouette is unchanged.
   let farGearObjects = [];
   let farGearHidden = false;
+  let farProxy = null;        // buildFarProxy result (bots, phones)
+  let farProxyOn = false;
+  let farProxyWas = [];
+  const setFarProxy = (on) => {
+    if (!farProxy || on === farProxyOn) return;
+    farProxyOn = on;
+    if (on) {
+      farProxyWas = farProxy.originals.map((o) => o.visible);
+      for (const o of farProxy.originals) o.visible = false;
+    } else {
+      farProxy.originals.forEach((o, i) => { o.visible = farProxyWas[i] ?? o.visible; });
+    }
+    for (const p of farProxy.proxies) p.visible = on;
+  };
   let battleDetailGroups = [];
   let battleDetailsAttached = true;
   function setBattleDetailsAttached(attached) {
@@ -7602,6 +7680,13 @@ export function createTank(specId, engineCtx, opts = {}) {
         if (hide !== farGearHidden) {
           farGearHidden = hide;
           for (const record of farGearObjects) record.object.visible = record.baseVisible && !hide;
+        }
+      }
+      if (farProxy) {
+        // Inspection contexts (no distance) and wrecks always show the real tank.
+        const far = viewDistM !== undefined && !destroyed && (farProxyOn ? viewDistM > 110 : viewDistM > 130);
+        if (far !== farProxyOn) {
+          setFarProxy(far);
         }
       }
       root.position.copy(renderState.pos);
@@ -8060,6 +8145,7 @@ export function createTank(specId, engineCtx, opts = {}) {
      *   (screenshot composers freeze mid-flight). Default: settled pose.
      */
     setDestroyed(opts) {
+      setFarProxy(false); // wreck visuals snapshot the real parts, never the proxy
       if (destroyed) return;
       // Battle warm normally prepares these exact maps behind the loading
       // cover. Keep setDestroyed self-contained for screenshots, Studio, and
@@ -8289,6 +8375,7 @@ export function createTank(specId, engineCtx, opts = {}) {
           record.object.visible = record.baseVisible;
         }
       }
+      setFarProxy(false);
       if (farGearHidden) {
         farGearHidden = false;
         for (const record of farGearObjects) record.object.visible = record.baseVisible;
@@ -8388,7 +8475,18 @@ export function createTank(specId, engineCtx, opts = {}) {
       root.userData.botMergeSavedDraws = mergeStats.savedDraws;
     }
     if (geometryQuality === 'low') mobileDetailObjects = detailObjects;
-    if (geometryQuality === 'low') farGearObjects = collectFarGearObjects(root);
+    if (geometryQuality === 'low') {
+      farGearObjects = collectFarGearObjects(root);
+      if (botPaint) {
+        farProxy = buildFarProxy(root, { skip: new Set(detailObjects.map((r) => r.object)), paint: () => mats.botPaint(), disposables });
+        root.userData.farProxySavedDraws = farProxy ? farProxy.savedDraws : 0;
+        if (farProxy) {
+          // The proxy owns the small wheel layers too: one switch, no double toggling.
+          farProxy.originals.push(...farGearObjects.map((r) => r.object));
+          farGearObjects = [];
+        }
+      }
+    }
     else if (battleDetailLod) {
       const installed = installBattleDetailGroups(detailObjects);
       battleDetailGroups = installed.groups;
