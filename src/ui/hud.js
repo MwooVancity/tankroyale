@@ -255,6 +255,14 @@ export function setText(el, value) {
   const v = value == null ? '' : String(value);
   if (el.textContent !== v) el.textContent = v;
 }
+// Same rule for attributes and classes: an equal setAttribute or classList.add/remove
+// still queues a mutation and style invalidation every frame.
+export function setAttr(el, name, value) {
+  if (value == null) { if (el.hasAttribute(name)) el.removeAttribute(name); } else if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+}
+export function setClass(el, name, on) {
+  if (el.classList.contains(name) !== !!on) el.classList.toggle(name, !!on);
+}
 
 // Default shell card data (used only when a forced screenshot aim view arrives
 // before any live frame — matches the m1a2 default player loadout).
@@ -1433,7 +1441,7 @@ export function initHud(bus) {
     specialButton.classList.toggle('pending', !!(action?.pendingFire ||
       action?.inFlightShellId != null));
     specialButton.disabled = !player || !!player.combat?.destroyed;
-    specialButton.setAttribute('aria-pressed', action?.active ? 'true' : 'false');
+    setAttr(specialButton, 'aria-pressed', action?.active ? 'true' : 'false');
   }
 
   const shellBox = el('div', 'cot-shells', root);
@@ -1450,12 +1458,11 @@ export function initHud(bus) {
       const slot = slotEls[i];
       const selected = slot.classList.contains('sel');
       const available = !touch || selected || touchAmmoOpen;
-      slot.style.setProperty('--touch-ammo-x', selected ? '0px' : `${-(++rank * 56)}px`);
-      slot.tabIndex = available ? 0 : -1;
-      if (available) slot.removeAttribute('aria-hidden');
-      else slot.setAttribute('aria-hidden', 'true');
-      if (touch && selected) slot.setAttribute('aria-expanded', touchAmmoOpen ? 'true' : 'false');
-      else slot.removeAttribute('aria-expanded');
+      const ammoX = selected ? '0px' : `${-(++rank * 56)}px`;
+      if (slot.style.getPropertyValue('--touch-ammo-x') !== ammoX) slot.style.setProperty('--touch-ammo-x', ammoX);
+      if (slot.tabIndex !== (available ? 0 : -1)) slot.tabIndex = available ? 0 : -1;
+      setAttr(slot, 'aria-hidden', available ? null : 'true');
+      setAttr(slot, 'aria-expanded', touch && selected ? (touchAmmoOpen ? 'true' : 'false') : null);
     }
   }
   function activateShellSlot(index, event) {
@@ -1542,13 +1549,13 @@ export function initHud(bus) {
         cool.style.display = 'block';
         cool.style.setProperty('--cool', `${pct.toFixed(1)}%`);
         setText(count, String(Math.ceil(remaining)));
-        s.classList.add('cooling');
-        s.setAttribute('aria-label', `${CONSUMABLES[i].label}, ready in ${Math.ceil(remaining)} seconds`);
+        setClass(s, 'cooling', true);
+        setAttr(s, 'aria-label', `${CONSUMABLES[i].label}, ready in ${Math.ceil(remaining)} seconds`);
       } else {
         cool.style.display = 'none';
         setText(count, CONSUMABLE_READY_MARK);
-        s.classList.remove('cooling');
-        s.setAttribute('aria-label', `${CONSUMABLES[i].label}, ready`);
+        setClass(s, 'cooling', false);
+        setAttr(s, 'aria-label', `${CONSUMABLES[i].label}, ready`);
       }
     }
   }
@@ -2797,8 +2804,8 @@ export function initHud(bus) {
       setText(s.querySelector('.cnt'), `${n}`);
       const selected = i === slot;
       s.classList.toggle('sel', selected);
-      s.setAttribute('aria-pressed', selected ? 'true' : 'false');
-      s.setAttribute('aria-label', `${selected ? 'Selected ammunition' : 'Select ammunition'}: ${sp.name || sp.type || `slot ${i + 1}`}, ${n} rounds`);
+      setAttr(s, 'aria-pressed', selected ? 'true' : 'false');
+      setAttr(s, 'aria-label', `${selected ? 'Selected ammunition' : 'Select ammunition'}: ${sp.name || sp.type || `slot ${i + 1}`}, ${n} rounds`);
     }
     setTouchAmmoOpen(touchAmmoOpen);
     localSlot = slot;
