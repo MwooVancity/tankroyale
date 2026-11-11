@@ -43,7 +43,7 @@ async function click(sel: string, maxMs: number) {
   return false;
 }
 
-export async function installAutoplay(bus: Bus): Promise<void> {
+export async function installAutoplay(bus: Bus, mapNow: () => string | null = () => null): Promise<void> {
   let native: Native;
   let scenario = 0, map = '', battles = 3;
   try {
@@ -123,7 +123,7 @@ export async function installAutoplay(bus: Bus): Promise<void> {
     battle.tapToFightMs = presented ? Math.round(presented - tapAt) : null; // load + countdown
     while (presented && ended === null && performance.now() - presented < 600000) await wait(1000);
     const matchS = presented ? sinceRollout() : null;
-    Object.assign(battle, { result: ended, matchS, firstSpotS, firstShotS }, summarizeFrames(deltas));
+    Object.assign(battle, { map: mapNow(), result: ended, matchS, firstSpotS, firstShotS }, summarizeFrames(deltas));
     (out.battles as unknown[]).push(battle);
     console.info(`[autoplay] battle ${i + 1} ${JSON.stringify(battle)}`);
     if (!presented || ended === null) break;

@@ -452,7 +452,7 @@ const devTrace = traceRequested
 const bus = createBus(devTrace ? (ev, payload) => devTrace.event(ev, payload) : null);
 installBattleRecords(bus);
 installReviewPrompt(bus, () => !!networkSession.match); // Play rating ask: solo wins only
-void installAutoplay(bus); // Game Loop self-test only; a normal launch does nothing
+void installAutoplay(bus, () => currentWorld()?.mapId ?? null); // Game Loop self-test only; a normal launch does nothing
 const game = legacyPort<MainGameState>(createGameState());
 const rosterPresentation = createRosterPresentation({
   getVehicleName: (specId) => legacyPort<MainEntity['spec']>(getSpec(specId))?.name,
