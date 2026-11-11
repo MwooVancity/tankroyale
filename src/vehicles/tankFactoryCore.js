@@ -502,6 +502,19 @@ function mergeBotMeshesPerMovingNode(root, detailRecords, decalMeshes, disposabl
   return { sourceMeshes, batches, savedDraws: sourceMeshes - batches };
 }
 
+// Far-tank tier (phones, past ~250 m): small instanced road-wheel layers. Keeps
+// tracks, the main tire/disc rows and every plain mesh.
+export const FAR_GEAR_KEEP = /Tires$|Discs$|Track/;
+export function collectFarGearObjects(root) {
+  const out = [];
+  root.traverse((o) => {
+    if (o.isInstancedMesh && /^gear/.test(o.name || '') && !FAR_GEAR_KEEP.test(o.name) && o.visible) {
+      out.push({ object: o, baseVisible: true });
+    }
+  });
+  return out;
+}
+
 function collectMobileDetailObjects(root, rigParents) {
   const records = [];
   const managedGroups = new Set();
@@ -7353,6 +7366,12 @@ export function createTank(specId, engineCtx, opts = {}) {
   let wreckAge = -1;                 // >= 0 while destroyed (ember pulse timer)
   let mobileDetailObjects = [];
   let mobileDetailsVisible = true;
+  // Phones past ~250 m: a tank is ~15 px; its 10+ small road-wheel layers (hub
+  // caps, rims, insets, return rollers) are each one instanced draw and the
+  // largest share of far-tank draws (winter: ~22 per far bot). Tracks and the
+  // main tire/disc rows stay, so the silhouette is unchanged.
+  let farGearObjects = [];
+  let farGearHidden = false;
   let battleDetailGroups = [];
   let battleDetailsAttached = true;
   function setBattleDetailsAttached(attached) {
@@ -7576,6 +7595,13 @@ export function createTank(specId, engineCtx, opts = {}) {
           for (const record of mobileDetailObjects) {
             record.object.visible = record.baseVisible && shouldShow;
           }
+        }
+      }
+      if (farGearObjects.length) {
+        const hide = viewDistM !== undefined && (farGearHidden ? viewDistM > 230 : viewDistM > 260);
+        if (hide !== farGearHidden) {
+          farGearHidden = hide;
+          for (const record of farGearObjects) record.object.visible = record.baseVisible && !hide;
         }
       }
       root.position.copy(renderState.pos);
@@ -8263,6 +8289,10 @@ export function createTank(specId, engineCtx, opts = {}) {
           record.object.visible = record.baseVisible;
         }
       }
+      if (farGearHidden) {
+        farGearHidden = false;
+        for (const record of farGearObjects) record.object.visible = record.baseVisible;
+      }
     },
 
     setVisible(v) { root.visible = v; },
@@ -8358,6 +8388,7 @@ export function createTank(specId, engineCtx, opts = {}) {
       root.userData.botMergeSavedDraws = mergeStats.savedDraws;
     }
     if (geometryQuality === 'low') mobileDetailObjects = detailObjects;
+    if (geometryQuality === 'low') farGearObjects = collectFarGearObjects(root);
     else if (battleDetailLod) {
       const installed = installBattleDetailGroups(detailObjects);
       battleDetailGroups = installed.groups;
