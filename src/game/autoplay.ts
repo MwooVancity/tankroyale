@@ -6,7 +6,7 @@
 // through the same buttons a player taps. The game times itself (Test Lab's
 // fps metric does not see WebView frames) and writes one JSON result.
 import { registerPlugin } from '@capacitor/core';
-import { forceLitePhone, isLitePhone } from '../engine/quality.ts';
+import { forceLitePhone, forceRenderPixelRatio, isLitePhone } from '../engine/quality.ts';
 
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
@@ -56,8 +56,10 @@ export async function installAutoplay(bus: Bus, mapNow: () => string | null = ()
   } catch { return; } // web build / plugin missing: never autoplay
   // Scenario 2 = scenario 1 on monsoon, the heaviest map (Game Loop passes only a number).
   if (scenario === 2) map ||= 'monsoon';
+  // Scenario 3 = scenario 1 with the 3D scene at 0.7x native pixels (A/B vs 1.0 CSS px).
+  else if (scenario === 3) forceRenderPixelRatio(0.7 * (window.devicePixelRatio || 1));
   else if (scenario !== 1) return;
-  console.info(`[autoplay] scenario ${scenario} start lite=${isLitePhone()}`);
+  console.info(`[autoplay] scenario ${scenario} start lite=${isLitePhone()} dpr=${window.devicePixelRatio}`);
   let presented = 0, ended: unknown = null, deltas: number[] = [], last = 0, inBattle = false, visAt = -1e9;
   // 5v5 check (owner 2026-11-10): seconds from rollout to the first spotting and first shell.
   let firstSpotS: number | null = null, firstShotS: number | null = null;

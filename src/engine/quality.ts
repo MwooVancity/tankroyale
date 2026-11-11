@@ -571,8 +571,25 @@ export function isLitePhone(): boolean {
 }
 
 /** @returns {typeof PRESETS[keyof typeof PRESETS]} the active preset object */
+let _ratioOverride = 0;
+let _overrideCache: { base: QualityPreset; value: QualityPreset } | null = null;
 export function getPreset(): QualityPreset {
-  return PRESETS[resolvePresetName()];
+  const preset = PRESETS[resolvePresetName()];
+  if (!_ratioOverride) return preset;
+  if (_overrideCache?.base !== preset) {
+    _overrideCache = { base: preset, value: { ...preset, maxPixelRatio: _ratioOverride, adaptiveBasePixelRatio: _ratioOverride } };
+  }
+  return _overrideCache.value;
+}
+
+// Test Lab A/B (Game Loop scenario 3, 2026-11-11): draw the 3D scene at a fixed
+// CSS-pixel ratio instead of the preset's, to measure the sharpness cost on a
+// real phone. Normal launches never call it.
+export function forceRenderPixelRatio(ratio: number): void {
+  _ratioOverride = Number.isFinite(ratio) && ratio > 0 ? ratio : 0;
+  _overrideCache = null;
+  const preset = getPreset();
+  for (const fn of listeners) fn(preset);
 }
 
 /**
