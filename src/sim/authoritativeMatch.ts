@@ -373,7 +373,9 @@ const makeBotNavigationGrid = createBotNavigationGrid as unknown as (options: {
   getObstacles: () => AuthoritativeObstacle[];
 }) => ReturnType<typeof createBotNavigationGrid>;
 
-const BATTLE_LIMIT_S = 15 * 60;
+// 420 s, same as solo and the HUD (src/game/roundClock.ts BATTLE_TIME_LIMIT_S). Online
+// rounds ran 15 min while the HUD showed 7:00; PM decision 2026-11-11: 420 s everywhere.
+const BATTLE_LIMIT_S = 7 * 60;
 const FIRE_TICK_S = 0.5;
 const MAP_HALF_M = 508;
 const MAX_EVENTS = 128;
