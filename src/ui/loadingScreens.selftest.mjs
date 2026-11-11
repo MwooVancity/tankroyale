@@ -40,9 +40,11 @@ assert.deepEqual(Object.keys(MAP_HEROES), Object.keys(MAP_THUMBS),
 for (const mapId of MAP_IDS) {
   const hero = await readFile(new URL(`../../public${MAP_HEROES[mapId]}`, import.meta.url));
   const thumb = await readFile(new URL(`../../public${MAP_THUMBS[mapId]}`, import.meta.url));
-  assert.deepEqual(webpDimensions(hero), [3840, 2160], `${mapId} hero must remain native 4K`);
+  // Phones top out near 2400 px wide; 4K heroes were 30 MB of app download
+  // for pixels no phone shows (tools/map-thumbs.mjs HERO_W/HERO_H).
+  assert.deepEqual(webpDimensions(hero), [2400, 1350], `${mapId} hero must stay phone-sized (2400x1350)`);
   assert.deepEqual(webpDimensions(thumb), [1280, 720], `${mapId} picker must remain 720p`);
-  assert.ok(hero.length > thumb.length * 3,
+  assert.ok(hero.length > thumb.length * 1.5,
     `${mapId} picker must remain a materially lighter derivative than its hero`);
 }
 

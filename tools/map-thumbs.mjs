@@ -39,7 +39,9 @@ const VIEWS = {
   skybridge: 'battlefield_skybridge',
 };
 const THUMB_W = 1280, THUMB_H = 720;
-const HERO_W = 3840, HERO_H = 2160;
+// Phones top out near 2400 px wide; 4K heroes were 30 MB of app download for
+// pixels no phone shows (src/ui/loadingScreens.selftest.mjs enforces the size).
+const HERO_W = 2400, HERO_H = 1350;
 const QUALITY = 88;
 
 const args = process.argv.slice(2);
