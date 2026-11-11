@@ -393,7 +393,7 @@ export function createSoloBattleLoadingRuntime({
       playerVisualTiming.uploadMs = Math.round(now() - uploadStartedAt);
       playerVisualTiming.totalMs = Math.round(now() - playerVisualStartedAt);
       // B1: which half of the 5.2 s Pixel 6a stage (vc882) to cut.
-      console.info(`[battle-load] player ${playerVisualTiming.specId} build=${playerVisualTiming.buildMs}ms prebake=${playerVisualTiming.prebakeMs}ms upload=${playerVisualTiming.uploadMs}ms`);
+      console.info(`[battle-load] player ${playerVisualTiming.specId} build=${playerVisualTiming.buildMs}ms prebake=${playerVisualTiming.prebakeMs}ms upload=${playerVisualTiming.uploadMs}ms compile=${(game.player.visual?.root?.userData as { loadCompileMs?: number } | undefined)?.loadCompileMs ?? -1}ms`);
       mark('roster');
       battleLoad.rosters(rosterRows('player'), rosterRows('enemy'));
       warmShotCards(game.tanks.map((entity) => entity.specId));
