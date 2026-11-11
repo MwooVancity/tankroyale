@@ -264,6 +264,26 @@ export function setClass(el, name, on) {
   if (el.classList.contains(name) !== !!on) el.classList.toggle(name, !!on);
 }
 
+// Nameplates keep the literal world projection (screen-space packing made
+// formations look farther apart than they are). Teardown 2026-11-10: on a
+// phone, clustered far tanks stacked 128-280 px plates into one unreadable
+// strip (winter, delta, desert). Nearest first; a plate that would overlap a
+// full plate already placed shows only its HP bar (no name), so every tank
+// keeps a marker and the closest ones stay readable.
+export const COMPACT_PLATE_W = 56;
+export function placeHpBars(bars) {
+  bars.sort((a, b) => a.dist - b.dist);
+  const full = [];
+  for (const bar of bars) {
+    const x = bar.sx - bar.layoutW * 0.5, y = bar.sy - 42;
+    const hit = full.some((r) => x < r.x + r.w && x + bar.layoutW > r.x && y < r.y + 31 && y + 31 > r.y);
+    if (!hit) full.push({ x, y, w: bar.layoutW });
+    const w = hit ? COMPACT_PLATE_W : bar.layoutW;
+    setClass(bar.root, 'compact', hit);
+    bar.root.style.transform = `translate3d(${(bar.sx - w * 0.5).toFixed(1)}px,${(hit ? bar.sy - 16 : y).toFixed(1)}px,0)`;
+  }
+}
+
 // Default shell card data (used only when a forced screenshot aim view arrives
 // before any live frame — matches the m1a2 default player loadout).
 const DEFAULT_SHELLS = [
@@ -636,6 +656,8 @@ body.cot-debug-hud .cot-net{display:none!important;}
   border-left:2px solid #f05a5a;text-shadow:0 1px 2px rgba(0,0,0,.8);
   transition:opacity var(--cot-motion-slow) var(--cot-ease-out);opacity:1;}
 .cot-kf.out{opacity:0;}
+.cot-kf .k,.cot-kf .v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:150px;}
+.cot-kf .d,.cot-kf .c{white-space:nowrap;flex:0 0 auto;}
 .cot-kf .k{color:#cfe3f4;font-weight:600;}
 .cot-kf .v{color:#f28f8f;font-weight:600;}
 .cot-kf .d{color:#8a97a3;font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;}
@@ -899,6 +921,8 @@ body.cot-spectating .cot-ret,body.cot-spectating .cot-camoind{display:none !impo
   border-left:4px solid transparent;border-right:4px solid transparent;
   border-top:5px solid rgba(255,116,106,.9);filter:drop-shadow(0 1px 1px #000);}
 .cot-hpb.ally::after{border-top-color:rgba(154,240,154,.9);}
+.cot-hpb.compact{width:56px!important;height:10px;}
+.cot-hpb.compact .nm{display:none;}
 /* Over-target marker: a stable-height instrument follows the exact projected
    turret roof. Width changes only when its target copy changes, preserving
    complete names without causing steady-state frame reflow. */
@@ -2825,6 +2849,7 @@ export function initHud(bus) {
 
   // ---------- world-space tank nameplates ----------
   function updateHpBars(frame) {
+    placedBars.length = 0;
     const camera = frame.camera;
     const seen = updateHpBars._seen || (updateHpBars._seen = new Set());
     seen.clear();
@@ -2870,14 +2895,9 @@ export function initHud(bus) {
         bar.layoutW = Math.max(128, Math.min(280, measured));
         bar.root.style.width = `${bar.layoutW}px`;
       }
-      // Preserve the literal world projection. Nearby tanks are allowed to
-      // produce overlapping plates; screen-space packing made formations look
-      // farther apart than they are. The HUD root clips plates naturally at
-      // the viewport edge instead of pinning an off-edge tank to the frame.
-      const plateX = _sx - bar.layoutW * 0.5;
-      const plateY = _sy - 42;
-      bar.root.style.transform =
-        `translate3d(${plateX.toFixed(1)}px,${plateY.toFixed(1)}px,0)`;
+      // Preserve the literal world projection (placed below, nearest first).
+      bar.sx = _sx; bar.sy = _sy; bar.dist = _sDist;
+      placedBars.push(bar);
       bar.root.style.display = 'block';
       // fade with distance (fully readable close, slightly ghosted near spot range)
       const op = Math.max(0.72, Math.min(1, 1.25 - _sDist / SPOT_RANGE_M));
@@ -2888,10 +2908,13 @@ export function initHud(bus) {
         bar.lastFrac = frac;
       }
     }
+    placeHpBars(placedBars);
+    placedBars.length = 0;
     for (const [id, bar] of hpPool) {
       if (!seen.has(id)) bar.root.style.display = 'none';
     }
   }
+  const placedBars = [];
 
   // ---------- over-target marker ----------
   // WoT core aiming-loop feedback: when the gun ray terminates on an enemy
