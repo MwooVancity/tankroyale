@@ -22,7 +22,10 @@ public class AutoplayPlugin extends Plugin {
     public void get(PluginCall call) {
         Intent i = getActivity().getIntent();
         int scenario = 0;
-        if (i != null && (TEST_LOOP.equals(i.getAction()) || i.getBooleanExtra("autoplay", false))) {
+        // RC3 QA blocker (2026-11-12): MainActivity is exported, so any app could
+        // start autoplay with a plain extra. Release builds: Game Loop action only.
+        if (i != null && (TEST_LOOP.equals(i.getAction())
+                || (debuggable() && i.getBooleanExtra("autoplay", false)))) {
             scenario = i.getIntExtra("scenario", 1);
         }
         JSObject r = new JSObject();
@@ -43,7 +46,11 @@ public class AutoplayPlugin extends Plugin {
         String json = call.getString("json", "{}");
         Log.i("Autoplay", json);
         Intent i = getActivity().getIntent();
-        Uri out = i == null ? null : i.getData();
+        Uri out = i == null || !TEST_LOOP.equals(i.getAction()) ? null : i.getData();
+        if (out != null && !safeResultsUri(out)) {
+            Log.w("Autoplay", "results file refused: " + out);
+            out = null;
+        }
         if (out != null) {
             try (OutputStream o = getContext().getContentResolver().openOutputStream(out)) {
                 if (o != null) o.write(json.getBytes(StandardCharsets.UTF_8));
@@ -52,5 +59,28 @@ public class AutoplayPlugin extends Plugin {
         call.resolve();
         // Game Loop ends when the activity finishes; a local run keeps the game open.
         if (i != null && TEST_LOOP.equals(i.getAction())) getActivity().finish();
+    }
+
+    // The results address comes from the launching app, so it must never point
+    // into this app's private storage (save files, shared_prefs, the Unity bridge).
+    // content:// goes through the provider's own permission checks; file:// is
+    // canonicalised so "../" cannot climb back into the data dir.
+    // AGP 8 generates no BuildConfig here; the manifest flag is the same truth.
+    boolean debuggable() {
+        return (getContext().getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+    }
+
+    boolean safeResultsUri(Uri u) {
+        String scheme = u.getScheme();
+        if ("content".equals(scheme)) return !getContext().getPackageName().equals(u.getAuthority());
+        if (!"file".equals(scheme) || u.getPath() == null) return false;
+        try {
+            String path = new java.io.File(u.getPath()).getCanonicalPath();
+            String data = getContext().getApplicationInfo().dataDir;
+            String[] own = { new java.io.File(data).getCanonicalPath(), "/data/data/" + getContext().getPackageName(),
+                "/data/user/", "/data/user_de/" };
+            for (String p : own) if (path.startsWith(p)) return false;
+            return true;
+        } catch (java.io.IOException e) { return false; }
     }
 }

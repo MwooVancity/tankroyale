@@ -464,24 +464,30 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
   // old button/earnings line before the end screen takes the frame
   // Interstitial on Android (no-op in browser): never over the kill-cam replay and
   // never after a dropped connection. It waits for the replay to hand over to results.
-  let adDue = false;
-  bus.on('battle:ended', (payload) => {
-    document.body.classList.add('cot-es-armed');
-    adDue = (payload as unknown as { reason?: string } | null)?.reason !== 'network_disconnect';
-  });
   // The ad owed by this match plays when the player LEAVES results (Battle
   // again / Garage), never in front of the rewards they just earned.
+  // Every finished battle counts (RC3 QA 2026-11-12: counting on killcam:done
+  // missed wins and draws, which often end without a replay). The ad loads
+  // while the replay/results show; only the rating ask still waits for the
+  // replay to hand over.
   let adOnLeave = false;
-  bus.on('killcam:done', () => {
-    if (!adDue) return;
-    adDue = false;
-    // No ad this match: the Play rating ask may run instead (solo wins only).
+  let reviewDue = false;
+  bus.on('battle:ended', (payload) => {
+    document.body.classList.add('cot-es-armed');
+    adOnLeave = false; reviewDue = false;
+    if ((payload as unknown as { reason?: string } | null)?.reason === 'network_disconnect') return;
     import('../auth/admob.ts').then(({ takeAdTurn, prepareAd }) => {
       adOnLeave = takeAdTurn();
-      if (adOnLeave) prepareAd();
-      return adOnLeave ? undefined : askReviewIfArmed();
+      if (adOnLeave) prepareAd(); else reviewDue = true;
     }).catch(() => {});
   });
+  // No ad this match: the Play rating ask may run once results are on screen
+  // (solo wins only; reviewPrompt decides). Was killcam:done, which wins often never emit.
+  const maybeAskReview = (): void => {
+    if (!reviewDue) return;
+    reviewDue = false;
+    void askReviewIfArmed();
+  };
   // Shown only where no battle runs: before Battle Again starts one (awaited),
   // or on arrival in the garage. Any path straight into a battle (online
   // rematch) drops it.
@@ -494,7 +500,7 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
   // __DEBUG.startBattle flow, which skips the garage's ui:battleStart (the
   // garage path also lands here via hud.setMode -> shotInfo.hideStats)
   bus.on('phase:change', (payload) => {
-    if (isRecord(payload) && payload.phase === 'battle') { adDue = false; adOnLeave = false; api.hide(); }
+    if (isRecord(payload) && payload.phase === 'battle') { reviewDue = false; adOnLeave = false; api.hide(); }
     if (isRecord(payload) && payload.phase === 'garage') void playOwedAd();
   });
   bus.on('network:roomState', (context) => {
@@ -656,6 +662,7 @@ export function createEndScreen(bus: EventBus, host: HTMLElement): EndScreenRunt
     show(result: EndScreenResult, sum: EndScreenSummary): void {
       // Logcat proof that a phone round reached its end screen (tools/testlab.mjs gate).
       console.info(`[round] end ${JSON.stringify(result).slice(0, 120)}`);
+      maybeAskReview();
       stopCounters();
       seq = 0;
       visible = true;
