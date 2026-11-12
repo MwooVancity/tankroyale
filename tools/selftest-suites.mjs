@@ -378,6 +378,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'src/ui/garageOrder.selftest.mjs',
     'src/ui/randomPreviews.selftest.mjs',
     'src/ui/touchControls.selftest.mjs',
+    'src/ui/hudDevItems.selftest.mjs',
     'src/ui/mobileLayout.selftest.mjs',
     'src/ui/minimapOrientation.selftest.mjs',
     'src/vehicles/trackPatterns.selftest.mjs',

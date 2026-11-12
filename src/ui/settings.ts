@@ -70,7 +70,7 @@ type NumericSettingKey =
 type BooleanSettingKey =
   | 'invertY'
   | 'leftHanded'
-  | 'showPerfMeter'
+  | 'showFpsReadout'
   | 'showDebugHud'
   | 'armorAimOverlay'
   | 'alarmHeartbeat';
@@ -935,7 +935,7 @@ export function createSettings(opts: SettingsOptions): SettingsRuntime {
       'Scoped armor flashlight · penetration gradient (default on)',
       'armorAimOverlay',
     );
-    onOffRow(iface, 'FPS / ping readout (top-right · default on)', 'showPerfMeter',
+    onOffRow(iface, 'FPS / ping readout (top-right · default off)', 'showFpsReadout',
       emitPerfMeter);
     onOffRow(iface, 'Debug telemetry dashboard (top-right)', 'showDebugHud',
       emitDebugHud);
@@ -975,7 +975,7 @@ export function createSettings(opts: SettingsOptions): SettingsRuntime {
 
   /** Broadcast the persisted FPS/ping preference (default on, user opt-out). */
   function emitPerfMeter() {
-    emit('ui:perfMeter', { on: !!input.getSettings().showPerfMeter });
+    emit('ui:perfMeter', { on: !!input.getSettings().showFpsReadout });
   }
 
   /** Lazy engineering telemetry follows one persisted Interface setting. */

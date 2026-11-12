@@ -1105,12 +1105,12 @@ export function initHud(bus) {
   let netLastMs = 0;       // wall-clock of previous update (fps EMA only)
   let netLastPaintMs = 0;  // DOM values update at 4 Hz, not every render frame
   let netEmaDt = 1 / 60;
-  // Desktop keeps the player's Interface preference. Mobile always shows the
-  // compact readout directly below its top-right control row.
+  // Every device follows the player's Interface switch (default off). Phones
+  // used to force it on, so players saw "FPS" and "LOCAL LINK" they could not
+  // turn off (art critique 2026-11-11).
   let netOptIn = false;
   function updateNetReadout(frame) {
-    const mobileRequired = document.body.classList.contains('cot-touch-layout');
-    if (!netOptIn && !mobileRequired) return;
+    if (!netOptIn) return;
     const now = performance.now();
     if (netLastMs > 0) {
       const dt = Math.min(0.25, (now - netLastMs) / 1000);
@@ -1129,8 +1129,10 @@ export function initHud(bus) {
     const ping = Math.max(0, Math.min(999, Math.round(Number(frame?.pingMs) || 0)));
     setText(netFpsValue, String(fps));
     netFpsUnit.className = `cot-net-unit fps ${fps >= 50 ? 'good' : fps >= 28 ? 'warn' : 'bad'}`;
-    setText(netPingValue, ping > 0 ? String(ping) : 'LOCAL');
-    setText(netPingLabel, ping > 0 ? 'MS' : 'LINK');
+    // Solo has no network: show no ping at all instead of "LOCAL LINK".
+    netPingUnit.style.display = ping > 0 ? '' : 'none';
+    setText(netPingValue, String(ping));
+    setText(netPingLabel, 'MS');
     netPingUnit.className = `cot-net-unit ping ${ping <= 0 ? 'local' : ping < 80 ? 'good' : ping < 160 ? 'warn' : 'bad'}`;
     netEl.setAttribute('aria-label', ping > 0
       ? `${fps} frames per second, ${ping} milliseconds latency`

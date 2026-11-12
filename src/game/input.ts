@@ -91,7 +91,7 @@ export interface InputSettings {
   padSensitivity: number;
   rmbMode: RmbMode;
   aiDifficulty: AiDifficulty;
-  showPerfMeter: boolean;
+  showFpsReadout: boolean;
   showDebugHud: boolean;
   armorAimOverlay: boolean;
   volMaster: number;
@@ -252,10 +252,11 @@ const DEFAULT_SETTINGS: InputSettings = {
   // hold/exit semantics (CamInput.aimHold).
   rmbMode: 'hold',
   aiDifficulty: 'normal', // bot tier for the NEXT battle: 'easy'|'normal'|'hard'
-  // FPS/ping readout (hud.js cot-net top-right element). It is useful live
-  // connection/performance feedback, so new profiles start with it enabled;
-  // the Interface switch remains available as an explicit opt-out.
-  showPerfMeter: true,
+  // FPS/ping readout (hud.js cot-net top-right element): a developer number
+  // on a player's screen (art critique 2026-11-11), so off until the player
+  // turns it on in Interface. Renamed from showPerfMeter so profiles that
+  // stored the old default-on value start off too.
+  showFpsReadout: false,
   // The engineering dashboard is intentionally off for players and lazy-
   // loads only after an explicit Interface toggle or F8 press.
   showDebugHud: false,
@@ -561,7 +562,7 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
     if (typeof storedSettings.rmbMode === 'string' && isRmbMode(storedSettings.rmbMode)) {
       settings.rmbMode = storedSettings.rmbMode;
     }
-    if (typeof storedSettings.showPerfMeter === 'boolean') settings.showPerfMeter = storedSettings.showPerfMeter;
+    if (typeof storedSettings.showFpsReadout === 'boolean') settings.showFpsReadout = storedSettings.showFpsReadout;
     if (typeof storedSettings.showDebugHud === 'boolean') settings.showDebugHud = storedSettings.showDebugHud;
     if (typeof storedSettings.armorAimOverlay === 'boolean') settings.armorAimOverlay = storedSettings.armorAimOverlay;
     if (typeof storedSettings.alarmHeartbeat === 'boolean') settings.alarmHeartbeat = storedSettings.alarmHeartbeat;
@@ -1102,7 +1103,7 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
 
     /** @returns {{sensitivity:number,invertY:boolean,sniperSensScale:number,
      *  aimSmoothing:number,padSensitivity:number,aiDifficulty:string,
-     *  showPerfMeter:boolean,showDebugHud:boolean,armorAimOverlay:boolean,
+     *  showFpsReadout:boolean,showDebugHud:boolean,armorAimOverlay:boolean,
      *  rmbMode:('hold'|'toggle'|'freelook')}} live settings object */
     getSettings() { return settings; },
 
@@ -1118,7 +1119,7 @@ export function createInput(opts: { lockElement?: HTMLElement | null } = {}): In
       };
       if (key === 'invertY') settings.invertY = !!value;
       else if (key === 'leftHanded') settings.leftHanded = !!value;
-      else if (key === 'showPerfMeter') settings.showPerfMeter = !!value;
+      else if (key === 'showFpsReadout') settings.showFpsReadout = !!value;
       else if (key === 'showDebugHud') settings.showDebugHud = !!value;
       else if (key === 'armorAimOverlay') settings.armorAimOverlay = !!value;
       else if (key === 'alarmHeartbeat') settings.alarmHeartbeat = !!value;
