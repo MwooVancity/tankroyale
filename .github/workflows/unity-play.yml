@@ -1,0 +1,79 @@
+name: Unity to Play (closed track "unity")
+
+# Owner 2026-11-11: "upload Unity builds to a separate closed test track 'unity',
+# signed by a GitHub Actions job using the existing upload key secrets. Never
+# touch production or the internal track."
+#
+# How to use (Unity session):
+#   1. Build the AAB for app.tankroyale with versionCode >= 100000 (three.js
+#      builds use GITHUB_RUN_NUMBER, ~190 in 2026-11). Unsigned or debug-signed.
+#   2. gh release create unity-<versionCode> --draft --title "Unity <vc>" path/to/app.aab
+#      (a DRAFT release is visible only to repo collaborators; the repo is public)
+#   3. gh workflow run unity-play.yml -f tag=unity-<versionCode>
+# The draft release is deleted after a successful upload; kept on failure for a retry.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Draft release tag holding the Unity AAB (unity-<versionCode>)'
+        required: true
+
+# Same queue as android.yml: two Play edits at once expire each other.
+concurrency:
+  group: android-play-upload
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sign-and-upload:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Fetch the AAB from the draft release
+        run: |
+          case "$TAG" in unity-[0-9]*) ;; *) echo "tag must be unity-<versionCode>"; exit 1;; esac
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p '*.aab' -O unity.aab
+          ls -l unity.aab
+
+      - name: Check package and versionCode
+        run: |
+          curl -sSfLo bundletool.jar https://github.com/google/bundletool/releases/download/1.17.2/bundletool-all-1.17.2.jar
+          PKG=$(java -jar bundletool.jar dump manifest --bundle unity.aab --xpath /manifest/@package)
+          VC=$(java -jar bundletool.jar dump manifest --bundle unity.aab --xpath /manifest/@android:versionCode)
+          echo "package=$PKG versionCode=$VC"
+          [ "$PKG" = "app.tankroyale" ] || { echo "wrong package: $PKG"; exit 1; }
+          [ "$VC" -ge 100000 ] || { echo "versionCode $VC < 100000 would collide with three.js run numbers"; exit 1; }
+          [ "$TAG" = "unity-$VC" ] || { echo "tag $TAG does not match versionCode $VC"; exit 1; }
+
+      - name: Sign with the upload key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > upload.jks
+          # Drop any debug signature first; only top-level META-INF holds it.
+          zip -q -d unity.aab 'META-INF/*' || true
+          jarsigner -keystore upload.jks -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" \
+            -sigalg SHA256withRSA -digestalg SHA-256 unity.aab "$KEY_ALIAS"
+          rm -f upload.jks
+          jarsigner -verify unity.aab | tail -1
+
+      # Track is fixed to "unity": this job can never reach production or internal.
+      - name: Upload to Google Play (closed track "unity")
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.tankroyale
+          releaseFiles: unity.aab
+          track: unity
+          status: completed
+
+      - name: Delete the draft release
+        run: gh release delete "$TAG" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag

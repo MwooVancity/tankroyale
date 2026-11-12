@@ -59,6 +59,16 @@ if (cmd === 'tracks') {
   await api(`/${edit.id}/tracks/internal`, 'PUT', { track: 'internal', releases: [release] });
   const done = await api(`/${edit.id}:commit`, 'POST');
   console.log('committed edit', done.id, 'internal ->', vc);
+} else if (cmd === 'create-unity-track') {
+  // One-off (owner 2026-11-11): the closed testing track "unity" for Unity builds,
+  // which .github/workflows/unity-play.yml uploads to. Name fixed; never another track.
+  const { tracks } = await api(`/${edit.id}/tracks`);
+  if (tracks.some((t) => t.track === 'unity')) { await api(`/${edit.id}`, 'DELETE'); console.log('track unity already exists'); }
+  else {
+    await api(`/${edit.id}/tracks`, 'POST', { track: 'unity', type: 'CLOSED_TESTING', formFactor: 'DEFAULT' });
+    const done = await api(`/${edit.id}:commit`, 'POST');
+    console.log('committed edit', done.id, 'created closed track unity');
+  }
 } else if (cmd === 'listings') {
   const { listings } = await api(`/${edit.id}/listings`);
   for (const l of listings || []) console.log(l.language, '|', l.title, '|', l.shortDescription, '|', l.fullDescription.split('\n')[0], '| ads line:', /ad may show/.test(l.fullDescription), '| "No ads":', /No ads/.test(l.fullDescription));
