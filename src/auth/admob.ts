@@ -1,6 +1,6 @@
 /**
  * AdMob interstitial — every 3rd match, shown when the player leaves results.
- * Auto-dismissed after 10 seconds regardless of ad state.
+ * Leaving results waits for the ad to close (dismiss/failed event, 60 s cap).
  * Silently no-ops in browser / if network is down.
  *
  * UMP consent: collected once on first run (required by AdMob ToS for EU/EEA
@@ -14,7 +14,10 @@ const AD_ID ='ca-app-pub-8997828618122077/6954732609';
 let initialized = false;
 let pending = false;
 
-async function getAdMob() {
+// NOT async: awaiting a Capacitor plugin proxy calls its .then as a native method
+// ("AdMob.then() is not implemented on android") and never settles: ads never
+// loaded since e782bd16 (RC3 QA 2026-11-12).
+function getAdMob(): AdMobApi {
   // A runtime import('@capacitor-community/admob') cannot resolve inside the
   // packaged app, so ads never loaded. registerPlugin binds to the native side.
   if (!Capacitor.isNativePlatform()) throw new Error('AdMob: not native');
@@ -26,10 +29,11 @@ interface AdMobApi {
   showConsentForm(): Promise<void>;
   prepareInterstitial(opts: { adId: string }): Promise<void>;
   showInterstitial(): Promise<void>;
+  addListener(event: string, fn: () => void): Promise<{ remove(): Promise<void> }>;
 }
 let adMobPlugin: AdMobApi | undefined;
 
-async function ensureConsent(AdMob: Awaited<ReturnType<typeof getAdMob>>): Promise<void> {
+async function ensureConsent(AdMob: AdMobApi): Promise<void> {
   try {
     const info = await AdMob.requestConsentInfo({
       debugGeography: 0,
@@ -45,7 +49,7 @@ async function ensureConsent(AdMob: Awaited<ReturnType<typeof getAdMob>>): Promi
 async function ensureInit(): Promise<boolean> {
   if (initialized) return true;
   try {
-    const AdMob = await getAdMob();
+    const AdMob = getAdMob();
     // iOS 14.5+: App Tracking Transparency must be requested before AdMob
     // initialize(), otherwise Apple rejects the binary and ads are limited.
     if ((globalThis as Record<string, unknown>).Capacitor &&
@@ -88,7 +92,7 @@ export function prepareAd(): void {
   void (async () => {
     try {
       if (!await ensureInit()) return;
-      await (await getAdMob()).prepareInterstitial({ adId: AD_ID });
+      await getAdMob().prepareInterstitial({ adId: AD_ID });
       loaded = true;
     } catch { /* no Android, network down: no ad this turn */ } finally { loading = false; }
   })();
@@ -104,13 +108,23 @@ export async function showInterstitialNow(): Promise<void> {
   if (pending || !loaded) return;
   pending = true;
   loaded = false;
-  const done = new Promise<void>((resolve) => setTimeout(resolve, 10_000));
-  const ad = (async () => {
-    try { await (await getAdMob()).showInterstitial(); } catch { /* cancelled: fine */ }
-  })();
+  // admob 8.x resolves showInterstitial when the ad SHOWS, not when it closes
+  // (RC3 QA 2026-11-12): wait for dismiss/failed so the next battle never loads
+  // behind the ad. Capped so a lost event can never strand the player.
+  const handles: Array<{ remove(): Promise<void> }> = [];
+  let closed!: () => void;
+  const closedP = new Promise<void>((resolve) => { closed = resolve; });
+  const cap = new Promise<void>((resolve) => setTimeout(resolve, AD_CLOSE_CAP_MS));
   try {
-    await Promise.race([ad, done]);
-  } finally {
+    const AdMob = getAdMob();
+    for (const ev of ['interstitialAdDismissed', 'interstitialAdFailedToShow']) {
+      try { handles.push(await AdMob.addListener(ev, () => closed())); } catch { /* no events: cap only */ }
+    }
+    try { await AdMob.showInterstitial(); } catch { closed(); /* not shown: nothing to wait for */ }
+    await Promise.race([closedP, cap]);
+  } catch { /* not native */ } finally {
+    for (const h of handles) h.remove().catch(() => {});
     pending = false;
   }
 }
+const AD_CLOSE_CAP_MS = 60_000;

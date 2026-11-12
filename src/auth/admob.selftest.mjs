@@ -13,12 +13,20 @@ register('data:text/javascript,' + encodeURIComponent(hook));
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
 let fillMs = 300, shown = 0;
-globalThis.__adStub = {
+// Behaves like a Capacitor plugin proxy: EVERY property is a native call,
+// including .then, which never settles (RC3 QA: "AdMob.then() is not
+// implemented on android"; awaiting the proxy froze ads since e782bd16).
+let thenCalled = false, adOpenMs = 0;
+const listeners = new Map();
+const impl = {
   initialize: async () => {}, showConsentForm: async () => {},
   requestConsentInfo: async () => ({ isConsentFormAvailable: false, status: 'OBTAINED' }),
   prepareInterstitial: () => new Promise((r) => setTimeout(r, fillMs)),
-  showInterstitial: async () => { shown++; },
+  // admob 8.x: resolves on SHOW; dismiss arrives later as an event.
+  showInterstitial: async () => { shown++; setTimeout(() => listeners.get('interstitialAdDismissed')?.(), adOpenMs); },
+  addListener: async (ev, fn) => { listeners.set(ev, fn); return { remove: async () => listeners.delete(ev) }; },
 };
+globalThis.__adStub = new Proxy(impl, { get: (t, p) => (p in t ? t[p] : p === 'then' ? () => { thenCalled = true; } : () => new Promise(() => {})) });
 const ad = await import('./admob.ts');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -48,5 +56,12 @@ await ad.showInterstitialNow();
 assert.equal(shown, 1, 'preloaded ad shows at leave');
 await ad.showInterstitialNow();
 assert.equal(shown, 1, 'one ad per turn');
+assert.equal(thenCalled, false, 'the plugin proxy is never awaited');
+
+// Leaving waits for the ad to CLOSE, not just open (next battle never loads behind it).
+fillMs = 10; adOpenMs = 300; ad.prepareAd(); await wait(50);
+t = Date.now(); await ad.showInterstitialNow();
+assert.ok(Date.now() - t >= 280, `waited for dismiss (${Date.now() - t} ms)`);
+assert.equal(listeners.size, 0, 'listeners removed after close');
 
 console.log('admob.selftest: first 2 lifetime battles ad-free then every 3rd, no late ad, no wait on fill, one ad per turn passed');

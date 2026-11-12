@@ -380,6 +380,7 @@ export const SELFTEST_SUITES = Object.freeze({
     'src/ui/touchControls.selftest.mjs',
     'src/ui/hudDevItems.selftest.mjs',
     'src/game/saveBridge.selftest.mjs',
+    'src/game/autoplayIntent.selftest.mjs',
     'src/ui/mobileLayout.selftest.mjs',
     'src/ui/minimapOrientation.selftest.mjs',
     'src/vehicles/trackPatterns.selftest.mjs',
