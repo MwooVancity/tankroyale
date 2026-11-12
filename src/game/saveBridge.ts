@@ -37,7 +37,8 @@ export const KNOWN_SAVE_KEYS: Record<string, string> = {
   'tr.netdiag.v1': 'network diagnostics panel visible flag',
   'tr.review.battles': 'battles counted for the rating prompt',
   'tr.review.lastAskMs': 'last rating prompt time (ms epoch)',
-  'tr.ads.firstSeenMs': 'first app open time for ad pacing (ms epoch)',
+  'tr.ads.battles.v1': 'lifetime finished battles for ad pacing (first 2 ad-free)',
+  'tr.ads.firstSeenMs': 'legacy (before 2026-11-12): first app open time, no longer read',
 };
 
 /** All localStorage entries as strings (the bridge payload). */

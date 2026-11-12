@@ -63,26 +63,19 @@ async function ensureInit(): Promise<boolean> {
 
 let matchesSinceAd = 0;
 const MATCHES_PER_AD = 3; // one interstitial every 3rd match, not every match
-const FIRST_SEEN_KEY = 'tr.ads.firstSeenMs';
-const FIRST_SESSION_MS = 30 * 60e3;
-
-/**
- * Never an ad in a player's first session: the first process that reaches a
- * match end records the time, and that process stays ad-free for 30 min
- * (most players who leave do so on day 1). Storage blocked = treat as first.
- */
-let firstSeenMs = 0;
-try {
-  firstSeenMs = Number(localStorage.getItem(FIRST_SEEN_KEY)) || 0;
-  if (!firstSeenMs) { firstSeenMs = Date.now(); localStorage.setItem(FIRST_SEEN_KEY, String(firstSeenMs)); }
-} catch { firstSeenMs = Date.now(); }
-export function inFirstSession(nowMs = Date.now(), seenMs = firstSeenMs): boolean {
-  return nowMs - seenMs < FIRST_SESSION_MS;
-}
+// Owner rule (via PM, 2026-11-11): no interstitial in a player's first 2
+// finished battles, lifetime; then every 3rd battle. Replaces the 30-minute
+// first-session window, which also kept ads off a player's long first session.
+export const FREE_BATTLES = 2;
+const BATTLES_KEY = 'tr.ads.battles.v1';
+let lifetimeBattles = 0;
+try { lifetimeBattles = Number(localStorage.getItem(BATTLES_KEY)) || 0; } catch { /* blocked: counts from 0 this run */ }
 
 /** Called once per finished match: true = this match owes an ad when the player leaves results. */
 export function takeAdTurn(): boolean {
-  if (inFirstSession()) return false;
+  lifetimeBattles += 1;
+  try { localStorage.setItem(BATTLES_KEY, String(lifetimeBattles)); } catch { /* blocked: memory only */ }
+  if (lifetimeBattles <= FREE_BATTLES) return false;
   matchesSinceAd += 1;
   if (matchesSinceAd < MATCHES_PER_AD) return false;
   matchesSinceAd = 0;

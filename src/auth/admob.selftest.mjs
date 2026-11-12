@@ -10,7 +10,7 @@ const hook = `export async function resolve(spec, ctx, next) {
 }`;
 register('data:text/javascript,' + encodeURIComponent(hook));
 
-const store = new Map([['tr.ads.firstSeenMs', String(Date.now() - 31 * 60e3)]]);
+const store = new Map();
 globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
 let fillMs = 300, shown = 0;
 globalThis.__adStub = {
@@ -22,7 +22,18 @@ globalThis.__adStub = {
 const ad = await import('./admob.ts');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-assert.deepEqual([ad.takeAdTurn(), ad.takeAdTurn(), ad.takeAdTurn()], [false, false, true], 'every 3rd match');
+// New player: battles 1-2 never owe an ad (lifetime, persisted), then every 3rd: battles 5, 8.
+const turns = Array.from({ length: 8 }, () => ad.takeAdTurn());
+assert.deepEqual(turns, [false, false, false, false, true, false, false, true], 'first 2 battles free, then every 3rd');
+assert.equal(store.get('tr.ads.battles.v1'), '8', 'lifetime count persisted');
+assert.equal(ad.FREE_BATTLES, 2);
+assert.ok(!('inFirstSession' in ad), 'the 30-minute window is gone');
+// Returning player (count survives a restart): no free battles again.
+{
+  store.set('tr.ads.battles.v1', '40');
+  const again = await import('./admob.ts?restart');
+  assert.deepEqual([again.takeAdTurn(), again.takeAdTurn(), again.takeAdTurn()], [false, false, true], 'restart: no new free battles, every 3rd');
+}
 
 // Slow fill: the player leaves results before the ad loaded. No ad, no wait, and none later.
 fillMs = 600; ad.prepareAd();
@@ -38,5 +49,4 @@ assert.equal(shown, 1, 'preloaded ad shows at leave');
 await ad.showInterstitialNow();
 assert.equal(shown, 1, 'one ad per turn');
 
-assert.equal(ad.inFirstSession(Date.now(), Date.now() - 10 * 60e3), true, 'first 30 min ad-free');
-console.log('admob.selftest: no late ad, no wait on fill, one ad per turn passed');
+console.log('admob.selftest: first 2 lifetime battles ad-free then every 3rd, no late ad, no wait on fill, one ad per turn passed');
