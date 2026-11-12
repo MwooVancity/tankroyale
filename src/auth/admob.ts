@@ -61,7 +61,6 @@ async function ensureInit(): Promise<boolean> {
   }
 }
 
-let matchesSinceAd = 0;
 const MATCHES_PER_AD = 3; // one interstitial every 3rd match, not every match
 // Owner rule (via PM, 2026-11-11): no interstitial in a player's first 2
 // finished battles, lifetime; then every 3rd battle. Replaces the 30-minute
@@ -75,11 +74,9 @@ try { lifetimeBattles = Number(localStorage.getItem(BATTLES_KEY)) || 0; } catch 
 export function takeAdTurn(): boolean {
   lifetimeBattles += 1;
   try { localStorage.setItem(BATTLES_KEY, String(lifetimeBattles)); } catch { /* blocked: memory only */ }
-  if (lifetimeBattles <= FREE_BATTLES) return false;
-  matchesSinceAd += 1;
-  if (matchesSinceAd < MATCHES_PER_AD) return false;
-  matchesSinceAd = 0;
-  return true;
+  // Every 3rd battle counted over the player's lifetime (3, 6, 9...), so the
+  // first 2 are free by construction and a restart never resets the cadence.
+  return lifetimeBattles > FREE_BATTLES && lifetimeBattles % MATCHES_PER_AD === 0;
 }
 
 let loading = false;

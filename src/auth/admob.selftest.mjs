@@ -22,17 +22,17 @@ globalThis.__adStub = {
 const ad = await import('./admob.ts');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// New player: battles 1-2 never owe an ad (lifetime, persisted), then every 3rd: battles 5, 8.
+// New player: battles 1-2 never owe an ad (lifetime, persisted), then every 3rd: battles 3, 6.
 const turns = Array.from({ length: 8 }, () => ad.takeAdTurn());
-assert.deepEqual(turns, [false, false, false, false, true, false, false, true], 'first 2 battles free, then every 3rd');
+assert.deepEqual(turns, [false, false, true, false, false, true, false, false], 'first 2 battles free, ad at 3 and 6');
 assert.equal(store.get('tr.ads.battles.v1'), '8', 'lifetime count persisted');
 assert.equal(ad.FREE_BATTLES, 2);
 assert.ok(!('inFirstSession' in ad), 'the 30-minute window is gone');
-// Returning player (count survives a restart): no free battles again.
+// Returning player (count survives a restart): no new free battles; the lifetime cadence continues (ad at 42).
 {
   store.set('tr.ads.battles.v1', '40');
   const again = await import('./admob.ts?restart');
-  assert.deepEqual([again.takeAdTurn(), again.takeAdTurn(), again.takeAdTurn()], [false, false, true], 'restart: no new free battles, every 3rd');
+  assert.deepEqual([again.takeAdTurn(), again.takeAdTurn(), again.takeAdTurn()], [false, true, false], 'restart: lifetime cadence, ad at battle 42');
 }
 
 // Slow fill: the player leaves results before the ad loaded. No ad, no wait, and none later.
