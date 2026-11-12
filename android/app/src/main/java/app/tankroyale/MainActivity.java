@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(AutoplayPlugin.class);
+        registerPlugin(SaveBridgePlugin.class);
         super.onCreate(savedInstanceState);
 
         // Keep screen on during gameplay — belt-and-suspenders with the JS wake lock
