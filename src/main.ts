@@ -63,6 +63,7 @@ import { applyLiteMaterials } from './engine/liteMaterials.ts';
 import { pauseOnBackground } from './game/backgroundPause.ts';
 import { installReviewPrompt } from './game/reviewPrompt.ts';
 import { installAutoplay } from './game/autoplay.ts';
+import { installSaveBridge } from './game/saveBridge.ts';
 import { setShadowTwinning } from './engine/instancedMaterialSplit.ts';
 import { createSky } from './engine/sky.ts';
 import { createLighting } from './engine/lighting.ts';
@@ -458,6 +459,7 @@ const bus = createBus(devTrace ? (ev, payload) => devTrace.event(ev, payload) : 
 installBattleRecords(bus);
 installReviewPrompt(bus, () => !!networkSession.match); // Play rating ask: solo wins only
 void installAutoplay(bus, () => currentWorld()?.mapId ?? null); // Game Loop self-test only; a normal launch does nothing
+installSaveBridge(); // Unity save migration (E12): saves mirrored to SharedPreferences
 const game = legacyPort<MainGameState>(createGameState());
 const rosterPresentation = createRosterPresentation({
   getVehicleName: (specId) => legacyPort<MainEntity['spec']>(getSpec(specId))?.name,
