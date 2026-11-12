@@ -69,6 +69,11 @@ if (cmd === 'tracks') {
     const done = await api(`/${edit.id}:commit`, 'POST');
     console.log('committed edit', done.id, 'created closed track unity');
   }
+} else if (cmd === 'details') {
+  // Read-only: contact website/email (app-ads.txt must sit at the website's domain root).
+  const d = await api(`/${edit.id}/details`);
+  console.log('website:', d.contactWebsite || '(none)', '| email set:', !!d.contactEmail, '| default language:', d.defaultLanguage);
+  await api(`/${edit.id}`, 'DELETE');
 } else if (cmd === 'listings') {
   const { listings } = await api(`/${edit.id}/listings`);
   for (const l of listings || []) console.log(l.language, '|', l.title, '|', l.shortDescription, '|', l.fullDescription.split('\n')[0], '| ads line:', /ad may show/.test(l.fullDescription), '| "No ads":', /No ads/.test(l.fullDescription));
