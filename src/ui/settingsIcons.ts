@@ -46,7 +46,7 @@ export const SETTINGS_OPTION_ICONS = Object.freeze({
   padSensitivity: { id: 'controller' },
   rmbMode: { id: 'mouse', tone: 'cyan' },
   aiDifficulty: { id: 'battleBots', tone: 'red' },
-  showPerfMeter: { id: 'performance', tone: 'green' },
+  showFpsReadout: { id: 'performance', tone: 'green' },
   showDebugHud: { id: 'telemetry', tone: 'violet' },
   armorAimOverlay: { id: 'armorFlashlight' },
   volMaster: { id: 'sound', tone: 'cyan' },

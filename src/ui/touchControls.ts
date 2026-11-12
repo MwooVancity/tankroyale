@@ -12,6 +12,8 @@ import {
 } from '../engine/quality.ts';
 import type { TouchControlsOptions, TouchControlsRuntime } from './touchControlsAccess.ts';
 
+export const REST_FADE_MS = 3000; // no finger down this long: controls fade (see createTouchControls)
+
 const CSS = `
 .cot-touch{position:fixed;inset:0;z-index:60;display:none;pointer-events:none;
   font-family:${FONT_STACK};color:#eef4f9;-webkit-user-select:none;user-select:none;
@@ -67,6 +69,7 @@ const CSS = `
   left:50%;transform:translateX(-50%);font-family:${FONT_COND};font-size:11px;font-weight:800;
   letter-spacing:.13em;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px 3px #000;}
 .cot-touch .fire.alt{left:166px;right:auto;bottom:156px;width:64px;height:64px;opacity:.86;}
+.cot-touch.rest .joy,.cot-touch.rest .round{opacity:.45;transition:opacity .6s ease;}
 .cot-touch .fire.alt svg{width:20px;height:34px}.cot-touch .fire.alt .lb{display:none}
 .cot-touch .fire.aiming{border-color:#ffd27a;box-shadow:0 0 0 5px rgba(240,160,48,.13),
   0 0 22px rgba(240,150,40,.45),inset 0 2px 7px rgba(0,0,0,.65);}
@@ -444,6 +447,22 @@ export function createTouchControls({
   root.className = 'cot-touch';
   root.setAttribute('role', 'group');
   root.setAttribute('aria-label', 'Mobile battle controls');
+  // Fade at rest (art critique 2026-11-11): 3 s with no finger down, stick and
+  // round buttons drop to low opacity so less of the battlefield is covered.
+  // Size, position and hit areas never change; the next touch restores them.
+  const touching = new Set<number>();
+  let restTimer = 0;
+  const armRest = () => {
+    clearTimeout(restTimer);
+    if (!touching.size) restTimer = window.setTimeout(() => root.classList.add('rest'), REST_FADE_MS);
+  };
+  const lift = (e: PointerEvent) => { touching.delete(e.pointerId); armRest(); };
+  window.addEventListener('pointerdown', (e) => {
+    touching.add(e.pointerId); clearTimeout(restTimer); root.classList.remove('rest');
+  }, { capture: true, passive: true });
+  window.addEventListener('pointerup', lift, { capture: true, passive: true });
+  window.addEventListener('pointercancel', lift, { capture: true, passive: true });
+  armRest();
   const aimLayer = document.createElement('div');
   aimLayer.className = 'cot-touch-aim';
   aimLayer.setAttribute('role', 'group');
@@ -741,8 +760,9 @@ export function createTouchControls({
   function renderGraphicsButton(): void {
     const name = graphicsChoice();
     const label = PRESETS[name]?.label || name;
-    const short = label === 'Performance' ? 'Perf' : label === 'Balanced' ? 'Bal' :
-      label === 'Quality' ? 'Qual' : label;
+    // Low/Mid/High: 'Perf' read as a developer button (art critique 2026-11-11).
+    const short = label === 'Performance' ? 'Low' : label === 'Balanced' ? 'Mid' :
+      label === 'Quality' ? 'High' : label;
     // Bare preset name: 'GFX Perf' overflowed the 44 px button onto its neighbours (vc887).
     graphicsButton.querySelector<HTMLElement>('.ql')!.textContent = short;
     graphicsButton.setAttribute('aria-label', `Graphics quality: ${label}. Tap to change level`);
