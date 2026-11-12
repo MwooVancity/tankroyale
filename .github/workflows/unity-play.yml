@@ -76,4 +76,4 @@ jobs:
           status: completed
 
       - name: Delete the draft release
-        run: gh release delete "$TAG" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
+        run: gh release delete "$TAG" -R "$GITHUB_REPOSITORY" --yes  # a draft has no git tag to clean up
