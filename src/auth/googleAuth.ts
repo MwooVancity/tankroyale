@@ -28,15 +28,16 @@ function saveUser(user: GoogleUser): void {
   try { localStorage.setItem(STORED_KEY, JSON.stringify(user)); } catch { /* ok */ }
 }
 
-const ASKED_KEY = 'tr.google.asked';
+// Once per app run (PM 2026-11-12, RC3 QA #5): a cancel or failure is no longer
+// remembered forever, so a player who cancelled can sign in on a later launch
+// by tapping an online mode again. Within one run the sheet never reopens
+// (teardown 2026-11-10). The old persisted 'tr.google.asked' flag is ignored.
 let askedThisSession = false;
 export function googleAsked(): boolean {
-  if (askedThisSession) return true;
-  try { return localStorage.getItem(ASKED_KEY) === '1'; } catch { return false; }
+  return askedThisSession;
 }
 function markGoogleAsked(): void {
   askedThisSession = true;
-  try { localStorage.setItem(ASKED_KEY, '1'); } catch { /* session flag still holds */ }
 }
 
 export function clearGoogleUser(): void {

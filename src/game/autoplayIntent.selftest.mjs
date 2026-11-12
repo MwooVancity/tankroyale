@@ -11,10 +11,15 @@ assert.match(java, /FLAG_DEBUGGABLE/, 'debuggable from the manifest flag (no Bui
 assert.match(java, /Uri out = i == null \|\| !TEST_LOOP\.equals\(i\.getAction\(\)\) \? null : i\.getData\(\);/,
   'results are written only for a Game Loop launch');
 assert.match(java, /if \(out != null && !safeResultsUri\(out\)\)/, 'every results address is checked');
-assert.match(java, /getCanonicalPath\(\)/, 'file paths canonicalised ("../" cannot climb back)');
-for (const p of ['dataDir', '"/data/data/"', '"/data/user/"', '"/data/user_de/"']) assert.ok(java.includes(p), `private root ${p} refused`);
-assert.match(java, /"content"\.equals\(scheme\)\) return !getContext\(\)\.getPackageName\(\)\.equals\(u\.getAuthority\(\)\)/,
-  'content:// allowed except our own provider');
+const safe = /boolean safeResultsUri\(Uri u\) \{([\s\S]*?)\r?\n {4}\}/.exec(java)?.[1] || '';
+assert.match(safe, /"content"\.equals\(u\.getScheme\(\)\)/, 'content:// results only (file:// refused)');
+assert.doesNotMatch(safe, /"file"/, 'no file:// path');
+assert.match(safe, /!u\.getAuthority\(\)\.startsWith\(getContext\(\)\.getPackageName\(\)\)/, 'our own provider refused');
+// map, lite and battles extras only when debuggable.
+assert.match(java, /boolean dbg = debuggable\(\);/);
+assert.match(java, /String map = i == null \|\| !dbg \? null/, 'map extra debug only');
+assert.match(java, /if \(dbg && scenario > 0 && i\.getBooleanExtra\("lite", false\)\)/, 'lite extra debug only');
+assert.match(java, /int battles = i == null \|\| !dbg \? 0/, 'battles extra debug only');
 
 // Ads count every finished battle (wins and draws often end without a replay).
 const es = await readFile(new URL('../ui/endScreen.ts', import.meta.url), 'utf8');
