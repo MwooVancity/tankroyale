@@ -31,12 +31,14 @@ public class AutoplayPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("scenario", scenario);
         // Optional fixed map (`--es map monsoon`) so a run compares like with like.
-        String map = i == null ? null : i.getStringExtra("map");
+        // map, lite and battles are local-run extras: debug builds only (PM 2026-11-12).
+        boolean dbg = debuggable();
+        String map = i == null || !dbg ? null : i.getStringExtra("map");
         if (map != null && map.matches("[a-z0-9-]{1,32}")) r.put("map", map);
         // Local runs only (`--ez lite true`): play the budget-phone (Lite) way on any GPU.
-        if (scenario > 0 && i.getBooleanExtra("lite", false)) r.put("lite", true);
+        if (dbg && scenario > 0 && i.getBooleanExtra("lite", false)) r.put("lite", true);
         // Local soak only (`--ei battles 40`): more than the Game Loop's 3 battles, capped.
-        int battles = i == null ? 0 : i.getIntExtra("battles", 0);
+        int battles = i == null || !dbg ? 0 : i.getIntExtra("battles", 0);
         if (scenario > 0 && battles > 0) r.put("battles", Math.min(battles, 60));
         call.resolve(r);
     }
@@ -61,26 +63,17 @@ public class AutoplayPlugin extends Plugin {
         if (i != null && TEST_LOOP.equals(i.getAction())) getActivity().finish();
     }
 
-    // The results address comes from the launching app, so it must never point
-    // into this app's private storage (save files, shared_prefs, the Unity bridge).
-    // content:// goes through the provider's own permission checks; file:// is
-    // canonicalised so "../" cannot climb back into the data dir.
     // AGP 8 generates no BuildConfig here; the manifest flag is the same truth.
     boolean debuggable() {
         return (getContext().getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
     }
 
+    // The results address comes from the launching app, so it must never point
+    // into this app's private storage (save files, shared_prefs, the Unity bridge).
+    // content:// only (PM 2026-11-12): file:// is refused outright, and our own
+    // provider is refused so the address cannot loop back into private files.
     boolean safeResultsUri(Uri u) {
-        String scheme = u.getScheme();
-        if ("content".equals(scheme)) return !getContext().getPackageName().equals(u.getAuthority());
-        if (!"file".equals(scheme) || u.getPath() == null) return false;
-        try {
-            String path = new java.io.File(u.getPath()).getCanonicalPath();
-            String data = getContext().getApplicationInfo().dataDir;
-            String[] own = { new java.io.File(data).getCanonicalPath(), "/data/data/" + getContext().getPackageName(),
-                "/data/user/", "/data/user_de/" };
-            for (String p : own) if (path.startsWith(p)) return false;
-            return true;
-        } catch (java.io.IOException e) { return false; }
+        return "content".equals(u.getScheme()) && u.getAuthority() != null
+            && !u.getAuthority().startsWith(getContext().getPackageName());
     }
 }
