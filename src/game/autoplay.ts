@@ -8,11 +8,12 @@
 import { registerPlugin } from '@capacitor/core';
 import { forceLitePhone, forceRenderPixelRatio, isLitePhone } from '../engine/quality.ts';
 import { forceEmergencyPreset } from '../engine/emergencyPreset.ts';
+import { useTestAds } from '../auth/admob.ts';
 
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
 type Bus ={ on(ev: string, fn: (e: any) => void): void };
-type Native = { get(): Promise<{ scenario: number; map?: string; lite?: boolean; battles?: number }>; finish(o: { json: string }): Promise<void> };
+type Native = { get(): Promise<{ scenario: number; map?: string; lite?: boolean; battles?: number; debug?: boolean; testLab?: boolean }>; finish(o: { json: string }): Promise<void> };
 
 /** Frame intervals (ms) of one battle -> per-second fps p10/p50 and freezes > 2 s. */
 export function summarizeFrames(deltas: number[]) {
@@ -54,6 +55,8 @@ export async function installAutoplay(bus: Bus, mapNow: () => string | null = ()
     map = got.map || '';
     if (got.battles) battles = got.battles; // local soak only (`--ei battles N`)
     if (got.lite) forceLitePhone();
+    // Never live ads from a debug build, an autoplay run or a Test Lab / pre-launch device.
+    if (got.debug || got.testLab || scenario > 0) useTestAds();
   } catch { return; } // web build / plugin missing: never autoplay
   // Scenario 2 = scenario 1 on monsoon, the heaviest map (Game Loop passes only a number).
   if (scenario === 2) map ||= 'monsoon';
