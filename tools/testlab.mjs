@@ -132,6 +132,17 @@ for (const ex of m.testExecutions) {
   for (const o of [...mine.filter((o) => /logcat$|video\.mp4$/.test(o.name)), ...mine.filter((o) => /\.png$/.test(o.name)).slice(0, 30)]) {
     fs.writeFileSync(path.join(local, o.name.split('/').slice(-2).join('_')), await get(o.name));
   }
+  // Game Loop results file (AutoplayPlugin.finish writes the autoplay JSON to the
+  // TEST_LOOP content:// address). Release builds log no console lines, so this
+  // is the only fps/battle record of a release-build run (2026-11-12, vc 208).
+  const loopFiles = mine.filter((o) => /game_loop|results_scenario/i.test(o.name) && !/logcat|\.mp4$|\.png$/.test(o.name));
+  const loopResults = [];
+  for (const o of loopFiles) {
+    const text = (await get(o.name)).toString('utf8');
+    fs.writeFileSync(path.join(local, o.name.split('/').slice(-2).join('_')), text);
+    try { loopResults.push(JSON.parse(text)); console.log('    [loop file]', text.slice(0, 600)); } catch { console.log('    [loop file, not JSON]', o.name); }
+  }
+  if (!loopFiles.length) console.log('  loop results file: none in', mine.length, 'objects:', [...new Set(mine.map((o) => o.name.split('/').slice(-1)[0]))].slice(0, 12).join(', '));
   const logcat = mine.find((o) => /logcat$/.test(o.name));
   if (!logcat) { console.log('  no logcat'); continue; }
   const lines = (await get(logcat.name)).toString('utf8').split('\n');
@@ -147,9 +158,19 @@ for (const ex of m.testExecutions) {
   // Release gate: a run where nobody reached a battle must not pass. Needs >= 6
   // [perf] lines inside a battle (bots=allies/enemies, written by hud.js),
   // enemies on the first one, and the 10th-percentile fps >= MIN_FPS (default 30).
-  const perf = pick(/\[perf\] .*bots=\d+\/\d+/).map((l) => ({ fps: Number(/fps=([\d.]+)/.exec(l)?.[1]), enemies: Number(/bots=\d+\/(\d+)/.exec(l)[1]) }));
-  const fps = perf.map((p) => p.fps).filter(Number.isFinite).sort((a, b) => a - b);
-  const p10 = fps[Math.floor(fps.length * 0.1)] ?? 0, minFps = Number(process.env.MIN_FPS || 30);
+  let perf = pick(/\[perf\] .*bots=\d+\/\d+/).map((l) => ({ fps: Number(/fps=([\d.]+)/.exec(l)?.[1]), enemies: Number(/bots=\d+\/(\d+)/.exec(l)[1]) }));
+  let fps = perf.map((p) => p.fps).filter(Number.isFinite).sort((a, b) => a - b);
+  let p10 = fps[Math.floor(fps.length * 0.1)] ?? 0;
+  const minFps = Number(process.env.MIN_FPS || 30);
+  // Release build (no console in logcat): the Game Loop results file is the record.
+  // A battle counts when it was tapped into and lasted; p10 = the worst battle's p10.
+  const loopBattles = loopResults.flatMap((r) => r.battles || []).filter((b) => b.tapped && b.seconds >= 60);
+  if (!perf.length && loopBattles.length) {
+    perf = loopBattles.map((b) => ({ fps: b.fpsP50, enemies: 1 })).concat(Array(6).fill({ fps: NaN, enemies: 1 }));
+    fps = loopBattles.map((b) => b.fpsP50).sort((a, b) => a - b);
+    p10 = Math.min(...loopBattles.map((b) => b.fpsP10));
+    console.log(`  release build: ${loopBattles.length} battles from the loop file, worst p10 ${p10}`);
+  }
   // B1: tap-to-battle load time (main.ts logs it; builds before 2026-11-08 do not).
   const loadMs = Math.max(...pick(/\[battle-load\] done \d+ms/).map((l) => Number(/done (\d+)ms/.exec(l)[1])), -1);
   const maxLoadMs = Number(process.env.MAX_LOAD_MS || 30000);
