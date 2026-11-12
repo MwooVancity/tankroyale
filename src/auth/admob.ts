@@ -9,7 +9,13 @@
 
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
-const AD_ID ='ca-app-pub-8997828618122077/6954732609';
+const AD_ID = 'ca-app-pub-8997828618122077/6954732609';
+// Google's public demo interstitial unit: safe to load anywhere, never billed.
+export const TEST_AD_ID = 'ca-app-pub-3940256099942544/1033173712';
+let testAds = false;
+/** Debug builds, autoplay runs and Test Lab / pre-launch devices: demo ads only. */
+export function useTestAds(): void { testAds = true; }
+export function adUnitId(): string { return testAds ? TEST_AD_ID : AD_ID; }
 
 let initialized = false;
 let pending = false;
@@ -92,7 +98,7 @@ export function prepareAd(): void {
   void (async () => {
     try {
       if (!await ensureInit()) return;
-      await getAdMob().prepareInterstitial({ adId: AD_ID });
+      await getAdMob().prepareInterstitial({ adId: adUnitId() });
       loaded = true;
     } catch { /* no Android, network down: no ad this turn */ } finally { loading = false; }
   })();

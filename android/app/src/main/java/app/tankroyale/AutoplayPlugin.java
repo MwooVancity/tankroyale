@@ -40,6 +40,12 @@ public class AutoplayPlugin extends Plugin {
         // Local soak only (`--ei battles 40`): more than the Game Loop's 3 battles, capped.
         int battles = i == null || !dbg ? 0 : i.getIntExtra("battles", 0);
         if (scenario > 0 && battles > 0) r.put("battles", Math.min(battles, 60));
+        // Test ads (RC4 QA 2026-11-12): debug builds and Test Lab / Play pre-launch
+        // devices (Robo crawls too, via the firebase.test.lab setting) must never
+        // request live ads (invalid-traffic risk for the AdMob account).
+        r.put("debug", dbg);
+        r.put("testLab", "true".equals(android.provider.Settings.System.getString(
+            getContext().getContentResolver(), "firebase.test.lab")));
         call.resolve(r);
     }
 

@@ -21,6 +21,12 @@ assert.match(java, /String map = i == null \|\| !dbg \? null/, 'map extra debug 
 assert.match(java, /if \(dbg && scenario > 0 && i\.getBooleanExtra\("lite", false\)\)/, 'lite extra debug only');
 assert.match(java, /int battles = i == null \|\| !dbg \? 0/, 'battles extra debug only');
 
+// Test ads: debug builds, autoplay runs and Test Lab / pre-launch devices never load the live unit.
+assert.match(java, /r\.put\("debug", dbg\);/, 'plugin reports debuggable');
+assert.match(java, /"firebase\.test\.lab"/, 'plugin reports Test Lab devices (Robo crawls too)');
+const ap = await readFile(new URL('./autoplay.ts', import.meta.url), 'utf8');
+assert.match(ap, /if \(got\.debug \|\| got\.testLab \|\| scenario > 0\) useTestAds\(\);/, 'autoplay switches to demo ads');
+
 // Ads count every finished battle (wins and draws often end without a replay).
 const es = await readFile(new URL('../ui/endScreen.ts', import.meta.url), 'utf8');
 const ended = /bus\.on\('battle:ended', \(payload\) => \{[\s\S]*?\n  \}\);/.exec(es)?.[0] || '';

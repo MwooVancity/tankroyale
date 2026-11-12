@@ -16,12 +16,12 @@ let fillMs = 300, shown = 0;
 // Behaves like a Capacitor plugin proxy: EVERY property is a native call,
 // including .then, which never settles (RC3 QA: "AdMob.then() is not
 // implemented on android"; awaiting the proxy froze ads since e782bd16).
-let thenCalled = false, adOpenMs = 0;
+let thenCalled = false, adOpenMs = 0, lastAdId = '';
 const listeners = new Map();
 const impl = {
   initialize: async () => {}, showConsentForm: async () => {},
   requestConsentInfo: async () => ({ isConsentFormAvailable: false, status: 'OBTAINED' }),
-  prepareInterstitial: () => new Promise((r) => setTimeout(r, fillMs)),
+  prepareInterstitial: (o) => { lastAdId = o.adId; return new Promise((r) => setTimeout(r, fillMs)); },
   // admob 8.x: resolves on SHOW; dismiss arrives later as an event.
   showInterstitial: async () => { shown++; setTimeout(() => listeners.get('interstitialAdDismissed')?.(), adOpenMs); },
   addListener: async (ev, fn) => { listeners.set(ev, fn); return { remove: async () => listeners.delete(ev) }; },
@@ -64,4 +64,9 @@ t = Date.now(); await ad.showInterstitialNow();
 assert.ok(Date.now() - t >= 280, `waited for dismiss (${Date.now() - t} ms)`);
 assert.equal(listeners.size, 0, 'listeners removed after close');
 
+// Live unit for players; Google's demo unit once a debug/autoplay/Test Lab run asks for it (RC4 QA).
+assert.equal(lastAdId, 'ca-app-pub-8997828618122077/6954732609', 'players get the live unit');
+ad.useTestAds(); fillMs = 5; ad.prepareAd(); await wait(30);
+assert.equal(lastAdId, 'ca-app-pub-3940256099942544/1033173712', 'test runs load the demo unit');
+await ad.showInterstitialNow();
 console.log('admob.selftest: first 2 lifetime battles ad-free then every 3rd, no late ad, no wait on fill, one ad per turn passed');
