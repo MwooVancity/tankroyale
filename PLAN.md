@@ -6,6 +6,12 @@
 **Owner goal (2026-11-09, via PM):** $1,500/month from ads and 5-star reviews. No paid or rewarded reviews (Play bans them). Path: lag, tap-to-battle time, download size, rating box proven after a win.
 
 ## Numbers (dated)
+- 2026-11-12 RELEASED: vc 208 (RC5) to PRODUCTION on the owner's own words in the release session's chat ("Yes, release 208"), including the 30 fps gate waiver (OWNER_OVERRIDE recorded by play.mjs). Edit 08380078424209738527; read-back: production 1.208.0 (208). Play may still review it before players get it. Next: watch Play vitals and reviews for 208 (crash and ANR rate; ads now load for the first time since 2026-09-24).
+- 2026-11-12 HANDOVER (owner via PM: "consolidate everything back in this chat"): the release session (worktree charming-greider-59a14b) stops; the PM session owns tank-royale maintenance and Play. Open items handed over:
+  - app-ads.txt: missing, and the listing has no developer website. Owner question pending: create MwooVancity/mwoovancity.github.io serving /app-ads.txt, then set the listing website.
+  - Unity uploads: `gh release create unity-<vc> --draft <aab>`, then `gh workflow run unity-play.yml -f tag=unity-<vc>`, only when no android-play-upload run is pending. Track unity is at 100001; the owner must add testers.
+  - Standing approvals are in memory unity-production-approval: Unity staged rollout, then store captures.
+  - Remote RC branches rc2-rc5 stay as release records.
 - 2026-11-12 physical runs (3 of 5; Unity used 2):
   - RC5 vc 208 RELEASE build (universal APK from the CI AAB), Game Loop s1, matrix-1dhgbjv217r9r:
     - Pixel 6a: 3 battles, 0 crashes, 0 freezes. Fjord p10 23.9 / p50 28.4, caldera 21.6 / 26.5, skybridge 21.2 / 24.9; worst frame 184 ms; tap to fight 29-47 s.
