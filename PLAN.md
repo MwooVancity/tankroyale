@@ -2,6 +2,7 @@
 
 **Goal:** a playable Android game on Google Play (app.tankroyale) that lifts the 2.25-star rating ("couldn't even play").
 **Reader:** a phone player starting a Bots battle.
+**Mode (owner decision 2026-11-11, via PM): three.js is in MAINTENANCE.** The game moves to Unity (the Unity session owns it). Here: ship RC2 (vc 189) after the 3-plugin QA pass and the owner's own yes in chat; fix only real bugs and Play review or vitals issues; no new performance or graphics work (docs/GRAPHICS-OVERHAUL.md is superseded); run the 2026-11-12 emergency physical runs (data for the Unity tier budgets); support the Unity session with exports and spec answers. Items under "Next" and the audits below are frozen unless they are a real player bug.
 **Owner goal (2026-11-09, via PM):** $1,500/month from ads and 5-star reviews. No paid or rewarded reviews (Play bans them). Path: lag, tap-to-battle time, download size, rating box proven after a win.
 
 ## Numbers (dated)

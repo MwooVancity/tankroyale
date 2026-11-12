@@ -1,5 +1,7 @@
 # Graphics overhaul (owner 2026-11-11: "i want the complete refactoring of graphics. we need a 180 degree")
 
+> **SUPERSEDED 2026-11-11 by the Unity port** (owner decision, relayed by the PM). The new look is built in Unity by the Unity session; no overhaul work happens in three.js. The three.js game is in maintenance mode: ship RC2 (vc 189), then fix only real bugs and Play review or vitals issues. Kept for reference: the art direction below still guides the Unity build.
+
 The look gets a full redesign; gameplay does not. On the look, this overrides "port, don't redesign". Sources: the second opinion the owner got (ChatGPT, 2026-11-11), the art-style dry run (calcscrape/reports/artstyle/: tweaks A/B/C barely changed the look, C cut 45-85 draws), the Unity dry run (calcscrape/reports/Tank Royale Unity port dry run.md) and docs/MASTER-PROMPT.md (still the performance order).
 
 ## Keep (do not touch)
