@@ -7,11 +7,7 @@
 // fps metric does not see WebView frames) and writes one JSON result.
 import { registerPlugin } from '@capacitor/core';
 import { forceLitePhone, forceRenderPixelRatio, isLitePhone } from '../engine/quality.ts';
-<<<<<<< HEAD
-=======
-import { forceEmergencyPreset } from '../engine/emergencyPreset.ts';
 import { useTestAds } from '../auth/admob.ts';
->>>>>>> 3ef012b3 (fix(ads): demo ad unit for debug builds, autoplay runs and Test Lab devices)
 
 /** 3 battles of at most 10 min plus loads fit; Test Lab's virtual cap is 60 min. */
 export const AUTOPLAY_WATCHDOG_MS = 40 * 60000;
