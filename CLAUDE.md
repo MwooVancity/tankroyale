@@ -13,8 +13,8 @@ Each change gets one report line: "Tank fan: ..." saying what that player gets.
 ## Master prompt, not piecemeal (HARD, owner 2026-11-10: "I keep asking u to make this #1 but we keep doing piecemeal")
 `docs/MASTER-PROMPT.md` is the work order: audit every item (EXISTS / PARTIAL / GAP), hold the hard budgets (draw calls per frame: Pixel 6a <=150, moto g05 <=80; 6a p95 <=33.3 ms), then work phases 1-4 in order without stopping, one report line per item. A change that breaks a budget is reverted. New work not on the list goes onto the list first.
 
-## Graphics overhaul (HARD, owner 2026-11-11: "i want the complete refactoring of graphics. we need a 180 degree")
-`docs/GRAPHICS-OVERHAUL.md` is the work order for the look: a full visual redesign with gameplay, combat model, server, tank lineup and controls kept. Performance foundation first, then 3 pilot tanks + monsoon rebuilt and shown on a real phone before rolling out. For the look it overrides "port, don't redesign" below.
+## Unity rebuild; this game is in maintenance (HARD, owner 2026-11-11: "We for sure will go unity")
+The game is being rebuilt in Unity in C:/Users/mwoo7/Desktop/tank-royale-unity (its own session and its own writer). This three.js game gets only real bug fixes and Play review/vitals fixes, plus exports and spec answers for the Unity session. No new performance or graphics work here; `docs/GRAPHICS-OVERHAUL.md` is superseded and kept as art reference only. Releases still need the owner's own yes.
 
 ## Port, don't redesign (HARD, owner 2026-11-10: "already a great GitHub repo game. It just sucked for Android")
 The game design is good; the job is whatever makes it worse on a phone than on desktop. No new systems unless autoplay shows a measured problem. Edge cases first, each with its test: fps per map and phone tier, load time, download size, touch (dead zone, thumb aim, button size, drive+aim+fire at once), HUD at 6", app switch/call/screen off, renderer killed, 2-hour heat and memory, old WebView, edge-to-edge, ads, mobile network, battery. Autoplay targets: time to battle <30 s, first contact <20 s, 2-hour run with 0 crashes.
