@@ -74,6 +74,13 @@ if (cmd === 'tracks') {
   const d = await api(`/${edit.id}/details`);
   console.log('website:', d.contactWebsite || '(none)', '| email set:', !!d.contactEmail, '| default language:', d.defaultLanguage);
   await api(`/${edit.id}`, 'DELETE');
+} else if (cmd === 'set-website') {
+  // node tools/play.mjs <sa.json> set-website https://... (owner yes 2026-11-12: listing website for app-ads.txt)
+  if (!/^https:\/\/[^\s/]+\/?$/.test(vc || '')) { await api(`/${edit.id}`, 'DELETE'); throw new Error('set-website needs a bare https origin'); }
+  const d = await api(`/${edit.id}/details`);
+  await api(`/${edit.id}/details`, 'PATCH', { contactWebsite: vc, contactEmail: d.contactEmail, defaultLanguage: d.defaultLanguage });
+  const done = await api(`/${edit.id}:commit`, 'POST');
+  console.log('website set to', vc, '(was', d.contactWebsite || 'none', ') edit', done.id);
 } else if (cmd === 'listings') {
   const { listings } = await api(`/${edit.id}/listings`);
   for (const l of listings || []) console.log(l.language, '|', l.title, '|', l.shortDescription, '|', l.fullDescription.split('\n')[0], '| ads line:', /ad may show/.test(l.fullDescription), '| "No ads":', /No ads/.test(l.fullDescription));
